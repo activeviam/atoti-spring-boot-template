@@ -38,7 +38,7 @@ Caused by: java.nio.file.FileSystemNotFoundException: null
 	...
 ```
 	
-This is related to this Spring Boot known issue: `https://github.com/spring-projects/spring-boot/issues/7161`. In order to fix the issue, override the `-Dfile.trades` property and pass it to the JVM:
+This is related to this Spring Boot known issue: [https://github.com/spring-projects/spring-boot/issues/7161](https://github.com/spring-projects/spring-boot/issues/7161). In order to fix this issue, override the `-Dfile.trades` property and pass it to the JVM:
 
 ```bash
 java -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
