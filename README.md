@@ -44,7 +44,7 @@ This is related to this Spring Boot known issue: [https://github.com/spring-proj
 java -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
 ```
 
-### Running on macos
+### Running on macOS
 Add the following argument `-Dactiveviam.chunkAllocatorClass=com.qfs.chunk.direct.allocator.impl.MmapDirectChunkAllocator` to your JVM, so it then becomes:
 
 ```bash
