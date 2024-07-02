@@ -18,16 +18,16 @@ This project is a starting point for your own projects and implementations. You 
 - ActivePivot jar files (commercial software)
 - Running the application requires a license for the ActivePivot software.
 
-Clone or download this repository and run `mvn clean install`.
-This will generate a jar file, which can be run using standard java commands.
+Clone or download this repository and run `mvn clean install`. This will generate a jar file, which can be run using standard java commands.
+
+**Note:** If your build is unsuccessful, try skipping tests: `mvn clean install -DskipTests`
 
 ## 💻 Usage
 
 ### Running the fat jar
-The project contains, out of the box, an extremely simple datastore schema and small `trades.csv` file.<br>
-This file you can find in `src/main/resources/data`.<br>
-NB: if running as a jar file then this file might not be found as it is in the classpath, you will need to explicitly point to it.<br>
-You will probably see this stack trace:
+The project contains, out of the box, an extremely simple datastore schema and small `trades.csv` file. You can find this file in `src/main/resources/data`.<br>
+
+**Note:** If running as a jar file then this file might not be found as it is in the classpath, instead you will need to explicitly point to it. You will probably see this stack trace:
 
 ```java
 Caused by: java.nio.file.FileSystemNotFoundException: null
@@ -38,21 +38,17 @@ Caused by: java.nio.file.FileSystemNotFoundException: null
 	...
 ```
 	
-This is related to this Spring Boot known issue: `https://github.com/spring-projects/spring-boot/issues/7161`<br>
-In order to fix that override the `-Dfile.trades` property and pass it to the jvm:
+This is related to this Spring Boot known issue: `https://github.com/spring-projects/spring-boot/issues/7161`. In order to fix the issue, override the `-Dfile.trades` property and pass it to the jvm:
 
 ```bash
 java -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
 ```
+
 ### Running on macos
-Add the following argument `-DchunkAllocatorClass=com.qfs.chunk.direct.allocator.impl.MmapDirectChunkAllocator` to your jvm, so then it becomes:
+Add the following argument `-Dactiveviam.chunkAllocatorClass=com.qfs.chunk.direct.allocator.impl.MmapDirectChunkAllocator` to your JVM, so it then becomes:
 
 ```bash
-java -Dactivepivot.license="/Users/aya/Documents/ActivePivot.lic.37846" --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED -Dactiveviam.chunkAllocatorClass=com.qfs.chunk.direct.allocator.impl.MmapDirectChunkAllocator -Dfile.trades=/Users/aya/Desktop/pivot-spring-boot/src/main/resources/data/trades.csv -jar /Users/aya/.m2/repository/com/activeviam/apps/pivot-spring-boot/6.0.12/pivot-spring-boot-6.0.12.jar
-```
-
-```bash
-java -DchunkAllocatorClass=com.qfs.chunk.direct.allocator.impl.MmapDirectChunkAllocator -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
+java -Dactivepivot.license="/Users/aya/Documents/ActivePivot.lic.37846" --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED -Dactiveviam.chunkAllocatorClass=com.qfs.chunk.direct.allocator.impl.MmapDirectChunkAllocator -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
 ```
 
 ### Connecting to the ActivePivot
