@@ -2,7 +2,7 @@
   <img width="80" src="./activeviam.svg" />
 </p>
 <h1 align="center">Pivot Spring Boot</h1>
-<p align="center">A minimalist ActivePivot project built with Spring Boot for you to edit, customize and use as a base for your ActivePivot projects</p>
+<p align="center">A minimalist ActivePivot project built with Spring Boot for you to edit, customize and use as a base for your ActivePivot projects.</p>
 
 ---
 
@@ -38,7 +38,7 @@ Caused by: java.nio.file.FileSystemNotFoundException: null
 	...
 ```
 	
-This is related to this Spring Boot known issue: `https://github.com/spring-projects/spring-boot/issues/7161`. In order to fix the issue, override the `-Dfile.trades` property and pass it to the jvm:
+This is related to this Spring Boot known issue: `https://github.com/spring-projects/spring-boot/issues/7161`. In order to fix the issue, override the `-Dfile.trades` property and pass it to the JVM:
 
 ```bash
 java -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
@@ -48,7 +48,13 @@ java -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
 Add the following argument `-Dactiveviam.chunkAllocatorClass=com.qfs.chunk.direct.allocator.impl.MmapDirectChunkAllocator` to your JVM, so it then becomes:
 
 ```bash
-java -Dactivepivot.license="/Users/aya/Documents/ActivePivot.lic.37846" --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED -Dactiveviam.chunkAllocatorClass=com.qfs.chunk.direct.allocator.impl.MmapDirectChunkAllocator -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
+java -Dactiveviam.chunkAllocatorClass=com.qfs.chunk.direct.allocator.impl.MmapDirectChunkAllocator -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
+```
+
+**Note:** If unable to start the ActivePivot Spring Boot applicaiton, you may need to add some additional arguments as well, try the following:
+
+```bash
+java --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED -Dactiveviam.chunkAllocatorClass=com.qfs.chunk.direct.allocator.impl.MmapDirectChunkAllocator -Dactivepivot.license=<absolute path to license file> -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
 ```
 
 ### Connecting to the ActivePivot
@@ -59,7 +65,6 @@ java -Dactivepivot.license="/Users/aya/Documents/ActivePivot.lic.37846" --add-op
 
 - List of REST endpoints provided can be found at `http://localhost:9090/activeviam/swagger-ui/index.html`
 
-The default security credentials are `admin:admin`, but can be modified in the `SecurityConfig` class (we use Spring Security).<br>
-You should change this before going into production.<br>
-You are also recommended to change the jwt key pair in `application.yaml` by running the class `JwtUtil` and generating new key pair.
+The default security credentials are `admin:admin`, but can be modified in the `SecurityConfig` class (we use Spring Security). You should change this before going into production.<br>
 
+It is also recommended that you change the JWT key pair in `application.yaml` by running the class `JwtUtil` and generating a new key pair.
