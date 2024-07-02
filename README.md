@@ -2,14 +2,14 @@
   <img width="80" src="./activeviam.svg" />
 </p>
 <h1 align="center">Pivot Spring Boot</h1>
-<p align="center">A minimalist ActivePivot project built with Spring Boot for you to edit, customise and use as a base for you ActivePivot projects</p>
+<p align="center">A minimalist ActivePivot project built with Spring Boot for you to edit, customize and use as a base for your ActivePivot projects</p>
 
 ---
 
 ## 📋 Details
-This project aims to be an example of how to run ActivePivot as a Spring Boot application. ActivePivot was already a Spring application, but with the power of Spring Boot we can simplify our dependency management, deployment model and many other goodies that come with Spring Boot.
+This project aims to be an example of how to run ActivePivot as a [Spring Boot](https://spring.io/guides/gs/spring-boot) application. ActivePivot was already a *Spring* application, but with the power of *Spring Boot* we can simplify our dependency management, deployment model, and many other goodies that come with Spring Boot.
 
-This project is a starting point for your own projects and implementations. You should be able to take this, customise it and get a cube up and running in a few minutes.
+This project is a starting point for your own projects and implementations. You should be able to take this, customize it and get a cube up and running in a few minutes.
 
 ## 📦 Installation
 #### Requirements
@@ -29,7 +29,7 @@ This file you can find in `src/main/resources/data`.<br>
 NB: if running as a jar file then this file might not be found as it is in the classpath, you will need to explicitly point to it.<br>
 You will probably see this stack trace:
 
-```
+```java
 Caused by: java.nio.file.FileSystemNotFoundException: null
 	at jdk.zipfs/jdk.nio.zipfs.ZipFileSystemProvider.getFileSystem(ZipFileSystemProvider.java:169)
 	at jdk.zipfs/jdk.nio.zipfs.ZipFileSystemProvider.getPath(ZipFileSystemProvider.java:155)
@@ -41,13 +41,17 @@ Caused by: java.nio.file.FileSystemNotFoundException: null
 This is related to this Spring Boot known issue: `https://github.com/spring-projects/spring-boot/issues/7161`<br>
 In order to fix that override the `-Dfile.trades` property and pass it to the jvm:
 
-```
+```bash
 java -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
 ```
 ### Running on macos
 Add the following argument `-DchunkAllocatorClass=com.qfs.chunk.direct.allocator.impl.MmapDirectChunkAllocator` to your jvm, so then it becomes:
 
+```bash
+java -Dactivepivot.license="/Users/aya/Documents/ActivePivot.lic.37846" --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED -Dactiveviam.chunkAllocatorClass=com.qfs.chunk.direct.allocator.impl.MmapDirectChunkAllocator -Dfile.trades=/Users/aya/Desktop/pivot-spring-boot/src/main/resources/data/trades.csv -jar /Users/aya/.m2/repository/com/activeviam/apps/pivot-spring-boot/6.0.12/pivot-spring-boot-6.0.12.jar
 ```
+
+```bash
 java -DchunkAllocatorClass=com.qfs.chunk.direct.allocator.impl.MmapDirectChunkAllocator -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
 ```
 
