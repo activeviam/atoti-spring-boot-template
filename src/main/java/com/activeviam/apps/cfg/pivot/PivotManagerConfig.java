@@ -11,9 +11,9 @@ import org.springframework.context.annotation.DependsOn;
 
 import com.activeviam.apps.cfg.DatastoreSelectionConfig;
 import com.activeviam.apps.cfg.PluginConfig;
-import com.activeviam.builders.StartBuilding;
-import com.qfs.server.cfg.IActivePivotManagerDescriptionConfig;
-import com.quartetfs.biz.pivot.definitions.IActivePivotManagerDescription;
+import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
+import com.activeviam.activepivot.server.spring.api.config.IActivePivotManagerDescriptionConfig;
+import com.activeviam.activepivot.core.intf.api.description.IActivePivotManagerDescription;
 
 import lombok.RequiredArgsConstructor;
 

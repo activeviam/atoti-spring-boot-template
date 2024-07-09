@@ -15,7 +15,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
 
-import com.activeviam.fwk.ActiveViamRuntimeException;
+import com.activeviam.tech.core.api.exceptions.ActiveViamRuntimeException;
 
 /**
  * An In-memory {@link UserDetailsService} builder which can be used without

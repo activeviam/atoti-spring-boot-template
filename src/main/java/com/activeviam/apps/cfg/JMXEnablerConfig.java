@@ -6,21 +6,14 @@
  */
 package com.activeviam.apps.cfg;
 
-import static com.activeviam.apps.cfg.ApplicationConfig.START_MANAGER;
-
-import java.nio.file.Paths;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 
-import com.qfs.pivot.content.IActivePivotContentService;
-import com.qfs.pivot.content.impl.DynamicActivePivotContentServiceMBean;
-import com.qfs.pivot.monitoring.impl.MemoryAnalysisService;
-import com.qfs.store.IDatastore;
-import com.quartetfs.biz.pivot.IActivePivotManager;
-import com.quartetfs.biz.pivot.monitoring.impl.DynamicActivePivotManagerMBean;
-import com.quartetfs.fwk.monitoring.jmx.impl.JMXEnabler;
+import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
+import com.activeviam.activepivot.server.intf.api.entitlements.IActivePivotContentService;
+import com.activeviam.activepivot.server.spring.private_.pivot.content.impl.DynamicActivePivotContentServiceMBean;
+import com.activeviam.database.api.IDatabase;
+import com.activeviam.web.spring.internal.JMXEnabler;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,27 +26,16 @@ public class JMXEnablerConfig {
      */
     private final IActivePivotContentService activePivotContentService;
 
-    private final IDatastore datastore;
+    private final IDatabase database;
 
     /**
      * Enable JMX Monitoring for the Datastore
      *
-     * @return the {@link JMXEnabler} attached to the datastore
+     * @return the {@link JMXEnabler} attached to the database
      */
     @Bean
     public JMXEnabler jmxDatastoreEnabler() {
-        return new JMXEnabler(datastore);
-    }
-
-    /**
-     * Enable JMX Monitoring for ActivePivot Components
-     *
-     * @return the {@link JMXEnabler} attached to the activePivotManager
-     */
-    @Bean
-    @DependsOn(START_MANAGER)
-    public JMXEnabler jmxActivePivotEnabler() {
-        return new JMXEnabler(new DynamicActivePivotManagerMBean(activePivotManager));
+        return new JMXEnabler(database);
     }
 
     /**
@@ -65,16 +47,5 @@ public class JMXEnablerConfig {
     public JMXEnabler jmxActivePivotContentServiceEnabler() {
         // to allow operations from the JMX bean
         return new JMXEnabler(new DynamicActivePivotContentServiceMBean(activePivotContentService, activePivotManager));
-    }
-
-    /**
-     * Enable the MAC memory monitoring beans
-     *
-     * @return the {@link JMXEnabler} attached to the memory monitoring service.
-     */
-    @Bean
-    public JMXEnabler jmxMemoryMonitoringServiceEnabler() {
-        return new JMXEnabler(new MemoryAnalysisService(
-                datastore, activePivotManager, Paths.get(System.getProperty("java.io.tmpdir"))));
     }
 }

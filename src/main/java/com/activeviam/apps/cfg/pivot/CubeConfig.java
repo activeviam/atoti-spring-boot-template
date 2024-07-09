@@ -14,11 +14,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.context.annotation.Configuration;
 
-import com.activeviam.builders.StartBuilding;
-import com.activeviam.desc.build.ICanBuildCubeDescription;
-import com.activeviam.desc.build.ICubeDescriptionBuilder;
-import com.quartetfs.biz.pivot.context.impl.QueriesTimeLimit;
-import com.quartetfs.biz.pivot.definitions.IActivePivotInstanceDescription;
+import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
+import com.activeviam.activepivot.core.intf.api.description.builder.ICanBuildCubeDescription;
+import com.activeviam.activepivot.core.intf.api.description.builder.ICubeDescriptionBuilder;
+import com.activeviam.activepivot.core.impl.api.contextvalues.QueriesTimeLimit;
+import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstanceDescription;
 
 import lombok.RequiredArgsConstructor;
 

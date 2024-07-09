@@ -12,14 +12,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
-import com.activeviam.pivot.tracing.TracingConfig;
-import com.activeviam.spring.config.activeui.ActiveUIContentServiceUtil;
-import com.qfs.content.service.IContentService;
-import com.qfs.content.service.impl.AHibernateContentService;
-import com.qfs.content.service.impl.HibernateContentService;
-import com.qfs.pivot.content.IActivePivotContentService;
-import com.qfs.pivot.content.impl.ActivePivotContentServiceBuilder;
-import com.qfs.server.cfg.content.IActivePivotContentServiceConfig;
+import com.activeviam.activepivot.server.spring.private_.config.TracingConfig;
+import com.activeviam.tech.contentserver.spring.api.config.ActiveUIContentServiceUtil;
+import com.activeviam.tech.contentserver.storage.api.IContentService;
+import com.activeviam.tech.contentserver.storage.private_.AHibernateContentService;
+import com.activeviam.tech.contentserver.storage.private_.HibernateContentService;
+import com.activeviam.activepivot.server.intf.api.entitlements.IActivePivotContentService;
+import com.activeviam.activepivot.server.spring.api.content.ActivePivotContentServiceBuilder;
+import com.activeviam.activepivot.server.spring.api.config.IActivePivotContentServiceConfig;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

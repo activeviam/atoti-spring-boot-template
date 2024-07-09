@@ -8,13 +8,13 @@ package com.activeviam.apps.cfg.pivot;
 
 import org.springframework.context.annotation.Configuration;
 
+import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IDimension;
+import com.activeviam.activepivot.core.intf.api.cube.metadata.ILevelInfo;
+import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstanceDescription;
+import com.activeviam.activepivot.core.intf.api.description.builder.ICanBuildCubeDescription;
+import com.activeviam.activepivot.core.intf.api.description.builder.dimension.ICanStartBuildingDimensions;
 import com.activeviam.apps.constants.StoreAndFieldConstants;
-import com.activeviam.desc.build.ICanBuildCubeDescription;
-import com.activeviam.desc.build.dimensions.ICanStartBuildingDimensions;
-import com.quartetfs.biz.pivot.cube.dimension.IDimension;
-import com.quartetfs.biz.pivot.cube.hierarchy.ILevelInfo;
-import com.quartetfs.biz.pivot.definitions.IActivePivotInstanceDescription;
-import com.quartetfs.fwk.ordering.impl.ReverseOrderComparator;
+import com.activeviam.tech.core.api.ordering.IComparator;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,8 +25,7 @@ public class DimensionConfig {
     /**
      * Adds the dimensions descriptions to the input builder.
      *
-     * @param builder
-     *            The cube builder
+     * @param builder The cube builder
      * @return The builder for chained calls
      */
     public ICanBuildCubeDescription<IActivePivotInstanceDescription> build(ICanStartBuildingDimensions builder) {
@@ -41,6 +40,6 @@ public class DimensionConfig {
                 .slicing()
                 .withLevelOfSameName()
                 .withType(ILevelInfo.LevelType.TIME)
-                .withComparator(ReverseOrderComparator.type);
+                .withComparator(IComparator.DESCENDING_NATURAL_ORDER_PLUGIN_KEY);
     }
 }

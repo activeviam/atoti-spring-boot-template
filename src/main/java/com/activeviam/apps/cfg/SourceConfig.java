@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2023
+ * Copyright (C) ActiveViam 2023-2024
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -11,17 +11,15 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
-import com.activeviam.apps.constants.StoreAndFieldConstants;
-import com.qfs.msg.csv.ICSVParserConfiguration;
-import com.qfs.msg.csv.filesystem.impl.FileSystemCSVTopicFactory;
-import com.qfs.msg.csv.impl.CSVParserConfiguration;
-import com.qfs.msg.csv.impl.CSVSource;
-import com.qfs.msg.csv.impl.CSVSourceConfiguration;
-import com.qfs.platform.IPlatform;
-import com.qfs.source.impl.CSVMessageChannelFactory;
-import com.qfs.store.IDatastore;
+import com.activeviam.apps.cfg.source.CsvSourceProperties;
+import com.activeviam.database.datastore.api.IDatastore;
+import com.activeviam.source.csv.api.CsvMessageChannelFactory;
+import com.activeviam.source.csv.api.CsvParserConfiguration;
+import com.activeviam.source.csv.api.CsvSourceFactory;
+import com.activeviam.source.csv.api.FileSystemCsvTopicFactory;
+import com.activeviam.source.csv.api.ICsvParserConfiguration;
+import com.activeviam.source.csv.api.ICsvSource;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,48 +30,45 @@ import lombok.extern.slf4j.Slf4j;
 public class SourceConfig {
     public static final String TRADES_TOPIC = "Trades";
 
-    private final Environment env;
+    private final CsvSourceProperties csvSourceProperties;
     private final IDatastore datastore;
 
     /**
-     * Topic factory bean. Allows to create CSV topics and watch changes to directories. Autocloseable.
+     * Topic factory bean. Allows to create Csv topics and watch changes to directories. Autocloseable.
      *
      * @return the topic factory
      */
     @Bean
-    public FileSystemCSVTopicFactory csvTopicFactory() {
-        return new FileSystemCSVTopicFactory(false);
+    public FileSystemCsvTopicFactory csvTopicFactory() {
+        return new FileSystemCsvTopicFactory(false);
     }
 
     @Bean(destroyMethod = "close")
-    public CSVSource<Path> csvSource() {
-        var schemaMetadata = datastore.getQueryMetadata().getMetadata();
-        var csvTopicFactory = csvTopicFactory();
-        var csvSource = new CSVSource<Path>();
+    public ICsvSource<Path> csvSource() {
+        var datastoreSchema = datastore.getCurrentSchema();
+        ICsvSource<Path> csvSource = CsvSourceFactory.create();
+        var topicFactory = csvTopicFactory();
 
-        var tradesColumns = schemaMetadata.getFields(StoreAndFieldConstants.TRADES_STORE_NAME);
-        var tradesTopic = csvTopicFactory.createTopic(
-                TRADES_TOPIC, env.getProperty("file.trades"), createParserConfig(tradesColumns.size(), tradesColumns));
-        csvSource.addTopic(tradesTopic);
+        csvSourceProperties.getTopics().stream()
+                .map(topicProperties -> {
+                    var tableFields = datastoreSchema.getTable(topicProperties.storeName()).getFieldNames();
+                    return topicFactory.createTopic(
+                            topicProperties.topicName(),
+                            createParserConfig(tableFields.size(), tableFields));
+                })
+                .forEach(csvSource::addTopic);
 
-        // Allocate half the machine cores to CSV parsing
-        var parserThreads = Math.max(2, IPlatform.CURRENT_PLATFORM.getProcessorCount() / 2);
-        log.info("Allocating " + parserThreads + " parser threads.");
-
-        var sourceConfigurationBuilder = new CSVSourceConfiguration.CSVSourceConfigurationBuilder<Path>();
-        sourceConfigurationBuilder.parserThreads(parserThreads);
-        sourceConfigurationBuilder.synchronousMode(Boolean.valueOf(env.getProperty("synchronousMode", "false")));
-        csvSource.configure(sourceConfigurationBuilder.build());
+        csvSource.configure(csvSourceProperties.toCsvSourceConfiguration());
         return csvSource;
     }
 
     @Bean
-    public CSVMessageChannelFactory<Path> csvChannelFactory() {
-        return new CSVMessageChannelFactory<>(csvSource(), datastore);
+    public CsvMessageChannelFactory<Path> csvChannelFactory() {
+        return new CsvMessageChannelFactory<>(csvSource(), datastore);
     }
 
-    private ICSVParserConfiguration createParserConfig(int columnCount, List<String> columns) {
-        var cfg = columns == null ? new CSVParserConfiguration(columnCount) : new CSVParserConfiguration(columns);
+    private ICsvParserConfiguration createParserConfig(int columnCount, List<String> columns) {
+        var cfg = columns == null ? new CsvParserConfiguration(columnCount) : new CsvParserConfiguration(columns);
         cfg.setNumberSkippedLines(1); // skip the first line
         return cfg;
     }

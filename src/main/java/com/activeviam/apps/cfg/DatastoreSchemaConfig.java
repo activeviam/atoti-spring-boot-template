@@ -6,9 +6,9 @@
  */
 package com.activeviam.apps.cfg;
 
-import static com.qfs.literal.ILiteralType.DOUBLE;
-import static com.qfs.literal.ILiteralType.LOCAL_DATE;
-import static com.qfs.literal.ILiteralType.STRING;
+import static com.activeviam.database.api.types.ILiteralType.DOUBLE;
+import static com.activeviam.database.api.types.ILiteralType.LOCAL_DATE;
+import static com.activeviam.database.api.types.ILiteralType.STRING;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -16,13 +16,13 @@ import java.util.LinkedList;
 
 import org.springframework.context.annotation.Configuration;
 
+import com.activeviam.activepivot.server.spring.api.config.IDatastoreSchemaDescriptionConfig;
 import com.activeviam.apps.constants.StoreAndFieldConstants;
-import com.qfs.desc.IDatastoreSchemaDescription;
-import com.qfs.desc.IReferenceDescription;
-import com.qfs.desc.IStoreDescription;
-import com.qfs.desc.impl.DatastoreSchemaDescription;
-import com.qfs.desc.impl.StoreDescription;
-import com.qfs.server.cfg.IDatastoreSchemaDescriptionConfig;
+import com.activeviam.database.datastore.api.description.IDatastoreSchemaDescription;
+import com.activeviam.database.datastore.api.description.IReferenceDescription;
+import com.activeviam.database.datastore.api.description.IStoreDescription;
+import com.activeviam.database.datastore.api.description.impl.DatastoreSchemaDescription;
+import com.activeviam.database.datastore.api.description.impl.StoreDescription;
 
 import lombok.RequiredArgsConstructor;
 
@@ -47,7 +47,7 @@ public class DatastoreSchemaConfig implements IDatastoreSchemaDescriptionConfig 
 
     @Override
     public IDatastoreSchemaDescription datastoreSchemaDescription() {
-        final Collection<IStoreDescription> stores = new LinkedList<>();
+        final var stores = new LinkedList<IStoreDescription>();
         stores.add(createTradesStoreDescription());
 
         return new DatastoreSchemaDescription(stores, references());

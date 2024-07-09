@@ -11,8 +11,8 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_NOTION
 
 import org.springframework.context.annotation.Configuration;
 
-import com.activeviam.copper.ICopperContext;
-import com.activeviam.copper.api.Copper;
+import com.activeviam.activepivot.core.intf.api.copper.ICopperContext;
+import com.activeviam.activepivot.copper.api.Copper;
 
 import lombok.RequiredArgsConstructor;
 

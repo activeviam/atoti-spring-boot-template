@@ -9,8 +9,8 @@ package com.activeviam.apps.cfg;
 import org.springframework.context.annotation.Configuration;
 
 import com.activeviam.apps.constants.StoreAndFieldConstants;
-import com.activeviam.builders.StartBuilding;
-import com.quartetfs.biz.pivot.definitions.ISelectionDescription;
+import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
+import com.activeviam.activepivot.core.intf.api.description.ISelectionDescription;
 
 import lombok.RequiredArgsConstructor;
 

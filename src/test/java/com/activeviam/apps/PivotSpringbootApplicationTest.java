@@ -6,9 +6,9 @@
  */
 package com.activeviam.apps;
 
-import static com.qfs.QfsWebUtils.url;
-import static com.qfs.server.cfg.impl.ActivePivotRestServicesConfig.PING_SUFFIX;
-import static com.qfs.server.cfg.impl.ActivePivotRestServicesConfig.REST_API_URL_PREFIX;
+import static com.activeviam.activepivot.server.spring.private_.config.impl.ActivePivotRestServicesConfig.PING_SUFFIX;
+import static com.activeviam.activepivot.server.spring.private_.config.impl.ActivePivotRestServicesConfig.REST_API_URL_PREFIX;
+import static com.activeviam.web.core.api.IUrlBuilder.url;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 
 @SpringBootTest(classes = PivotSpringBootApplication.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 class PivotSpringbootApplicationTest {
@@ -34,7 +34,8 @@ class PivotSpringbootApplicationTest {
     }
 
     @Test
-    void contextLoads() {}
+    void contextLoads() {
+    }
 
     @Test
     void activePivotPingReturnsPong() {

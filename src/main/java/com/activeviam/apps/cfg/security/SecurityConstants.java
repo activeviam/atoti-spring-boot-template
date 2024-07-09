@@ -6,7 +6,7 @@
  */
 package com.activeviam.apps.cfg.security;
 
-import com.qfs.content.service.IContentService;
+import com.activeviam.tech.contentserver.storage.api.IContentService;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

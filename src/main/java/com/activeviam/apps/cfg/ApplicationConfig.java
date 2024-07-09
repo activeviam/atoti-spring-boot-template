@@ -6,13 +6,15 @@
  */
 package com.activeviam.apps.cfg;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
-import com.quartetfs.biz.pivot.IActivePivotManager;
-import com.quartetfs.fwk.Registry;
-import com.quartetfs.fwk.contributions.impl.ClasspathContributionProvider;
+import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
+import com.activeviam.tech.core.api.registry.Registry;
+import com.activeviam.tech.core.api.registry.Registry.RegistryContributions;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +22,6 @@ import lombok.RequiredArgsConstructor;
  * Spring configuration of the ActivePivot Application services
  *
  * @author ActiveViam
- *
  */
 @Configuration
 @RequiredArgsConstructor
@@ -31,20 +32,18 @@ public class ApplicationConfig {
     static {
         // TODO
         // Remember to include your package, such as `com.yourdomain`, otherwise the custom plugins from that
-        // package will not be available in the application.
-        Registry.setContributionProvider(
-                new ClasspathContributionProvider("com.activeviam.apm", "com.qfs", "com.quartetfs", "com.activeviam"));
+        Registry.initialize(RegistryContributions.builder()
+                .packagesToScan(List.of("com.activeviam.apm", "com.qfs", "com.quartetfs", "com.activeviam")).build());
+
     }
 
     private final IActivePivotManager activePivotManager;
 
     /**
-     *
      * Initialize and start the ActivePivot Manager, after performing all the injections into the ActivePivot plug-ins.
      *
      * @return void
-     * @throws Exception
-     *             any exception that occurred during the injection, the initialization or the starting
+     * @throws Exception any exception that occurred during the injection, the initialization or the starting
      */
     @Bean(START_MANAGER)
     @DependsOn(PluginConfig.BEAN_NAME)

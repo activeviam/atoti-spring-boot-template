@@ -18,7 +18,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import com.activeviam.security.cfg.ICorsConfig;
+import com.activeviam.web.spring.api.config.ICorsConfig;
 
 @Configuration
 public class CorsConfig implements ICorsConfig {

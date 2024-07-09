@@ -19,13 +19,13 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.UserDetailsManager;
 
-import com.qfs.jwt.service.IJwtService;
-import com.qfs.security.spring.impl.CompositeUserDetailsService;
-import com.quartetfs.biz.pivot.security.IAuthorityComparator;
-import com.quartetfs.biz.pivot.security.impl.AuthorityComparatorAdapter;
-import com.quartetfs.biz.pivot.security.impl.UserDetailsServiceWrapper;
-import com.quartetfs.fwk.ordering.impl.CustomComparator;
-import com.quartetfs.fwk.security.IUserDetailsService;
+import com.activeviam.web.spring.api.jwt.IJwtService;
+import com.activeviam.web.spring.api.security.CompositeUserDetailsService;
+import com.activeviam.tech.core.api.security.IAuthorityComparator;
+import com.activeviam.tech.core.internal.security.AuthorityComparatorAdapter;
+import com.activeviam.activepivot.server.spring.private_.pivot.security.impl.UserDetailsServiceWrapper;
+import com.activeviam.tech.core.private_.ordering.CustomComparator;
+import com.activeviam.tech.core.api.security.IUserDetailsService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -65,7 +65,7 @@ public class GlobalSecurityConfig {
      * Defines the comparator used by:
      * </p>
      * <ul>
-     *   <li>com.quartetfs.biz.pivot.security.impl.ContextValueManager#setAuthorityComparator(IAuthorityComparator)</li>
+     *   <li>com.activeviam.activepivot.server.impl.private_.security.ContextValueManager#setAuthorityComparator(IAuthorityComparator)</li>
      *   <li>{@link IJwtService}</li>
      * </ul>
      *

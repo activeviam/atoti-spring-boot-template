@@ -28,9 +28,15 @@ management:
 schema:
   printer: false
 
-# File to parse
-file:
-  trades: "data/trades.csv"
+# Source configuration
+source:
+  csv:
+    parser-threads: 2
+    synchronous-mode: false
+    topics:
+      - topic-name: Trades
+        store-name: Trades
+        path: "data/trades.csv"
 
 tech-user:
   passwords:
