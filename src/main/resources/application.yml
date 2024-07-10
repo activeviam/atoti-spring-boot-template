@@ -61,6 +61,18 @@ activeviam:
       streaming.service:
         detailed.logging: true
         log.memory.stats: true
+    node:
+      starter:
+        logging:
+          enabled: false
+
+atoti:
+  server:
+    security:
+      rolesAdmin:
+        - "ROLE_ADMIN"
+      rolesUser:
+        - "ROLE_USER"
 
 # Content hibernate properties
 content-service:

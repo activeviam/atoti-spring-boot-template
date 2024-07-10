@@ -7,19 +7,16 @@
 package com.activeviam.apps.cfg.pivot;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 
-import com.activeviam.apps.cfg.DatastoreSelectionConfig;
-import com.activeviam.apps.cfg.PluginConfig;
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
-import com.activeviam.activepivot.server.spring.api.config.IActivePivotManagerDescriptionConfig;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotManagerDescription;
+import com.activeviam.activepivot.server.spring.api.config.IActivePivotManagerDescriptionConfig;
+import com.activeviam.apps.cfg.DatastoreSelectionConfig;
 
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Configuration
-@DependsOn(PluginConfig.BEAN_NAME)
 public class PivotManagerConfig implements IActivePivotManagerDescriptionConfig {
 
     /* *********************/

@@ -14,6 +14,7 @@ import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import com.activeviam.source.csv.api.CsvSourceConfiguration;
+import com.activeviam.tech.numalib.internal.platform.IPlatform;
 
 import lombok.Data;
 
@@ -21,11 +22,11 @@ import lombok.Data;
 @Data
 public class CsvSourceProperties {
 
-    private int parserThreads;
+    private boolean synchronousMode = false;
 
-    private int bufferSize;
+    private int bufferSize = 64;
 
-    private boolean synchronousMode;
+    private int parserThreads = Math.max(2, Math.min(IPlatform.CURRENT_PLATFORM.getProcessorCount() / 2, 8));
 
     private final List<Topic> topics = new ArrayList<>();
 

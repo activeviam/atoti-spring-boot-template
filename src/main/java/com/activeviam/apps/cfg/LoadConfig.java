@@ -6,7 +6,7 @@
  */
 package com.activeviam.apps.cfg;
 
-import static com.activeviam.apps.cfg.SourceConfig.TRADES_TOPIC;
+import static com.activeviam.apps.cfg.CsvSourceConfig.TRADES_TOPIC;
 
 import java.nio.file.Path;
 import java.util.ArrayList;

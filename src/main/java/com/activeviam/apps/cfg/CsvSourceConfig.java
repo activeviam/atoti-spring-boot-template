@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
-public class SourceConfig {
+public class CsvSourceConfig {
     public static final String TRADES_TOPIC = "Trades";
 
     private final CsvSourceProperties csvSourceProperties;
@@ -54,7 +54,8 @@ public class SourceConfig {
                     var tableFields = datastoreSchema.getTable(topicProperties.storeName()).getFieldNames();
                     return topicFactory.createTopic(
                             topicProperties.topicName(),
-                            createParserConfig(tableFields.size(), tableFields));
+                            createParserConfig(tableFields.size(), tableFields),
+                            topicProperties.path());
                 })
                 .forEach(csvSource::addTopic);
 

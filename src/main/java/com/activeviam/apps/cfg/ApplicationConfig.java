@@ -8,11 +8,12 @@ package com.activeviam.apps.cfg;
 
 import java.util.List;
 
-import org.springframework.context.annotation.Bean;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.event.EventListener;
 
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
+import com.activeviam.tech.core.api.agent.AgentException;
 import com.activeviam.tech.core.api.registry.Registry;
 import com.activeviam.tech.core.api.registry.Registry.RegistryContributions;
 
@@ -45,15 +46,13 @@ public class ApplicationConfig {
      * @return void
      * @throws Exception any exception that occurred during the injection, the initialization or the starting
      */
-    @Bean(START_MANAGER)
-    @DependsOn(PluginConfig.BEAN_NAME)
-    public Void startManager() throws Exception {
+    @EventListener(ApplicationStartedEvent.class)
+    public void startManager() throws AgentException {
         /* *********************************************** */
         /* Initialize the ActivePivot Manager and start it */
         /* *********************************************** */
         activePivotManager.init(null);
         activePivotManager.start();
 
-        return null;
     }
 }

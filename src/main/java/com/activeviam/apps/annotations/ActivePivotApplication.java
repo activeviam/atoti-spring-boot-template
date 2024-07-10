@@ -17,6 +17,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import com.activeviam.activepivot.server.spring.private_.config.TracingConfig;
+
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @EnableAutoConfiguration
@@ -43,6 +45,7 @@ import org.springframework.context.annotation.Import;
 //        MonitoredDataLoadingConfig.class,
 //        QueryPerformanceEvaluatorConfig.class,
 //        ExtraLoggingConfig.class,
+        TracingConfig.class,
 
 })
 public @interface ActivePivotApplication {

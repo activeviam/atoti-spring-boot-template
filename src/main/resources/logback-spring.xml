@@ -3,7 +3,7 @@
 <configuration debug="true">
   <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
   <jmxConfigurator/>
-  <conversionRule conversionWord="user" converterClass="com.activeviam.apm.logging.impl.LogUserConverter"/>
+  <conversionRule conversionWord="user" converterClass="com.activeviam.apm.api.logging.LogUserConverter"/>
 
   <property name="PID" value="[%user]"/>
   <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
