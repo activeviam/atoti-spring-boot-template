@@ -34,8 +34,7 @@ class PivotSpringbootApplicationTest {
     }
 
     @Test
-    void contextLoads() {
-    }
+    void contextLoads() {}
 
     @Test
     void activePivotPingReturnsPong() {

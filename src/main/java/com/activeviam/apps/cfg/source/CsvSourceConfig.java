@@ -4,7 +4,7 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-package com.activeviam.apps.cfg;
+package com.activeviam.apps.cfg.source;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -12,7 +12,6 @@ import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.activeviam.apps.cfg.source.CsvSourceProperties;
 import com.activeviam.database.datastore.api.IDatastore;
 import com.activeviam.source.csv.api.CsvMessageChannelFactory;
 import com.activeviam.source.csv.api.CsvParserConfiguration;
