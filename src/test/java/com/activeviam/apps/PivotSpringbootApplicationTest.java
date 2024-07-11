@@ -40,6 +40,6 @@ class PivotSpringbootApplicationTest {
     @Test
     void activePivotPingReturnsPong() {
         var pingUrl = url("http://localhost:" + port, REST_API_URL_PREFIX, PING_SUFFIX);
-        assertThat(this.restTemplate.getForObject(pingUrl, String.class)).contains("pong");
+        assertThat(restTemplate.getForObject(pingUrl, String.class)).contains("pong");
     }
 }
