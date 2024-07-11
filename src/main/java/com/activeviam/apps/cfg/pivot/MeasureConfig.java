@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2023
+ * Copyright (C) ActiveViam 2023-2024
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -11,8 +11,8 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_NOTION
 
 import org.springframework.context.annotation.Configuration;
 
-import com.activeviam.activepivot.core.intf.api.copper.ICopperContext;
 import com.activeviam.activepivot.copper.api.Copper;
+import com.activeviam.activepivot.core.intf.api.copper.ICopperContext;
 
 import lombok.RequiredArgsConstructor;
 

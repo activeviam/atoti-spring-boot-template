@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2023
+ * Copyright (C) ActiveViam 2023-2024
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -34,8 +34,8 @@ public class ApplicationConfig {
         // TODO
         // Remember to include your package, such as `com.yourdomain`, otherwise the custom plugins from that
         Registry.initialize(RegistryContributions.builder()
-                .packagesToScan(List.of("com.activeviam.apm", "com.qfs", "com.quartetfs", "com.activeviam")).build());
-
+                .packagesToScan(List.of("com.activeviam.apm", "com.qfs", "com.quartetfs", "com.activeviam"))
+                .build());
     }
 
     private final IActivePivotManager activePivotManager;
@@ -53,6 +53,5 @@ public class ApplicationConfig {
         /* *********************************************** */
         activePivotManager.init(null);
         activePivotManager.start();
-
     }
 }

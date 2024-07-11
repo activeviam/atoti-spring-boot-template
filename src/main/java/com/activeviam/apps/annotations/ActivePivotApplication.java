@@ -11,42 +11,19 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import com.activeviam.activepivot.server.spring.private_.config.TracingConfig;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@EnableAutoConfiguration
-@ComponentScan
 @ConfigurationPropertiesScan
-@Configuration
+@SpringBootApplication
 @Import({
+    TracingConfig.class,
 
-//        // Core imports
-//        ActivePivotServicesConfig.class,
-//
-//        // Security
-//        FullAccessBranchPermissionsManagerConfig.class,
-//        NoSecurityDatabaseServiceConfig.class,
-//
-//        // REST services for ActiveUI
-//        ActiveViamRestServicesConfig.class,
-//        ActiveViamWebSocketServicesConfig.class,
-//
-//        // Internationalization
-//        LocalI18nConfig.class,
-//
-//        MonitoringJmxConfig.class,
-//        MonitoredDataLoadingConfig.class,
-//        QueryPerformanceEvaluatorConfig.class,
-//        ExtraLoggingConfig.class,
-        TracingConfig.class,
-
+    // ... Any additional imports
 })
-public @interface ActivePivotApplication {
-}
+public @interface ActivePivotApplication {}

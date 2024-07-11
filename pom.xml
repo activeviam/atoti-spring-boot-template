@@ -100,11 +100,10 @@
       <groupId>org.hibernate.orm</groupId>
       <artifactId>hibernate-hikaricp</artifactId>
     </dependency>
-    <!-- ActivePivot Dependencies -->
+
     <dependency>
-      <groupId>com.activeviam.activepivot</groupId>
-      <artifactId>activepivot-server-spring</artifactId>
-      <version>${activepivot.version}</version>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
     </dependency>
 
     <dependency>
@@ -129,6 +128,13 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.activeviam</groupId>
+      <artifactId>atoti-server-test</artifactId>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
 

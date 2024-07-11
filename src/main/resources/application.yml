@@ -38,6 +38,17 @@ source:
         store-name: Trades
         path: "data/trades.csv"
 
+# Security configuration
+security:
+  authentication:
+    in-memory:
+      users:
+        - username: admin
+          password: admin
+          authorities:
+            - ROLE_USER
+            - ROLE_ADMIN
+
 tech-user:
   passwords:
     pivot: "{bcrypt}$2a$10$87iR319r7HvSvs5k9.jutuDzjuKqO6riilSjl/9u2LGDpn4/7.1he"

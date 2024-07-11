@@ -51,7 +51,9 @@ public class CsvSourceConfig {
 
         csvSourceProperties.getTopics().stream()
                 .map(topicProperties -> {
-                    var tableFields = datastoreSchema.getTable(topicProperties.storeName()).getFieldNames();
+                    var tableFields = datastoreSchema
+                            .getTable(topicProperties.storeName())
+                            .getFieldNames();
                     return topicFactory.createTopic(
                             topicProperties.topicName(),
                             createParserConfig(tableFields.size(), tableFields),

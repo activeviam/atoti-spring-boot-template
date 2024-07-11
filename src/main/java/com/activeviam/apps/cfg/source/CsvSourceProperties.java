@@ -4,7 +4,6 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-
 package com.activeviam.apps.cfg.source;
 
 import java.nio.file.Path;
@@ -30,8 +29,7 @@ public class CsvSourceProperties {
 
     private final List<Topic> topics = new ArrayList<>();
 
-    public record Topic(String storeName, String topicName, String path) {
-    }
+    public record Topic(String storeName, String topicName, String path) {}
 
     public CsvSourceConfiguration<Path> toCsvSourceConfiguration() {
         return new CsvSourceConfiguration.CsvSourceConfigurationBuilder<Path>()
