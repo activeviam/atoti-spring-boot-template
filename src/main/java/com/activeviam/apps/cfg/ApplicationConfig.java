@@ -34,7 +34,7 @@ public class ApplicationConfig {
         // TODO
         // Remember to include your package, such as `com.yourdomain`, otherwise the custom plugins from that
         Registry.initialize(RegistryContributions.builder()
-                .packagesToScan(List.of("com.activeviam.apm", "com.qfs", "com.quartetfs", "com.activeviam"))
+                .packagesToScan(List.of("com.activeviam.apm", "com.activeviam"))
                 .build());
     }
 
@@ -43,8 +43,7 @@ public class ApplicationConfig {
     /**
      * Initialize and start the ActivePivot Manager, after performing all the injections into the ActivePivot plug-ins.
      *
-     * @return void
-     * @throws Exception any exception that occurred during the injection, the initialization or the starting
+     * @throws AgentException any exception that occurred during the injection, the initialization or the starting
      */
     @EventListener(ApplicationStartedEvent.class)
     public void startManager() throws AgentException {

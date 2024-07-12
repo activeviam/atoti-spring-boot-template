@@ -15,7 +15,6 @@ import lombok.Data;
 @ConfigurationProperties(prefix = "security.authentication.in-memory")
 @Data
 public class InMemoryAuthenticationProperties {
-
     private Set<User> users;
 
     public record User(String username, String password, Set<String> authorities) {}

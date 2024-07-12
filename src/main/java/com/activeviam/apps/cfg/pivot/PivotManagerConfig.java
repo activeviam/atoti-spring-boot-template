@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Configuration
 public class PivotManagerConfig implements IActivePivotManagerDescriptionConfig {
-
     /* *********************/
     /* OLAP Property names */
     /* *********************/

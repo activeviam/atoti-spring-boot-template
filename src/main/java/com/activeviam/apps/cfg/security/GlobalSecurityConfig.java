@@ -30,14 +30,12 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class GlobalSecurityConfig {
-
     private final UserDetailsService technicalUserDetailsService;
     private final UserDetailsService inMemoryUserDetailsService;
 
     @Bean
-    public AuthenticationManager globalAuthenticationManager(
-            final List<AuthenticationProvider> authenticationProviders) {
-        final var authenticationManager = new ProviderManager(authenticationProviders);
+    public AuthenticationManager globalAuthenticationManager(List<AuthenticationProvider> authenticationProviders) {
+        var authenticationManager = new ProviderManager(authenticationProviders);
         authenticationManager.setEraseCredentialsAfterAuthentication(false);
         return authenticationManager;
     }

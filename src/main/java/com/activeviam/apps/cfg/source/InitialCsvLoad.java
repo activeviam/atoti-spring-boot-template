@@ -26,9 +26,9 @@ import com.activeviam.tech.concurrency.internal.timing.impl.StopWatch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class InitialCsvLoad {
 
     private final IDatastore datastore;
@@ -59,7 +59,7 @@ public class InitialCsvLoad {
         });
 
         var elapsed = System.nanoTime() - before;
-        log.info("Initial data load completed in {} ms.", elapsed / 1000000L);
+        log.info("Initial data load completed in {} ms.", elapsed / 1_000_000L);
 
         printStoreSizes();
     }

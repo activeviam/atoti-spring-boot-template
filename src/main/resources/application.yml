@@ -24,10 +24,6 @@ management:
   health:
     elasticsearch.enabled: false
 
-# Print the stores schema
-schema:
-  printer: false
-
 # Source configuration
 source:
   csv:
@@ -44,15 +40,14 @@ security:
     in-memory:
       users:
         - username: admin
-          password: admin
+          password: "{bcrypt}$2a$10$MbL1N4JogTOrDnnnTGYKQuqeKFa8TaC1fPTiC7GykIo2L12pODrKC"
           authorities:
             - ROLE_USER
             - ROLE_ADMIN
-
-tech-user:
-  passwords:
-    pivot: "{bcrypt}$2a$10$87iR319r7HvSvs5k9.jutuDzjuKqO6riilSjl/9u2LGDpn4/7.1he"
-    sba: "{bcrypt}$2a$10$QX8Im2Qh3s/qS9ypLlpEnuaVXtQTUz1XNS7goa9Ya7ofcZyuo2IdW"
+  tech-user:
+    passwords:
+      pivot: "{bcrypt}$2a$10$87iR319r7HvSvs5k9.jutuDzjuKqO6riilSjl/9u2LGDpn4/7.1he"
+      sba: "{bcrypt}$2a$10$QX8Im2Qh3s/qS9ypLlpEnuaVXtQTUz1XNS7goa9Ya7ofcZyuo2IdW"
 
 # Properties used to configure the authentication based on JWT.
 # You can execute JwtUtil to generate new keys.
@@ -76,14 +71,6 @@ activeviam:
       starter:
         logging:
           enabled: false
-
-atoti:
-  server:
-    security:
-      rolesAdmin:
-        - "ROLE_ADMIN"
-      rolesUser:
-        - "ROLE_USER"
 
 # Content hibernate properties
 content-service:

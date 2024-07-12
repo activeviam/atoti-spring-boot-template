@@ -22,7 +22,6 @@ import com.activeviam.tech.contentserver.storage.private_.AHibernateContentServi
  */
 @ConfigurationProperties(EMBEDDED_CONTENT_SERVER_HIBERNATE_PROPERTIES)
 public class EmbeddedContentServerHibernateProperties extends Properties {
-
     @Serial
     private static final long serialVersionUID = -2772962974049022623L;
 

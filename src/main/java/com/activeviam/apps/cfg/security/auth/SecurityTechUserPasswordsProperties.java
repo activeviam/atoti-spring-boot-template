@@ -16,7 +16,7 @@ import lombok.Data;
 @Data
 @Validated
 public class SecurityTechUserPasswordsProperties {
-    public static final String TECH_PROPERTIES_PREFIX = "tech-user.passwords";
+    public static final String TECH_PROPERTIES_PREFIX = "security.tech-user.passwords";
 
     /**
      * Password of technical user for AP Server.

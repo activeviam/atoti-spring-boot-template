@@ -23,16 +23,15 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @RequiredArgsConstructor
 public class ActivePivotWithDatastoreConfig implements IDatastoreConfig, IActivePivotConfig {
-
     private final IActivePivotManagerDescriptionConfig apManagerConfig;
     private final IDatastoreSchemaDescriptionConfig datastoreDescriptionConfig;
 
     @Bean
     protected ApplicationWithDatastore applicationWithDatastore() {
         return StartBuilding.application()
-                .withDatastore(this.datastoreDescriptionConfig.datastoreSchemaDescription())
-                .withManager(this.apManagerConfig.managerDescription())
-                .withEpochPolicy(this.apManagerConfig.epochManagementPolicy())
+                .withDatastore(datastoreDescriptionConfig.datastoreSchemaDescription())
+                .withManager(apManagerConfig.managerDescription())
+                .withEpochPolicy(apManagerConfig.epochManagementPolicy())
                 .withoutBranchRestrictions()
                 .build();
     }

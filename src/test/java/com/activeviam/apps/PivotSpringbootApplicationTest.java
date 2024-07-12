@@ -21,7 +21,6 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 
 @SpringBootTest(classes = PivotSpringBootApplication.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 class PivotSpringbootApplicationTest {
-
     @LocalServerPort
     private int port;
 

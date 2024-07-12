@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @RequiredArgsConstructor
 public class DatastoreSelectionConfig {
-
     private final DatastoreSchemaConfig datastoreSchemaConfig;
 
     /**

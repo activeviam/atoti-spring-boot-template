@@ -25,7 +25,6 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 public class DayController {
-
     private final IQueriesService queriesService;
 
     @GetMapping("/daysLoaded")
