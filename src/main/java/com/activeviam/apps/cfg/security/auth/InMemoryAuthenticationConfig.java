@@ -20,15 +20,13 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 @Slf4j
 public class InMemoryAuthenticationConfig {
-
     private final InMemoryUserDetailsManager basicUserDetailsService;
     private final PasswordEncoder passwordEncoder;
 
     public InMemoryAuthenticationConfig(
             InMemoryAuthenticationProperties authenticationProperties, PasswordEncoder passwordEncoder) {
-
         this.passwordEncoder = passwordEncoder;
-        this.basicUserDetailsService = new InMemoryUserDetailsManager();
+        basicUserDetailsService = new InMemoryUserDetailsManager();
 
         if (authenticationProperties.getUsers() != null
                 && !authenticationProperties.getUsers().isEmpty()) {

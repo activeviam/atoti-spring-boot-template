@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 public class MeasureConfig {
 
-    public void build(final ICopperContext context) {
+    public void build(ICopperContext context) {
         Copper.sum(TRADES_NOTIONAL)
                 .as(TRADES_NOTIONAL)
                 .withFormatter(DOUBLE_FORMATTER)

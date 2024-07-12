@@ -20,16 +20,10 @@ import lombok.Data;
 @ConfigurationProperties(prefix = "source.csv")
 @Data
 public class CsvSourceProperties {
-
-    private boolean synchronousMode = false;
-
-    private int bufferSize = 64;
-
-    private int parserThreads = Math.max(2, Math.min(IPlatform.CURRENT_PLATFORM.getProcessorCount() / 2, 8));
-
     private final List<Topic> topics = new ArrayList<>();
-
-    public record Topic(String storeName, String topicName, String path) {}
+    private boolean synchronousMode;
+    private int bufferSize = 64;
+    private int parserThreads = Math.clamp(IPlatform.CURRENT_PLATFORM.getProcessorCount() / 2, 2, 8);
 
     public CsvSourceConfiguration<Path> toCsvSourceConfiguration() {
         return new CsvSourceConfiguration.CsvSourceConfigurationBuilder<Path>()
@@ -39,4 +33,6 @@ public class CsvSourceProperties {
                 // TODO How to initialize comparator
                 .build();
     }
+
+    public record Topic(String storeName, String topicName, String path) {}
 }

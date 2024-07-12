@@ -26,7 +26,6 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 public class CubeConfig {
     public static final String CUBE_NAME = "Cube";
-
     private final DimensionConfig dimensionConfig;
     private final MeasureConfig measureConfig;
 
@@ -38,7 +37,7 @@ public class CubeConfig {
      * @return The configured builder
      */
     private ICanBuildCubeDescription<IActivePivotInstanceDescription> configureCubeBuilder(
-            final ICubeDescriptionBuilder.INamedCubeDescriptionBuilder builder) {
+            ICubeDescriptionBuilder.INamedCubeDescriptionBuilder builder) {
 
         return builder.withContributorsCount()
                 .withinFolder(NATIVE_MEASURES)

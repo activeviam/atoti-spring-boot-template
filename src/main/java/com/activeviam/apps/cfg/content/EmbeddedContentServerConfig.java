@@ -22,14 +22,13 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class EmbeddedContentServerConfig implements IActivePivotContentServiceConfig {
-
     private final ContentServiceSecurityProperties contentServerSecurityProperties;
     private final EmbeddedContentServerHibernateProperties embeddedContentServerProperties;
 
     @Override
     @Bean
     public IContentService contentService() {
-        final var contentService = IContentService.builder()
+        var contentService = IContentService.builder()
                 .withPersistence()
                 .configuration(embeddedContentServerProperties.toHibernateConfiguration())
                 .build();

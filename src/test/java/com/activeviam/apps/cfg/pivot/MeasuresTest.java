@@ -30,7 +30,6 @@ import com.activeviam.database.datastore.api.IDatastore;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @Import({CubeTestConfig.class})
 class MeasuresTest {
-
     @Autowired
     CubeTester cubeTester;
 
@@ -39,7 +38,7 @@ class MeasuresTest {
 
     @BeforeEach
     public void initialLoad() {
-        final var tuples = new ArrayList<Object[]>();
+        var tuples = new ArrayList<Object[]>();
         tuples.add(new Object[] {LocalDate.parse("2019-03-13"), "T1", 100});
         tuples.add(new Object[] {LocalDate.parse("2019-03-13"), "T2", 350d});
         tuples.add(new Object[] {LocalDate.parse("2019-03-13"), "T3", 300d});
@@ -54,7 +53,7 @@ class MeasuresTest {
     }
 
     private void insertTradesTuples(Object[] tuple) {
-        final var tuples = new ArrayList<Object[]>();
+        var tuples = new ArrayList<Object[]>();
         tuples.add(tuple);
         insertTradesTuples(tuples);
     }

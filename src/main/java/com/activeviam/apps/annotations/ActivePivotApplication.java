@@ -23,7 +23,6 @@ import com.activeviam.activepivot.server.spring.private_.config.TracingConfig;
 @SpringBootApplication
 @Import({
     TracingConfig.class,
-
     // ... Any additional imports
 })
 public @interface ActivePivotApplication {}

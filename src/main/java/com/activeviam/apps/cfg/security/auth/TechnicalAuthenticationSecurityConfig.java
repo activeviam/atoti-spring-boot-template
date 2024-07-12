@@ -28,9 +28,8 @@ public class TechnicalAuthenticationSecurityConfig {
 
     public TechnicalAuthenticationSecurityConfig(
             SecurityTechUserPasswordsProperties techUserPasswordsProperties, PasswordEncoder passwordEncoder) {
-
         this.passwordEncoder = passwordEncoder;
-        this.techUserDetailsService = new InMemoryUserDetailsManager();
+        techUserDetailsService = new InMemoryUserDetailsManager();
 
         techUserDetailsService.createUser(User.withUsername(PIVOT_TECH_USER_LOGIN)
                 .password(techUserPasswordsProperties.getPivot())

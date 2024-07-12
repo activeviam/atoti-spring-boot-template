@@ -38,7 +38,7 @@ public class DatastoreSchemaConfig implements IDatastoreSchemaDescriptionConfig 
                 .withField(StoreAndFieldConstants.TRADES_TRADEID, STRING)
                 .asKeyField()
                 .withField(StoreAndFieldConstants.TRADES_NOTIONAL, DOUBLE)
-                .build();
+                .build(); 
     }
 
     private Collection<IReferenceDescription> references() {
@@ -47,7 +47,7 @@ public class DatastoreSchemaConfig implements IDatastoreSchemaDescriptionConfig 
 
     @Override
     public IDatastoreSchemaDescription datastoreSchemaDescription() {
-        final var stores = new LinkedList<IStoreDescription>();
+        var stores = new LinkedList<IStoreDescription>();
         stores.add(createTradesStoreDescription());
 
         return new DatastoreSchemaDescription(stores, references());

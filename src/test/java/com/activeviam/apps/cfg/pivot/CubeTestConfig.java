@@ -19,19 +19,18 @@ import com.activeviam.database.datastore.api.IDatastore;
 @Configuration
 @Import(MeasureConfig.class)
 public class CubeTestConfig {
-
     public static final String CUBE_NAME = "Cube";
 
     private final CubeTester cubeTester;
     private final IDatastore datastore;
 
     public CubeTestConfig() {
-        final var datastoreDescConfig = new DatastoreSchemaConfig();
-        final var datastoreSchemaDesc = datastoreDescConfig.datastoreSchemaDescription();
-        final var datastoreSelectionDesc = new DatastoreSelectionConfig(datastoreDescConfig);
-        final var measureConfig = new MeasureConfig();
-        final var dimensionConfig = new DimensionConfig();
-        final var cubeDescription = StartBuilding.cube()
+        var datastoreDescConfig = new DatastoreSchemaConfig();
+        var datastoreSchemaDesc = datastoreDescConfig.datastoreSchemaDescription();
+        var datastoreSelectionDesc = new DatastoreSelectionConfig(datastoreDescConfig);
+        var measureConfig = new MeasureConfig();
+        var dimensionConfig = new DimensionConfig();
+        var cubeDescription = StartBuilding.cube()
                 .withName(CUBE_NAME)
                 .withCalculations(measureConfig::build)
                 .withDimensions(dimensionConfig::build)
@@ -43,7 +42,7 @@ public class CubeTestConfig {
                 .withCube(cubeDescription)
                 .build();
 
-        final var applicationBuilder = StartBuilding.application()
+        var applicationBuilder = StartBuilding.application()
                 .withDatastore(datastoreDescConfig.datastoreSchemaDescription())
                 .withManager(managerDescription)
                 .withoutBranchRestrictions();

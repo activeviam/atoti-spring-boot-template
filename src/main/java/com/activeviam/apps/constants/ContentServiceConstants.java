@@ -14,7 +14,6 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ContentServiceConstants {
-
     /********************* Property names ***********************/
     public static final String CONTENT_SERVICE_PROPERTIES_PREFIX = "content-service";
 

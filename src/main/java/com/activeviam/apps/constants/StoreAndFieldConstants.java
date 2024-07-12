@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class StoreAndFieldConstants {
-
     /*********************** Stores names **********************/
     public static final String TRADES_STORE_NAME = "Trades";
 
