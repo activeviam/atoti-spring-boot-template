@@ -35,10 +35,10 @@ public class DatastoreSchemaConfig implements IDatastoreSchemaDescriptionConfig 
                 .withStoreName(StoreAndFieldConstants.TRADES_STORE_NAME)
                 .withField(StoreAndFieldConstants.ASOFDATE, LOCAL_DATE)
                 .asKeyField()
-                .withField(StoreAndFieldConstants.TRADES_TRADEID, STRING)
+                .withField(StoreAndFieldConstants.TRADES_TRADE_ID, STRING)
                 .asKeyField()
                 .withField(StoreAndFieldConstants.TRADES_NOTIONAL, DOUBLE)
-                .build(); 
+                .build();
     }
 
     private Collection<IReferenceDescription> references() {

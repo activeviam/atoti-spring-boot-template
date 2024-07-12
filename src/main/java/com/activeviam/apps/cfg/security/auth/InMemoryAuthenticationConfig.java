@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.util.CollectionUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,14 +29,12 @@ public class InMemoryAuthenticationConfig {
         this.passwordEncoder = passwordEncoder;
         basicUserDetailsService = new InMemoryUserDetailsManager();
 
-        if (authenticationProperties.getUsers() != null
-                && !authenticationProperties.getUsers().isEmpty()) {
-            authenticationProperties
-                    .getUsers()
-                    .forEach(user -> basicUserDetailsService.createUser(User.withUsername(user.username())
-                            .password(passwordEncoder.encode(user.password()))
-                            .authorities(user.authorities().toArray(new String[0]))
-                            .build()));
+        var users = authenticationProperties.getUsers();
+        if (!CollectionUtils.isEmpty(users)) {
+            users.forEach(user -> basicUserDetailsService.createUser(User.withUsername(user.username())
+                    .password(user.password())
+                    .authorities(user.authorities().toArray(new String[0]))
+                    .build()));
         } else {
             log.warn("No basic auth users have been configured!");
         }

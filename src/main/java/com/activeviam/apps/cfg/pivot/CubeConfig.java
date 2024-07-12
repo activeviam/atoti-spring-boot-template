@@ -22,15 +22,16 @@ import com.activeviam.activepivot.core.intf.api.description.builder.ICubeDescrip
 
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 @Configuration
+@RequiredArgsConstructor
 public class CubeConfig {
     public static final String CUBE_NAME = "Cube";
+
     private final DimensionConfig dimensionConfig;
     private final MeasureConfig measureConfig;
 
     /**
-     * Configures the given builder in order to created the cube description.
+     * Configures the given builder in order to create the cube description.
      *
      * @param builder
      *            The builder to configure
@@ -38,7 +39,6 @@ public class CubeConfig {
      */
     private ICanBuildCubeDescription<IActivePivotInstanceDescription> configureCubeBuilder(
             ICubeDescriptionBuilder.INamedCubeDescriptionBuilder builder) {
-
         return builder.withContributorsCount()
                 .withinFolder(NATIVE_MEASURES)
                 .withAlias("Count")

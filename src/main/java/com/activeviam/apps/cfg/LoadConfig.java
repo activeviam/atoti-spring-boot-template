@@ -26,20 +26,16 @@ import com.activeviam.source.csv.api.IFileInfo;
 import com.activeviam.source.csv.api.ILineReader;
 import com.activeviam.tech.concurrency.internal.timing.impl.StopWatch;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Configuration
+@RequiredArgsConstructor
+@Slf4j
 public class LoadConfig {
     private final IDatastore datastore;
     private final ICsvSource<Path> csvSource;
     private final CsvMessageChannelFactory<Path> csvChannelFactory;
-
-    LoadConfig(IDatastore datastore, ICsvSource<Path> csvSource, CsvMessageChannelFactory<Path> csvChannelFactory) {
-        this.datastore = datastore;
-        this.csvSource = csvSource;
-        this.csvChannelFactory = csvChannelFactory;
-    }
 
     @EventListener(value = ApplicationReadyEvent.class)
     void onApplicationReady() throws Exception {
@@ -61,7 +57,7 @@ public class LoadConfig {
         });
 
         var elapsed = System.nanoTime() - before;
-        log.info("Initial data load completed in {} ms.", elapsed / 1000000L);
+        log.info("Initial data load completed in {} ms.", elapsed / 1_000_000L);
 
         printStoreSizes();
     }
