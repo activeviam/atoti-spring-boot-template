@@ -1,0 +1,4 @@
+POST http://localhost:9090/xmla
+Content-Type: text/xml
+Authorization: Basic YWRtaW46YWRtaW4=
+

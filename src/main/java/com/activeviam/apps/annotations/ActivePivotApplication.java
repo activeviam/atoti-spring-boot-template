@@ -16,12 +16,14 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Import;
 
 import com.activeviam.activepivot.server.spring.private_.config.TracingConfig;
+import com.activeviam.activepivot.server.spring.private_.rest.database.NoSecurityDatabaseServiceConfig;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @ConfigurationPropertiesScan
 @SpringBootApplication
 @Import({
+    NoSecurityDatabaseServiceConfig.class,
     TracingConfig.class,
     // ... Any additional imports
 })

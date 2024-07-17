@@ -27,7 +27,6 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @RequiredArgsConstructor
 public class ApplicationConfig {
-    public static final String START_MANAGER = "startManager";
 
     /* Before anything else we statically initialize the Quartet FS Registry. */
     static {
