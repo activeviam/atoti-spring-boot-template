@@ -7,12 +7,22 @@
 package com.activeviam.apps;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-import com.activeviam.apps.annotations.ActivePivotApplication;
+import com.activeviam.activepivot.server.spring.private_.config.TracingConfig;
+import com.activeviam.activepivot.server.spring.private_.rest.database.NoSecurityDatabaseServiceConfig;
 
-@ActivePivotApplication
+@SpringBootApplication
 @EnableWebMvc
+@ConfigurationPropertiesScan
+@Import({
+        NoSecurityDatabaseServiceConfig.class,
+        TracingConfig.class,
+        // ... Any additional imports
+})
 public class PivotSpringBootApplication {
 
     public static void main(String[] args) {
