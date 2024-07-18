@@ -1,0 +1,9 @@
+###
+GET http://localhost:9090/custom/rest/day/loaded
+Content-Type: text/plain
+Authorization: Basic YWRtaW46YWRtaW4=
+
+###
+GET http://localhost:9090/custom/rest/hello
+Content-Type: text/plain
+Authorization: Basic YWRtaW46YWRtaW4=
