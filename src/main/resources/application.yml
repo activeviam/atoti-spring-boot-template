@@ -36,7 +36,6 @@ management:
 # Source configuration
 source:
   csv:
-    parser-threads: 2
     synchronous-mode: false
     topics:
       - topic-name: Trades

@@ -7,12 +7,11 @@
 
 package com.activeviam.apps.rest;
 
-import com.activeviam.web.core.internal.rest.RestPrefixExtractor;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class EndpointConstants {
-    public static final String CUSTOM_REST_PATH = "/custom/" + RestPrefixExtractor.REST_NAMESPACE;
+    public static final String REST_NAMESPACE = "rest";
+    public static final String CUSTOM_REST_PATH = "/custom/" + REST_NAMESPACE;
 }
