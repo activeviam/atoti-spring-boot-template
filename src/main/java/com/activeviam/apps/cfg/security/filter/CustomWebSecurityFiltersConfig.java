@@ -10,7 +10,6 @@ import static com.activeviam.apps.constants.SecurityConstants.ROLE_USER;
 import static com.activeviam.web.core.api.IUrlBuilder.url;
 
 import org.springdoc.core.properties.SwaggerUiConfigProperties;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.h2.H2ConsoleProperties;
 import org.springframework.context.annotation.Bean;
@@ -23,8 +22,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 
 import com.activeviam.apps.rest.EndpointConstants;
-import com.activeviam.web.spring.api.security.IAtotiServerFilters;
-import com.activeviam.web.spring.api.security.dsl.AtotiServerHumanDsl;
 import com.activeviam.web.spring.api.security.dsl.HumanToMachineSecurityDsl;
 import com.activeviam.web.spring.api.security.dsl.MachineToMachineSecurityDsl;
 
@@ -34,11 +31,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CustomWebSecurityFiltersConfig {
     public static final String WILDCARD = "**";
-
-    @Bean("AtotiServerAdminUiStarterHumanToMachineDefaultSecurityDsl")
-    public HumanToMachineSecurityDsl humanToMachineDsl(@Autowired(required = false) IAtotiServerFilters filters) {
-        return new AtotiServerHumanDsl(filters).requestLogin("/login/index.html");
-    }
 
     @ConditionalOnProperty(prefix = "spring.h2.console", name = "enabled", havingValue = "true")
     @Bean
@@ -62,7 +54,7 @@ public class CustomWebSecurityFiltersConfig {
             HumanToMachineSecurityDsl dsl,
             SwaggerUiConfigProperties swaggerUiConfigProperties)
             throws Exception {
-        return http.with(dsl, Customizer.withDefaults())
+        return http.with(dsl, c -> c.requestLogin("/login/index.html"))
                 .securityMatcher(mvc.pattern(swaggerUiConfigProperties.getPath()))
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
                 .build();

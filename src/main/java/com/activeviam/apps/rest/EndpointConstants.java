@@ -4,7 +4,6 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-
 package com.activeviam.apps.rest;
 
 import lombok.AccessLevel;
