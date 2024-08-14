@@ -6,7 +6,7 @@
  */
 package com.activeviam.apps.cfg.security.filter;
 
-import static com.activeviam.apps.constants.SecurityConstants.ROLE_USER;
+import static com.activeviam.springboot.atoti.server.starter.api.AtotiSecurityProperties.ROLE_USER;
 import static com.activeviam.web.core.api.IUrlBuilder.url;
 
 import org.springdoc.core.properties.SwaggerUiConfigProperties;
@@ -22,6 +22,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 
 import com.activeviam.apps.rest.EndpointConstants;
+import com.activeviam.springboot.atoti.server.starter.api.LoginLogoutUrls;
 import com.activeviam.web.spring.api.security.dsl.HumanToMachineSecurityDsl;
 import com.activeviam.web.spring.api.security.dsl.MachineToMachineSecurityDsl;
 
@@ -54,7 +55,7 @@ public class CustomWebSecurityFiltersConfig {
             HumanToMachineSecurityDsl dsl,
             SwaggerUiConfigProperties swaggerUiConfigProperties)
             throws Exception {
-        return http.with(dsl, c -> c.requestLogin("/login/index.html"))
+        return http.with(dsl, c -> c.requestLogin(LoginLogoutUrls.LOGIN_PAGE_URL))
                 .securityMatcher(mvc.pattern(swaggerUiConfigProperties.getPath()))
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
                 .build();

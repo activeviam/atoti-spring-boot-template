@@ -10,6 +10,7 @@ server:
         http-only: true
         same-site: NONE
         secure: true
+        name: ATOTISERVER_JSESSIONID
 
 spring:
   application:
@@ -32,6 +33,11 @@ management:
         include: "*"
   health:
     elasticsearch.enabled: false
+
+atoti:
+  server:
+    security:
+      cookie-name: ${server.servlet.session.cookie.name}
 
 # Source configuration
 source:

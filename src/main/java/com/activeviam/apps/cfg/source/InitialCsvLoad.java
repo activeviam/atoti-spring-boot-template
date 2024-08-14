@@ -14,8 +14,8 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import com.activeviam.database.api.DatabasePrinter;
 import com.activeviam.database.datastore.api.IDatastore;
-import com.activeviam.database.datastore.internal.impl.SchemaPrinter;
 import com.activeviam.source.common.api.IMessageChannel;
 import com.activeviam.source.csv.api.CsvMessageChannelFactory;
 import com.activeviam.source.csv.api.ICsvSource;
@@ -72,6 +72,6 @@ public class InitialCsvLoad {
         StopWatch.get().printTimingLegend();
 
         // print sizes
-        SchemaPrinter.printStoresSizes(datastore.getMasterHead());
+        DatabasePrinter.printTableSizes(datastore.getMasterHead());
     }
 }
