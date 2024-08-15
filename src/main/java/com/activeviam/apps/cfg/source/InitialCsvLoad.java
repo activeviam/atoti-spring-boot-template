@@ -30,19 +30,18 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class InitialCsvLoad {
-
     private final IDatastore datastore;
     private final ICsvSource<Path> csvSource;
     private final CsvMessageChannelFactory<Path> csvChannelFactory;
     private final CsvSourceProperties csvSourceProperties;
 
     @EventListener(value = ApplicationReadyEvent.class)
-    void onApplicationReady() throws Exception {
+    void onApplicationReady() {
         log.info("ApplicationReadyEvent triggered");
         initialLoad();
     }
 
-    private void initialLoad() throws Exception {
+    private void initialLoad() {
         log.info("Initial data load started.");
         Collection<IMessageChannel<IFileInfo<Path>, ILineReader>> csvChannels = new ArrayList<>();
 
