@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -67,8 +66,7 @@ public class CustomUiEnvJsResourceConfig {
             };
             """;
 
-    @Bean
-    @Qualifier(ActiveUIResourceServerConfig.ENVJS_RESOURCE_QUALIFIER)
+    @Bean(ActiveUIResourceServerConfig.ENVJS_RESOURCE_QUALIFIER)
     @Primary
     public Resource computeAtotiUiEnvJs() {
         return new ByteArrayResource(ATOTI_UI_ENV_JS.getBytes(StandardCharsets.UTF_8)) {
@@ -97,8 +95,7 @@ public class CustomUiEnvJsResourceConfig {
         };
     }
 
-    @Bean
-    @Qualifier(AdminUIResourceServerConfig.ENVJS_RESOURCE_QUALIFIER)
+    @Bean(AdminUIResourceServerConfig.ENVJS_RESOURCE_QUALIFIER)
     @Primary
     public Resource computeAdminUiEnvJs() {
         return new ByteArrayResource(ADMIN_UI_ENV_JS.getBytes(StandardCharsets.UTF_8)) {
