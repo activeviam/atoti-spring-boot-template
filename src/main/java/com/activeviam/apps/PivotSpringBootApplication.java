@@ -9,11 +9,15 @@ package com.activeviam.apps;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+
+import com.activeviam.apm.private_.spring.MonitoredDataLoadingConfig;
 
 @SpringBootApplication
 @EnableWebMvc
 @ConfigurationPropertiesScan
+@Import({MonitoredDataLoadingConfig.class})
 public class PivotSpringBootApplication {
 
     public static void main(String[] args) {

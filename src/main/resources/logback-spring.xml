@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Example LOGBACK Configuration File http://logback.qos.ch/manual/configuration.html -->
 <configuration debug="true">
-  <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
+  <shutdownHook class="ch.qos.logback.core.hook.DefaultShutdownHook"/>
   <jmxConfigurator/>
   <conversionRule conversionWord="user" converterClass="com.activeviam.apm.api.logging.LogUserConverter"/>
 

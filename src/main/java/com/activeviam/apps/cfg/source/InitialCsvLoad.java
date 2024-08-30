@@ -17,11 +17,11 @@ import org.springframework.stereotype.Component;
 import com.activeviam.database.api.DatabasePrinter;
 import com.activeviam.database.datastore.api.IDatastore;
 import com.activeviam.source.common.api.IMessageChannel;
+import com.activeviam.source.common.api.report.IMessageHandler;
 import com.activeviam.source.csv.api.CsvMessageChannelFactory;
 import com.activeviam.source.csv.api.ICsvSource;
 import com.activeviam.source.csv.api.IFileInfo;
 import com.activeviam.source.csv.api.ILineReader;
-import com.activeviam.tech.concurrency.internal.timing.impl.StopWatch;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +34,7 @@ public class InitialCsvLoad {
     private final ICsvSource<Path> csvSource;
     private final CsvMessageChannelFactory<Path> csvChannelFactory;
     private final CsvSourceProperties csvSourceProperties;
+    private final IMessageHandler<IFileInfo<Path>> messageHandler;
 
     @EventListener(value = ApplicationReadyEvent.class)
     void onApplicationReady() {
@@ -46,7 +47,11 @@ public class InitialCsvLoad {
         Collection<IMessageChannel<IFileInfo<Path>, ILineReader>> csvChannels = new ArrayList<>();
 
         csvSourceProperties.getTopics().stream()
-                .map(topic -> csvChannelFactory.createChannel(topic.topicName(), topic.storeName()))
+                .map(topic -> {
+                    var channel = csvChannelFactory.createChannel(topic.topicName(), topic.storeName());
+                    channel.withMessageHandler(messageHandler);
+                    return channel;
+                })
                 .forEach(csvChannels::add);
 
         // do the transactions
@@ -64,12 +69,6 @@ public class InitialCsvLoad {
     }
 
     private void printStoreSizes() {
-        // Print stop watch profiling
-        var timingsOutput = new StringBuilder();
-        StopWatch.get().appendTimings(timingsOutput);
-        log.info(timingsOutput.toString());
-        StopWatch.get().printTimingLegend();
-
         // print sizes
         DatabasePrinter.printTableSizes(datastore.getMasterHead());
     }
