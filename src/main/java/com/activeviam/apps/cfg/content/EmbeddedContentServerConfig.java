@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import com.activeviam.activepivot.server.intf.api.entitlements.IActivePivotContentService;
 import com.activeviam.activepivot.server.spring.api.config.IActivePivotContentServiceConfig;
 import com.activeviam.activepivot.server.spring.api.content.ActivePivotContentServiceBuilder;
-import com.activeviam.tech.contentserver.spring.api.config.ActiveUIContentServiceUtil;
+import com.activeviam.tech.contentserver.spring.api.config.AtotiUiContentServiceUtil;
 import com.activeviam.tech.contentserver.storage.api.IContentService;
 
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ public class EmbeddedContentServerConfig implements IActivePivotContentServiceCo
                 .build();
 
         // initialize the ActiveUI structure required on the ContentService side
-        ActiveUIContentServiceUtil.initialize(contentService);
+        AtotiUiContentServiceUtil.initialize(contentService);
         log.info("Initialized the contentServer with the required structure to work with ActiveUI.");
         return contentService;
     }

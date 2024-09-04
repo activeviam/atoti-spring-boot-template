@@ -17,7 +17,7 @@
   <properties>
     <java.version>21</java.version>
     <spring-boot.version>3.2.8</spring-boot.version>
-    <activepivot.version>6.1.0-rc2</activepivot.version>
+    <activepivot.version>6.1.0-20240903-153724-d2357762</activepivot.version>
     <springdoc.version>2.3.0</springdoc.version>
 
     <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>

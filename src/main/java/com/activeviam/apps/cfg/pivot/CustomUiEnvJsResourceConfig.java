@@ -7,120 +7,87 @@
 package com.activeviam.apps.cfg.pivot;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.lang.NonNull;
 
-import com.activeviam.tech.contentserver.spring.internal.config.ActiveUIResourceServerConfig;
-import com.activeviam.tech.contentserver.spring.internal.config.AdminUIResourceServerConfig;
+import com.activeviam.springboot.atoti.admin.ui.starter.api.AtotiAdminUiProperties;
+import com.activeviam.springboot.atoti.ui.starter.api.AtotiUiProperties;
+import com.activeviam.tech.contentserver.spring.api.config.AdminUiEnvJs;
+import com.activeviam.tech.contentserver.spring.api.config.AtotiUiEnvJs;
 
 import lombok.NoArgsConstructor;
 
 @Configuration
 @NoArgsConstructor
 public class CustomUiEnvJsResourceConfig {
-    private static final String ATOTI_UI_ENV_JS =
+    // Here we are using the same env.js content for both, however in case of remote CS we would have a different
+    // content.
+    private static final String ENV_JS =
             """
             var baseUrl = window.location.href.split('/ui')[0];
 
             window.env = {
-                jwtServer: {
-                    url: baseUrl,
-                    version: "6.1.0-rc2"
+                "jwtServer": {
+                    "url": baseUrl,
+                    "version": "6.1.0-rc2"
                 },
-                contentServerUrl: baseUrl,
-                contentServerVersion: "6.1.0-rc2",
-                // WARNING: Changing the keys of activePivotServers will break previously saved widgets and dashboards.
+                "contentServer": {
+                    "url": baseUrl,
+                    "version": "6.1.0-rc2"
+                },
+                // WARNING: Changing the keys of atotiServers will break previously saved widgets and dashboards.
                 // If you must do it, then you also need to update each one's serverKey attribute on your content server.
-                activePivotServers: {
+                "atotiServers": {
                     "pivot-spring-boot": {
-                        url: baseUrl,
-                        version: "6.1.0-rc2",
-                    },
-                },
-            };
-            """;
-    private static final String ADMIN_UI_ENV_JS =
-            """
-            var baseUrl = window.location.href.split("/admin/ui")[0];
-
-            window.env = {
-                jwtServer: {
-                    url: baseUrl,
-                    version: "6.1.0-rc2"
-                },
-                contentServerUrl: baseUrl,
-                contentServerVersion: "6.1.0-rc2",
-                activePivotServers: {
-                    "pivot-spring-boot": {
-                        url: baseUrl,
-                        version: "6.1.0-rc2",
+                        "url": baseUrl,
+                        "version": "6.1.0-rc2",
                     },
                 },
             };
             """;
 
-    @Bean(ActiveUIResourceServerConfig.ENVJS_RESOURCE_QUALIFIER)
-    @Primary
-    public Resource computeAtotiUiEnvJs() {
-        return new ByteArrayResource(ATOTI_UI_ENV_JS.getBytes(StandardCharsets.UTF_8)) {
-            @NonNull
-            @Override
-            public org.springframework.core.io.Resource createRelative(@NonNull String relativePath) {
-                return this;
-            }
-
-            @NonNull
-            @Override
-            public URL getURL() throws IOException {
-                return new URL("file://" + getFilename());
-            }
-
-            @Override
-            public long lastModified() {
-                return System.currentTimeMillis();
-            }
-
-            @Override
-            @NonNull
-            public String getFilename() {
-                return "env.js";
-            }
-        };
+    @Bean
+    public AtotiUiEnvJs atotiUiEnvJs(AtotiUiProperties properties) {
+        return () -> new EnvJsResource(ENV_JS);
     }
 
-    @Bean(AdminUIResourceServerConfig.ENVJS_RESOURCE_QUALIFIER)
-    @Primary
-    public Resource computeAdminUiEnvJs() {
-        return new ByteArrayResource(ADMIN_UI_ENV_JS.getBytes(StandardCharsets.UTF_8)) {
-            @NonNull
-            @Override
-            public org.springframework.core.io.Resource createRelative(@NonNull String relativePath) {
-                return this;
-            }
+    @Bean
+    public AdminUiEnvJs adminUiEnvJs(AtotiAdminUiProperties properties) {
+        return () -> new EnvJsResource(ENV_JS);
+    }
 
-            @NonNull
-            @Override
-            public URL getURL() throws IOException {
-                return new URL("file://" + getFilename());
-            }
+    private static class EnvJsResource extends ByteArrayResource {
+        public EnvJsResource(@NonNull String content) {
+            super(content.getBytes(StandardCharsets.UTF_8));
+        }
 
-            @Override
-            public long lastModified() {
-                return System.currentTimeMillis();
-            }
+        @NonNull
+        @Override
+        public org.springframework.core.io.Resource createRelative(@NonNull String relativePath) {
+            return this;
+        }
 
-            @Override
-            @NonNull
-            public String getFilename() {
-                return "env.js";
-            }
-        };
+        @NonNull
+        @Override
+        public URL getURL() throws IOException {
+            return URI.create("file://" + getFilename()).toURL();
+        }
+
+        @Override
+        public long lastModified() {
+            return System.currentTimeMillis();
+        }
+
+        @Override
+        @NonNull
+        public String getFilename() {
+            return "env.js";
+        }
     }
 }
