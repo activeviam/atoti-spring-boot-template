@@ -20,6 +20,8 @@
     <activepivot.version>6.1.0-20240903-153724-d2357762</activepivot.version>
     <springdoc.version>2.3.0</springdoc.version>
 
+    <opentelemetry.logback.version>2.5.0-alpha</opentelemetry.logback.version>
+
     <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
     <palantir-java-format.version>2.50.0</palantir-java-format.version>
   </properties>
@@ -92,6 +94,35 @@
       <groupId>com.activeviam.springboot</groupId>
       <artifactId>atoti-admin-ui-starter</artifactId>
       <version>${activepivot.version}</version>
+    </dependency>
+
+    <!-- OpenTelemetry -->
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk-extension-autoconfigure</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-exporter-otlp</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry.instrumentation</groupId>
+      <artifactId>opentelemetry-logback-appender-1.0</artifactId>
+      <version>${opentelemetry.logback.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry.instrumentation</groupId>
+      <artifactId>opentelemetry-logback-mdc-1.0</artifactId>
+      <version>${opentelemetry.logback.version}</version>
+    </dependency>
+    <!-- Micrometer is not necessarily required. Check your usage -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-tracing-bridge-otel</artifactId>
     </dependency>
 
     <dependency>

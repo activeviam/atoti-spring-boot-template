@@ -33,6 +33,10 @@ management:
         include: "*"
   health:
     elasticsearch.enabled: false
+  # https://docs.spring.io/spring-boot/reference/actuator/tracing.html
+  tracing:
+    sampling:
+      probability: 1
 
 atoti:
   server:

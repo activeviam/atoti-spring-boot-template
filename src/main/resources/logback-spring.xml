@@ -5,9 +5,26 @@
   <jmxConfigurator/>
   <conversionRule conversionWord="user" converterClass="com.activeviam.apm.api.logging.LogUserConverter"/>
 
-  <property name="PID" value="[%user]"/>
+  <property name="PID" value="[%10(%user)]"/>
+  <!-- Configure the correlation pattern as the default uses traceId and spanId, read from the MDC -->
+  <property name="LOG_CORRELATION_PATTERN" value="[%-32(%X{trace_id}) %-16(%X{span_id})]\t"/>
+
   <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
   <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+  <!-- Proxy the console appender to take care of the tracing MDC -->
+  <appender name="CONSOLE_OTEL" class="io.opentelemetry.instrumentation.logback.mdc.v1_0.OpenTelemetryAppender">
+    <appender-ref ref="CONSOLE"/>
+  </appender>
+
+  <!-- Appender to send the logs to OpenTelemetry -->
+  <appender name="OpenTelemetry"
+            class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+    <captureExperimentalAttributes>true</captureExperimentalAttributes>
+    <captureCodeAttributes>true</captureCodeAttributes>
+    <captureMarkerAttribute>true</captureMarkerAttribute>
+    <captureMdcAttributes>*</captureMdcAttributes>
+  </appender>
 
   <!-- ############################################################################# -->
   <!-- # Explicit configuration of the various loggers (core and custom)           # -->
@@ -21,10 +38,9 @@
   <!-- # ALL (lowest filtering)                                                    # -->
   <!-- ############################################################################# -->
 
-  <logger name="brave.Tracer" level="ERROR"/>
-
   <root level="INFO">
-    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="CONSOLE_OTEL"/>
+    <appender-ref ref="OpenTelemetry"/>
   </root>
 
   <!--

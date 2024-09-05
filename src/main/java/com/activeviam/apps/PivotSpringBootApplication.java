@@ -13,6 +13,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import com.activeviam.apm.private_.spring.MonitoredDataLoadingConfig;
+import com.activeviam.tech.core.api.tracking.Tracing;
+
+import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender;
 
 @SpringBootApplication
 @EnableWebMvc
@@ -22,5 +25,6 @@ public class PivotSpringBootApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(PivotSpringBootApplication.class, args);
+        OpenTelemetryAppender.install(Tracing.getEffectiveOtelInstance());
     }
 }
