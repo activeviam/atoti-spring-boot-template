@@ -175,7 +175,7 @@
         <version>${spotless-maven-plugin.version}</version>
         <configuration>
           <!-- limit format enforcement to just the files changed by this feature branch -->
-          <ratchetFrom>origin/6.0</ratchetFrom>
+          <ratchetFrom>origin/6.1.0</ratchetFrom>
           <!-- define a language-specific format -->
           <java>
             <palantirJavaFormat>
