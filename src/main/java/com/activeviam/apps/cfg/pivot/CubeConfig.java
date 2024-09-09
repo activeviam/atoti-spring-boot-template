@@ -63,7 +63,7 @@ public class CubeConfig {
                 .aggressiveFormulaEvaluation(true)
                 .end()
                 .withSharedDrillthroughProperties()
-                .withMaxRows(10000)
+                .withMaxRows(10_000)
                 .end();
     }
 

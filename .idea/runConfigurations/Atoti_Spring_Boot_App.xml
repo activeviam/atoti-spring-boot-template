@@ -1,10 +1,10 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Pivot Spring Boot App" type="Application" factoryName="Application">
+  <configuration default="false" name="Atoti Spring Boot App" type="Application" factoryName="Application">
     <envs>
       <env name="OTEL_EXPORTER_OTLP_ENDPOINT" value="http://localhost:4317" />
       <env name="OTEL_LOGS_EXPORTER" value="otlp" />
     </envs>
-    <option name="MAIN_CLASS_NAME" value="com.activeviam.apps.PivotSpringBootApplication" />
+    <option name="MAIN_CLASS_NAME" value="com.activeviam.apps.AtotiSpringBootApplication" />
     <module name="pivot-spring-boot" />
     <option name="VM_PARAMETERS" value="--add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED -Dotel.java.global-autoconfigure.enabled=true" />
     <extension name="coverage">

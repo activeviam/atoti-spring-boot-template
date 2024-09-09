@@ -22,6 +22,6 @@ public class HelloController {
 
     @GetMapping
     public String index() {
-        return "Hello from Pivot Spring Boot!";
+        return "Hello from Atoti Spring Boot!";
     }
 }

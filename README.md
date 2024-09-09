@@ -1,7 +1,7 @@
 <p align="center">
   <img width="80" src="./activeviam.svg" />
 </p>
-<h1 align="center">Pivot Spring Boot</h1>
+<h1 align="center">Atoti Spring Boot Template</h1>
 <p align="center">A minimalist ActivePivot project built with Spring Boot for you to edit, customize and use as a base for your ActivePivot projects.</p>
 
 ---
@@ -60,7 +60,7 @@ java --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.bas
 
 - ActiveUI, ActiveViam's user interface for exploring the cube, will be available from `http://localhost:9090/ui`
 
-- List of REST endpoints provided can be found at `http://localhost:9090/activeviam/swagger-ui/index.html`
+- List of REST endpoints provided can be found at `http://localhost:9090/swagger-ui/index.html`
 
 The default security credentials are `admin:admin`, but can be modified in the `SecurityConfig` class (we use Spring
 Security). You should change this before going into production.<br>

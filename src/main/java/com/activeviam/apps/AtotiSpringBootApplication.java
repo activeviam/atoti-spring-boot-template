@@ -18,10 +18,10 @@ import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppen
 @SpringBootApplication
 @EnableWebMvc
 @ConfigurationPropertiesScan
-public class PivotSpringBootApplication {
+public class AtotiSpringBootApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(PivotSpringBootApplication.class, args);
+        SpringApplication.run(AtotiSpringBootApplication.class, args);
         OpenTelemetryAppender.install(Tracing.getEffectiveOtelInstance());
     }
 }

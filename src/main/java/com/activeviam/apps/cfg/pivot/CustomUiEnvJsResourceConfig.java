@@ -35,18 +35,18 @@ public class CustomUiEnvJsResourceConfig {
             window.env = {
                 "jwtServer": {
                     "url": baseUrl,
-                    "version": "6.1.0-rc2"
+                    "version": "6.1.0"
                 },
                 "contentServer": {
                     "url": baseUrl,
-                    "version": "6.1.0-rc2"
+                    "version": "6.1.0"
                 },
                 // WARNING: Changing the keys of atotiServers will break previously saved widgets and dashboards.
                 // If you must do it, then you also need to update each one's serverKey attribute on your content server.
                 "atotiServers": {
-                    "pivot-spring-boot": {
+                    "atoti-spring-boot": {
                         "url": baseUrl,
-                        "version": "6.1.0-rc2",
+                        "version": "6.1.0",
                     },
                 },
             };
