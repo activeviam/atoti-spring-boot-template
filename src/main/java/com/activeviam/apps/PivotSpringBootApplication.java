@@ -9,10 +9,8 @@ package com.activeviam.apps;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
-import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-import com.activeviam.apm.private_.spring.MonitoredDataLoadingConfig;
 import com.activeviam.tech.core.api.tracking.Tracing;
 
 import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender;
@@ -20,7 +18,6 @@ import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppen
 @SpringBootApplication
 @EnableWebMvc
 @ConfigurationPropertiesScan
-@Import({MonitoredDataLoadingConfig.class})
 public class PivotSpringBootApplication {
 
     public static void main(String[] args) {

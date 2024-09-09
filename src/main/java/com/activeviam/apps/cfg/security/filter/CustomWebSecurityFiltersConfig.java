@@ -9,7 +9,9 @@ package com.activeviam.apps.cfg.security.filter;
 import static com.activeviam.springboot.atoti.server.starter.api.AtotiSecurityProperties.ROLE_USER;
 import static com.activeviam.web.core.api.IUrlBuilder.url;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springdoc.core.properties.SwaggerUiConfigProperties;
+import org.springdoc.core.utils.Constants;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.h2.H2ConsoleProperties;
 import org.springframework.context.annotation.Bean;
@@ -56,7 +58,8 @@ public class CustomWebSecurityFiltersConfig {
             SwaggerUiConfigProperties swaggerUiConfigProperties)
             throws Exception {
         return http.with(dsl, c -> c.requestLogin(LoginLogoutUrls.LOGIN_PAGE_URL))
-                .securityMatcher(mvc.pattern(swaggerUiConfigProperties.getPath()))
+                .securityMatcher(mvc.pattern(StringUtils.defaultIfBlank(
+                        swaggerUiConfigProperties.getPath(), Constants.DEFAULT_SWAGGER_UI_PATH)))
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
                 .build();
     }

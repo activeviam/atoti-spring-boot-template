@@ -27,8 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class CsvSourceConfig {
-    public static final String TRADES_TOPIC = "Trades";
-
     private final CsvSourceProperties csvSourceProperties;
     private final IDatastore datastore;
 
@@ -39,21 +37,20 @@ public class CsvSourceConfig {
      */
     @Bean
     public FileSystemCsvTopicFactory csvTopicFactory() {
-        return new FileSystemCsvTopicFactory(false);
+        return FileSystemCsvTopicFactory.withoutWatcherService();
     }
 
     @Bean(destroyMethod = "close")
-    public ICsvSource<Path> csvSource() {
+    public ICsvSource<Path> csvSource(FileSystemCsvTopicFactory csvTopicFactory) {
         var datastoreSchema = datastore.getCurrentSchema();
         ICsvSource<Path> csvSource = CsvSourceFactory.create();
-        var topicFactory = csvTopicFactory();
 
         csvSourceProperties.getTopics().stream()
                 .map(topicProperties -> {
                     var tableFields = datastoreSchema
                             .getTable(topicProperties.storeName())
                             .getFieldNames();
-                    return topicFactory.createTopic(
+                    return csvTopicFactory.createTopic(
                             topicProperties.topicName(),
                             createParserConfig(tableFields.size(), tableFields),
                             topicProperties.path());
@@ -65,8 +62,8 @@ public class CsvSourceConfig {
     }
 
     @Bean
-    public CsvMessageChannelFactory<Path> csvChannelFactory() {
-        return new CsvMessageChannelFactory<>(csvSource(), datastore);
+    public CsvMessageChannelFactory<Path> csvChannelFactory(ICsvSource<Path> csvSource) {
+        return new CsvMessageChannelFactory<>(csvSource, datastore);
     }
 
     private ICsvParserConfiguration createParserConfig(int columnCount, List<String> columns) {
