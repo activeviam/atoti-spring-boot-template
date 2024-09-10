@@ -19,6 +19,7 @@ import org.springframework.lang.NonNull;
 import com.activeviam.springboot.atoti.admin.ui.starter.api.AtotiAdminUiProperties;
 import com.activeviam.springboot.atoti.ui.starter.api.AtotiUiProperties;
 import com.activeviam.tech.contentserver.spring.api.config.AdminUiEnvJs;
+import com.activeviam.tech.contentserver.spring.api.config.AtotiUiContentServiceUtil;
 import com.activeviam.tech.contentserver.spring.api.config.AtotiUiEnvJs;
 
 import lombok.NoArgsConstructor;
@@ -26,27 +27,28 @@ import lombok.NoArgsConstructor;
 @Configuration
 @NoArgsConstructor
 public class CustomUiEnvJsResourceConfig {
+    private static final String VERSION = "6.1.0";
     // Here we are using the same env.js content for both, however in case of remote CS we would have a different
     // content.
     private static final String ENV_JS =
             """
-            var baseUrl = window.location.href.split('/ui')[0];
+            var baseUrl = window.location.href.split('%1$s')[0];
 
             window.env = {
                 "jwtServer": {
                     "url": baseUrl,
-                    "version": "6.1.0"
+                    "version": "%2$s"
                 },
                 "contentServer": {
                     "url": baseUrl,
-                    "version": "6.1.0"
+                    "version": "%2$s"
                 },
                 // WARNING: Changing the keys of atotiServers will break previously saved widgets and dashboards.
                 // If you must do it, then you also need to update each one's serverKey attribute on your content server.
                 "atotiServers": {
                     "atoti-spring-boot": {
                         "url": baseUrl,
-                        "version": "6.1.0",
+                        "version": "%2$s",
                     },
                 },
             };
@@ -54,12 +56,12 @@ public class CustomUiEnvJsResourceConfig {
 
     @Bean
     public AtotiUiEnvJs atotiUiEnvJs(AtotiUiProperties properties) {
-        return () -> new EnvJsResource(ENV_JS);
+        return () -> new EnvJsResource(String.format(ENV_JS, AtotiUiContentServiceUtil.PATH_TO_UI_FOLDER, VERSION));
     }
 
     @Bean
     public AdminUiEnvJs adminUiEnvJs(AtotiAdminUiProperties properties) {
-        return () -> new EnvJsResource(ENV_JS);
+        return () -> new EnvJsResource(String.format(ENV_JS, "/admin/ui", VERSION));
     }
 
     private static class EnvJsResource extends ByteArrayResource {
