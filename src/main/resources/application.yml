@@ -14,7 +14,7 @@ server:
 
 spring:
   application:
-    name: "Pivot Spring Boot"
+    name: "atoti-spring-boot"
   main:
     banner-mode: log
   jmx.enabled: true
