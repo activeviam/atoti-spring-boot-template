@@ -39,18 +39,17 @@ this file in `src/main/resources/data`.<br>
 ### Running on macOS
 
 Add the following
-argument `-Dactiveviam.chunkAllocatorClass=com.qfs.chunk.direct.allocator.impl.MmapDirectChunkAllocator` to your JVM, so
-it then becomes:
+argument `-Dactiveviam.chunkAllocatorKey=mmap` to your JVM, so it then becomes:
 
 ```bash
-java -Dactiveviam.chunkAllocatorClass=com.qfs.chunk.direct.allocator.impl.MmapDirectChunkAllocator -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
+java -Dactiveviam.chunkAllocatorKey=mmap -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
 ```
 
 **Note:** If unable to start the ActivePivot Spring Boot application, you may need to add some additional arguments as
 well, try the following:
 
 ```bash
-java --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED -Dactiveviam.chunkAllocatorClass=com.qfs.chunk.direct.allocator.impl.MmapDirectChunkAllocator -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
+java --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED -Dactiveviam.chunkAllocatorKey=mmap -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
 ```
 
 ### Connecting to the ActivePivot
