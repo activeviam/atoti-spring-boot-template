@@ -1,5 +1,1 @@
-<?xml version="1.0" encoding="utf-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
-    <path fill="#00aeef" d="M292.8 119.496L148.88 36.404h-.004v55.399l47.974 27.693.135.077-48.109 27.623v55.388z"/>
-    <path fill="#1d1e1c" d="M148.866 91.878L4.944 174.972l143.922 83.1v-55.4l-48.1-27.62.128-.08 47.972-27.695z"/>
-</svg>
+<svg id="Calque_1" data-name="Calque 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 47.56 47.56"><title>ActiveViam-RVB</title><path d="M47.56,23.78A23.78,23.78,0,1,1,23.78,0,23.77,23.77,0,0,1,47.56,23.78" style="fill:#291a40"/><path d="M26,22.49l-2.25,1.29V29.9l12.93-7.47a2,2,0,0,0,0-3.41L23.78,11.55v6.12l5.3,3-3,1.77" style="fill:#fff"/><path d="M10.85,28.55,23.78,36V29.9l-5.3-3.06,5.3-3.06V17.67L10.85,25.14a2,2,0,0,0,0,3.41" style="fill:#fff"/></svg>

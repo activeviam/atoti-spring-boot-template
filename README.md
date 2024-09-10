@@ -66,3 +66,7 @@ Security). You should change this before going into production.<br>
 
 It is also recommended that you change the JWT key pair in `application.yaml` by running the class `JwtUtil` and
 generating a new key pair.
+
+## ❤️ Using OpenTelemetry
+
+// WIP
