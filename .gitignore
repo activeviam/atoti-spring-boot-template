@@ -13,6 +13,7 @@ deployment-v*
 activepivot/src/main/resources/data/
 activepivot/src/main/resources/data_poc/new_data/mc.csv
 content-server-temp/
+tempo-data/
 
 ### STS ###
 .apt_generated

@@ -1,0 +1,48 @@
+receivers:
+  otlp:
+    protocols:
+      grpc: #default port 4317
+         
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+    
+exporters:
+  otlp:
+    endpoint: tempo:7777
+    tls:
+      insecure: true
+
+  prometheus:
+    endpoint: collector:6666
+    
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+    
+  zipkin:
+    endpoint: http://zipkin:9411/api/v2/spans
+  
+  logging: # the logging exporter logs all messages, useful for troubleshooting, change it to "normal" once issues fixed
+    verbosity: detailed  
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp, zipkin]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus]
+    logs:
+      receivers: [otlp]
+      exporters: [loki]
+
+# the collector itself can be configured , see https://opentelemetry.io/docs/collector/configuration/    
+  telemetry:
+    logs:
+      level: info
+
+# exporters: [loki, logging] => add logging in case you want more details
