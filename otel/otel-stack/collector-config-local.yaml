@@ -19,10 +19,7 @@ exporters:
     
   loki:
     endpoint: http://loki:3100/loki/api/v1/push
-    
-  zipkin:
-    endpoint: http://zipkin:9411/api/v2/spans
-  
+
   logging: # the logging exporter logs all messages, useful for troubleshooting, change it to "normal" once issues fixed
     verbosity: detailed  
 
@@ -31,7 +28,7 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp, zipkin]
+      exporters: [otlp]
     metrics:
       receivers: [otlp]
       processors: [batch]

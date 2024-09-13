@@ -7,7 +7,7 @@ overrides:
     ingestion_burst_size_bytes: 20000000
     max_traces_per_user: 10000
     max_global_traces_per_user: 0
-    max_bytes_per_trace: 50000
+    max_bytes_per_trace: 500000
     max_search_bytes_per_trace: 0
     max_bytes_per_tag_values_query: 5000000
     block_retention: 0s
