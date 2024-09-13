@@ -1,4 +1,4 @@
-## The local lab
+## The OTEL stack
 
 ![alt text](./img/stack_schema.png)
 
