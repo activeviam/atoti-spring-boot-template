@@ -17,8 +17,6 @@ import org.springframework.context.annotation.Configuration;
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.impl.api.contextvalues.QueriesTimeLimit;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstanceDescription;
-import com.activeviam.activepivot.core.intf.api.description.builder.ICanBuildCubeDescription;
-import com.activeviam.activepivot.core.intf.api.description.builder.ICubeDescriptionBuilder;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,16 +28,9 @@ public class CubeConfig {
     private final DimensionConfig dimensionConfig;
     private final MeasureConfig measureConfig;
 
-    /**
-     * Configures the given builder in order to create the cube description.
-     *
-     * @param builder
-     *            The builder to configure
-     * @return The configured builder
-     */
-    private ICanBuildCubeDescription<IActivePivotInstanceDescription> configureCubeBuilder(
-            ICubeDescriptionBuilder.INamedCubeDescriptionBuilder builder) {
-        return builder.withContributorsCount()
+    public IActivePivotInstanceDescription createCubeDescription() {
+        return StartBuilding.cube(CUBE_NAME)
+                .withContributorsCount()
                 .withinFolder(NATIVE_MEASURES)
                 .withAlias("Count")
                 .withFormatter(INT_FORMATTER)
@@ -64,10 +55,7 @@ public class CubeConfig {
                 .end()
                 .withSharedDrillthroughProperties()
                 .withMaxRows(10_000)
-                .end();
-    }
-
-    public IActivePivotInstanceDescription createCubeDescription() {
-        return configureCubeBuilder(StartBuilding.cube(CUBE_NAME)).build();
+                .end()
+                .build();
     }
 }
