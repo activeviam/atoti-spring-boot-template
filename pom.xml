@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.2.8</version>
+    <version>3.2.9</version>
     <relativePath/>
     <!-- lookup parent from repository -->
   </parent>
@@ -16,7 +16,7 @@
 
   <properties>
     <java.version>21</java.version>
-    <spring-boot.version>3.2.8</spring-boot.version>
+    <spring-boot.version>3.2.9</spring-boot.version>
     <activepivot.version>6.1.0</activepivot.version>
     <springdoc.version>2.3.0</springdoc.version>
 
@@ -25,37 +25,6 @@
     <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
     <palantir-java-format.version>2.50.0</palantir-java-format.version>
   </properties>
-
-  <dependencyManagement>
-    <dependencies>
-      <!-- Force the usage of the latest Spring Framework version -->
-      <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-framework-bom</artifactId>
-        <version>${spring-framework.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-
-      <!-- Force the usage of the latest Spring Security version -->
-      <dependency>
-        <groupId>org.springframework.security</groupId>
-        <artifactId>spring-security-bom</artifactId>
-        <version>${spring-security.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-
-      <!-- import ActivePivot dependencies -->
-      <dependency>
-        <groupId>com.activeviam.activepivot</groupId>
-        <artifactId>activepivot</artifactId>
-        <version>${activepivot.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
 
   <dependencies>
     <dependency>
