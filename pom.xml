@@ -90,7 +90,7 @@
       <artifactId>opentelemetry-logback-mdc-1.0</artifactId>
       <version>${opentelemetry.logback.version}</version>
     </dependency>
-    <!-- Micrometer is not necessarily required. Check your usage
+    <!-- Micrometer is not necessarily required. Check your usage -->
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-prometheus</artifactId>
@@ -99,7 +99,7 @@
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-tracing-bridge-otel</artifactId>
     </dependency>
-    -->
+
     <dependency>
       <groupId>org.hibernate.orm</groupId>
       <artifactId>hibernate-hikaricp</artifactId>

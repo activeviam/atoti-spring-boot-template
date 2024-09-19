@@ -7,6 +7,7 @@
 package com.activeviam.apps;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -18,6 +19,11 @@ import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppen
 @SpringBootApplication
 @EnableWebMvc
 @ConfigurationPropertiesScan
+@EnableAutoConfiguration(
+        exclude = {
+            org.springframework.boot.actuate.autoconfigure.tracing.OpenTelemetryAutoConfiguration.class,
+            org.springframework.boot.actuate.autoconfigure.opentelemetry.OpenTelemetryAutoConfiguration.class
+        })
 public class AtotiSpringBootApplication {
 
     public static void main(String[] args) {
