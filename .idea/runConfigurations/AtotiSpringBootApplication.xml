@@ -1,6 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="AtotiSpringBootApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <module name="atoti-spring-boot-template" />
+    <option name="SHORTEN_COMMAND_LINE" value="ARGS_FILE" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.activeviam.apps.AtotiSpringBootApplication" />
     <option name="VM_PARAMETERS" value="--add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED" />
     <method v="2">

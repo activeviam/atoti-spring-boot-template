@@ -33,7 +33,7 @@ public class ApplicationConfig {
         // TODO
         // Remember to include your package, such as `com.yourdomain`, otherwise the custom plugins from that
         Registry.initialize(RegistryContributions.builder()
-                .packagesToScan(List.of("com.activeviam.apm", "io.atoti", "com.activeviam"))
+                .packagesToScan(List.of("com.example"))
                 .build());
     }
 
