@@ -65,7 +65,7 @@
       <version>${activepivot.version}</version>
     </dependency>
 
-    <!-- OpenTelemetry
+    <!-- OpenTelemetry, temporary see https://activeviam.atlassian.net/issues/PIVOT-10272
     <dependency>
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-sdk-extension-autoconfigure</artifactId>

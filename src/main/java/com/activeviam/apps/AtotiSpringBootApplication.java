@@ -19,7 +19,7 @@ import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppen
 @SpringBootApplication
 @EnableWebMvc
 @ConfigurationPropertiesScan
-@EnableAutoConfiguration(
+@EnableAutoConfiguration(// temporary see https://activeviam.atlassian.net/issues/PIVOT-10272
         exclude = {
             org.springframework.boot.actuate.autoconfigure.tracing.OpenTelemetryAutoConfiguration.class,
             org.springframework.boot.actuate.autoconfigure.opentelemetry.OpenTelemetryAutoConfiguration.class
