@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="AtotiSpringBootApplicationOTEL" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="pivot-spring-boot" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.activeviam.apps.AtotiSpringBootApplication" />
+    <option name="VM_PARAMETERS" value="--add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED -Dotel.traces.exporter=otlp -Dotel.metrics.exporter=otlp -Dotel.logs.exporter=otlp -Dotel.exporter.otlp.protocol=grpc -Dotel.exporter.otlp.endpoint=http://localhost:4317 -Dotel.traces.sampler=always_on -Dotel.metric.export.interval=1000 -Dotel.resource.attributes=service.name=atoti-spring-boot,service.version=1.0 -javaagent:./otel/otel-agent/opentelemetry-javaagent.jar" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

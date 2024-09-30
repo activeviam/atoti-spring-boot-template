@@ -8,6 +8,8 @@ package com.activeviam.apps.rest;
 
 import static com.activeviam.apps.rest.EndpointConstants.CUSTOM_REST_PATH;
 
+import java.time.LocalDateTime;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,6 +24,6 @@ public class HelloController {
 
     @GetMapping
     public String index() {
-        return "Hello from Atoti Spring Boot!";
+        return "Hello from Atoti Spring Boot, time is " + LocalDateTime.now();
     }
 }
