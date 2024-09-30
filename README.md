@@ -52,7 +52,11 @@ well, try the following:
 java --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED -Dactiveviam.chunkAllocatorKey=mmap -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
 ```
 
-### Connecting to the Atoti
+### Running from the IDE
+
+We provide two run configuratios: `AtotiSpringBootApplication` and `AtotiSpringBootApplicationOTEL` for IntelliJ.
+
+### Connecting to the Atoti Server
 
 - Excel: you can connect to the cube from Excel, by connecting to an 'Analysis Services' source. The default URL to use
   when running locally is `http://localhost:9090/xmla`
@@ -68,4 +72,4 @@ generating a new key pair.
 
 ## ❤️ Using OpenTelemetry
 
-// WIP
+Check [this section for OpenTelemetry](./otel/doc/STACK.md).
