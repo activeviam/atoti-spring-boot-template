@@ -6,7 +6,7 @@
 
 We assume that you know how to use Docker and that Docker is installed on your machine,
 see [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/).<br>
-Run `docker compose up -d` from the folder `otel/otel-stack`. This will start the whole environment in the schema
+Run `docker compose up -d` from the folder `otel/otel-stack`. This will start the whole environment defined in the schema
 above.
 
 ### Configuration
@@ -15,15 +15,15 @@ The `docker-compose.yaml` located under `otel/otel-stack` is the file having the
 containers that you can see in the schema above.<br>
 Note that thanks to the OpenTelemetry collector, the SpringBoot app should not be aware of all the observability tools.
 The SpringBoot app will send the traces, metrics and logs to the collector on the default port `4317` with the OTLP (
-OpenTelemetry protocol) oer gRCP.<br>
+OpenTelemetry protocol) over gRCP.<br>
 
-The SpringBoot app sould start with some environment variables, so it can reach the OpenTelemetry collector:
+The SpringBoot app should start with some environment variables, so it can reach the OpenTelemetry collector:
 
 ```bash
 export OTEL_TRACES_EXPORTER=otlp
 export OTEL_METRICS_EXPORTER=otlp
 export OTEL_LOGS_EXPORTER=otlp
-
+export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317 # default endpoint, use the port defined for gRPC
 export OTEL_TRACES_SAMPLER=always_on # collects all traces regardless of the sampling rate
 export OTEL_METRIC_EXPORT_INTERVAL=1000
@@ -69,15 +69,13 @@ As you say in the schema above, we need to define the `receivers`, the source of
 SpringBoot app which sends the traces, logs and metrics with OTLP over gRCP.<br>
 The received traces, logs and metrics are exported to different tools:
 
-- The traces are exported to Tempo (with OTLP) and Zipkin (push to an endpoint).
+- The traces are exported to Tempo (with OTLP).
 - The logs are exported to Loki (push to an endpoint).
 - We DO NOT push the metrics to Prometheus, the collector provides an endpoint to Prometheus and every 15 seconds
   Prometheus scrapes the metrics.
 
 Note that we can have more than one application sending information to the collector.<br>
-Also, you can see that we are using two applications in order to observe the traces, imagine that you have two teams
-each one familiar with a tool. Thanks to OpenTelemetry, you can provide two tools (Tempo and Zipkin) as far as those
-tools are compatible with OpenTelemetry.
+You can use any tools compatible with OpenTelemetry, you need for that to amend the `collector-config-local.yaml` file.
 
 ### Traces
 
