@@ -23,5 +23,5 @@ public class SecurityConstants {
     /**
      * Content Server Root role
      */
-    public static final String ROLE_CS_ROOT = IContentService.ROLE_ROOT;
+    public static final String ROLE_CS_ROOT = IContentService.ROLE_ROOT; // Useless constant
 }

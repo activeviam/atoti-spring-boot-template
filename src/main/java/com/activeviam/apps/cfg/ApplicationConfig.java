@@ -35,7 +35,7 @@ public class ApplicationConfig {
 
     /* Before anything else we statically initialize the Registry. */
     static {
-        // TODO
+        // Better to use a Spring class to do this, to correctly plug into the Spring lifecycle
         // Remember to include your package, such as `com.yourdomain`, otherwise the custom plugins from that
         Registry.initialize(RegistryContributions.builder()
                 .packagesToScan(List.of("com.example"))
@@ -58,6 +58,8 @@ public class ApplicationConfig {
      * @throws AgentException any exception that occurred during the injection, the initialization or the starting
      */
     @EventListener(ApplicationStartedEvent.class)
+    // It is strange to start the manager here and do the load separately.
+    // Don't we want to order the steps in a predictable way?
     public void startManager() throws AgentException {
         /* *********************************************** */
         /* Initialize the ActivePivot Manager and start it */

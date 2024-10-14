@@ -40,7 +40,7 @@ public class CsvSourceConfig {
         return FileSystemCsvTopicFactory.withoutWatcherService();
     }
 
-    @Bean(destroyMethod = "close")
+    @Bean//(destroyMethod = "close") not needed since the source is AutoCloseable
     public ICsvSource<Path> csvSource(FileSystemCsvTopicFactory csvTopicFactory) {
         var datastoreSchema = datastore.getCurrentSchema();
         ICsvSource<Path> csvSource = CsvSourceFactory.create();

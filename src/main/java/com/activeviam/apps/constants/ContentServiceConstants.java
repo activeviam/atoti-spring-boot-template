@@ -17,7 +17,7 @@ public class ContentServiceConstants {
     /********************* Property names ***********************/
     public static final String CONTENT_SERVICE_PROPERTIES_PREFIX = "content-service";
 
-    public static final String CONTENT_SERVER_PROPERTY = "server";
+    public static final String CONTENT_SERVER_PROPERTY = "server"; // Useless constant
     public static final String EMBEDDED_CONTENT_SERVER = "embedded";
     public static final String CONTENT_SERVICE_SECURITY_PROPERTIES = "security";
     public static final String EMBEDDED_CONTENT_SERVER_HIBERNATE_PROPERTIES =

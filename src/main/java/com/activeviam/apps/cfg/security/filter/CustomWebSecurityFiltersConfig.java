@@ -38,9 +38,13 @@ public class CustomWebSecurityFiltersConfig {
     @ConditionalOnProperty(prefix = "spring.h2.console", name = "enabled", havingValue = "true")
     @Bean
     @Order(4)
+    // Do we really want to expose this endpoint?
+    // I see it in countless projects for no reason. It seems a risky entry point
     public SecurityFilterChain h2ConsoleSecurityFilterChain(
             HttpSecurity http, MvcRequestMatcher.Builder mvc, H2ConsoleProperties h2ConsoleProperties)
             throws Exception {
+        // This is not using the security DSL, is it on purpose?
+        // We could have used the HumanToMachineSecurityDsl
         return http.securityMatcher(
                         mvc.servletPath(h2ConsoleProperties.getPath()).pattern(url(WILDCARD)))
                 .headers(httpSecurityHeadersConfigurer ->

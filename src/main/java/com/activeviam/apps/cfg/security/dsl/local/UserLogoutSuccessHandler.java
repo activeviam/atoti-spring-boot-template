@@ -22,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @NoArgsConstructor
 @Slf4j
+// Why don't you want to use the standard page
+// If it is only for the fix about the authentication, I prefer not fixing it in the starter and asking PC
 public class UserLogoutSuccessHandler implements LogoutSuccessHandler {
 
     @Override

@@ -6,8 +6,6 @@
  */
 package com.activeviam.apps;
 
-import static com.activeviam.activepivot.server.spring.private_.config.impl.ActivePivotRestServicesConfig.PING_SUFFIX;
-import static com.activeviam.activepivot.server.spring.private_.config.impl.ActivePivotRestServicesConfig.REST_API_URL_PREFIX;
 import static com.activeviam.web.core.api.IUrlBuilder.url;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,6 +16,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+
+import com.activeviam.activepivot.server.intf.api.rest.ActivePivotRestServices;
+import com.activeviam.web.core.api.IUrlBuilder;
 
 @SpringBootTest(classes = AtotiSpringBootApplication.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 class AtotiSpringBootApplicationTest {
@@ -33,11 +34,20 @@ class AtotiSpringBootApplicationTest {
     }
 
     @Test
-    void contextLoads() {}
+    void contextLoads() {
+    }
 
     @Test
     void activePivotPingReturnsPong() {
-        var pingUrl = url("http://localhost:" + port, REST_API_URL_PREFIX, PING_SUFFIX);
+        // Reusing the constants from the public API. Only ping is not mentioned
+        var pingUrl = IUrlBuilder.create().withHost("http://localhost:" + port)
+                .forService(ActivePivotRestServices.PIVOT_NAMESPACE)
+                .asRestUrl()
+                .withVersion(ActivePivotRestServices.LATEST_VERSION)
+                .addPath("ping")
+                .build();
+        // or the smaller version
+        pingUrl = url("http://localhost:" + port, ActivePivotRestServices.REST_API_URL_PREFIX, "ping");
         assertThat(restTemplate.getForObject(pingUrl, String.class)).contains("pong");
     }
 }

@@ -15,8 +15,6 @@ import org.hibernate.cfg.BatchSettings;
 import org.hibernate.cfg.Configuration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import com.activeviam.tech.contentserver.storage.private_.AHibernateContentService;
-
 /**
  * @author ActiveViam
  */
@@ -29,7 +27,8 @@ public class EmbeddedContentServerHibernateProperties extends Properties {
         var configuration = new Configuration().addProperties(this);
         configuration
                 .getProperties()
-                .putIfAbsent(BatchSettings.STATEMENT_BATCH_SIZE, AHibernateContentService.INSERT_BATCH_SIZE);
+                // Inlining the value to remove an internal import
+                .putIfAbsent(BatchSettings.STATEMENT_BATCH_SIZE, 15);
         return configuration;
     }
 }

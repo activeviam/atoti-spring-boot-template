@@ -20,6 +20,9 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Configuration
+// I don't understand why this has to be a bean
+// Same for MeasureConfig and most of the classes of this package
+// It does not produce any bean and depends on values that are not beans
 public class DimensionConfig {
 
     /**

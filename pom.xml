@@ -31,6 +31,11 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
+<!--
+We are not using io.micrometer:micrometer-tracing-bridge-otel even if recommended by this tutorial
+https://docs.spring.io/spring-boot/reference/actuator/tracing.html
+Is it done on purpose? This binding allows to capture traces from Spring, but currently seems to have quirks
+-->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
