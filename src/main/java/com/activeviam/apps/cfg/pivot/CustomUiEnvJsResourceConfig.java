@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
 @Configuration
 @NoArgsConstructor
 public class CustomUiEnvJsResourceConfig {
-    private static final String VERSION = "6.1.0";
+    private static final String VERSION = "6.1.1";
     // Here we are using the same env.js content for both, however in case of remote CS we would have a different
     // content.
     private static final String ENV_JS =

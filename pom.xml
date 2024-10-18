@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.springframework.boot</groupId>
@@ -12,13 +11,13 @@
 
   <groupId>com.activeviam.apps</groupId>
   <artifactId>atoti-spring-boot-template</artifactId>
-  <version>6.1.0</version>
+  <version>6.1.1</version>
   <description>Template project for Spring Boot</description>
 
   <properties>
     <java.version>21</java.version>
     <spring-boot.version>3.2.9</spring-boot.version>
-    <activepivot.version>6.1.0</activepivot.version>
+    <activepivot.version>6.1.1</activepivot.version>
     <springdoc.version>2.3.0</springdoc.version>
     <opentelemetry.logback.version>2.5.0-alpha</opentelemetry.logback.version>
     <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
@@ -136,7 +135,7 @@
         <version>${spotless-maven-plugin.version}</version>
         <configuration>
           <!-- limit format enforcement to just the files changed by this feature branch -->
-          <ratchetFrom>origin/6.1.0</ratchetFrom>
+          <ratchetFrom>origin/6.1</ratchetFrom>
           <!-- define a language-specific format -->
           <java>
             <palantirJavaFormat>
