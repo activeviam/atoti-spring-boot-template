@@ -26,14 +26,12 @@ public class CubeTestConfig {
 
     public CubeTestConfig() {
         var datastoreDescConfig = new DatastoreSchemaConfig();
-        var datastoreSchemaDesc = datastoreDescConfig.datastoreSchemaDescription();
         var datastoreSelectionDesc = new DatastoreSelectionConfig(datastoreDescConfig);
         var measureConfig = new MeasureConfig();
-        var dimensionConfig = new DimensionConfig();
         var cubeDescription = StartBuilding.cube()
                 .withName(CUBE_NAME)
                 .withCalculations(measureConfig::build)
-                .withDimensions(dimensionConfig::build)
+                .withDimensions(Dimensions::build)
                 .build();
 
         var managerDescription = StartBuilding.managerDescription()

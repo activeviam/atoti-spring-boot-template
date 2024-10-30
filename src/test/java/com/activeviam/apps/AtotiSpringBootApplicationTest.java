@@ -6,8 +6,7 @@
  */
 package com.activeviam.apps;
 
-import static com.activeviam.activepivot.server.spring.private_.config.impl.ActivePivotRestServicesConfig.PING_SUFFIX;
-import static com.activeviam.activepivot.server.spring.private_.config.impl.ActivePivotRestServicesConfig.REST_API_URL_PREFIX;
+import static com.activeviam.activepivot.server.intf.api.rest.ActivePivotRestServices.REST_API_URL_PREFIX;
 import static com.activeviam.web.core.api.IUrlBuilder.url;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,11 +32,8 @@ class AtotiSpringBootApplicationTest {
     }
 
     @Test
-    void contextLoads() {}
-
-    @Test
     void activePivotPingReturnsPong() {
-        var pingUrl = url("http://localhost:" + port, REST_API_URL_PREFIX, PING_SUFFIX);
+        var pingUrl = url("http://localhost:" + port, REST_API_URL_PREFIX, "ping");
         assertThat(restTemplate.getForObject(pingUrl, String.class)).contains("pong");
     }
 }

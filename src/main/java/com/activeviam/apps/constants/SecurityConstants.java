@@ -6,8 +6,6 @@
  */
 package com.activeviam.apps.constants;
 
-import com.activeviam.tech.contentserver.storage.api.IContentService;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -19,9 +17,4 @@ public class SecurityConstants {
     public static final String ROLE_TECH = "ROLE_TECH";
 
     public static final String ROLE_ACTUATOR = "ROLE_ACTUATOR";
-
-    /**
-     * Content Server Root role
-     */
-    public static final String ROLE_CS_ROOT = IContentService.ROLE_ROOT;
 }

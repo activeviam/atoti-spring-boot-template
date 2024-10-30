@@ -25,7 +25,7 @@ public class CsvSourceProperties {
     private int parserThreads = Math.clamp(Runtime.getRuntime().availableProcessors() / 2, 2, 8);
 
     public CsvSourceConfiguration<Path> toCsvSourceConfiguration() {
-        return new CsvSourceConfiguration.CsvSourceConfigurationBuilder<Path>()
+        return CsvSourceConfiguration.<Path>builder()
                 .bufferSize(bufferSize)
                 .parserThreads(parserThreads)
                 .synchronousMode(synchronousMode)

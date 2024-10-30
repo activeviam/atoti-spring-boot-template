@@ -25,7 +25,6 @@ import lombok.RequiredArgsConstructor;
 public class CubeConfig {
     public static final String CUBE_NAME = "Cube";
 
-    private final DimensionConfig dimensionConfig;
     private final MeasureConfig measureConfig;
 
     public IActivePivotInstanceDescription createCubeDescription() {
@@ -41,7 +40,7 @@ public class CubeConfig {
                 .withAlias("Update.Timestamp")
                 .withFormatter(TIMESTAMP_FORMATTER)
                 .withCalculations(measureConfig::build)
-                .withDimensions(dimensionConfig::build)
+                .withDimensions(Dimensions::build)
 
                 // Aggregate provider
                 .withAggregateProvider()

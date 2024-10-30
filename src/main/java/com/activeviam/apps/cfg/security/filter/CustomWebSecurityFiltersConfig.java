@@ -52,14 +52,13 @@ public class CustomWebSecurityFiltersConfig {
     @Bean
     @Order(5)
     public SecurityFilterChain swaggerUiSecurityFilterChain(
-            HttpSecurity http,
-            MvcRequestMatcher.Builder mvc,
-            HumanToMachineSecurityDsl dsl,
-            SwaggerUiConfigProperties swaggerUiConfigProperties)
+            HttpSecurity http, HumanToMachineSecurityDsl dsl, SwaggerUiConfigProperties swaggerUiConfigProperties)
             throws Exception {
         return http.with(dsl, c -> c.requestLogin(LoginLogoutUrls.LOGIN_PAGE_URL))
-                .securityMatcher(mvc.pattern(StringUtils.defaultIfBlank(
-                        swaggerUiConfigProperties.getPath(), Constants.DEFAULT_SWAGGER_UI_PATH)))
+                .securityMatcher(
+                        StringUtils.defaultIfBlank(
+                                swaggerUiConfigProperties.getPath(), Constants.DEFAULT_SWAGGER_UI_PATH),
+                        Constants.SWAGGER_UI_PREFIX + Constants.ALL_PATTERN)
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
                 .build();
     }

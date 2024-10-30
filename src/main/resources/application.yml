@@ -17,6 +17,7 @@ spring:
     name: "atoti-spring-boot"
   main:
     banner-mode: log
+    allow-bean-definition-overriding: true
   jmx.enabled: true
   output:
     ansi:
@@ -90,6 +91,7 @@ atoti:
 
 # Content hibernate properties
 content-service:
+  server: embedded
   embedded:
     hibernate:
       show_sql: false

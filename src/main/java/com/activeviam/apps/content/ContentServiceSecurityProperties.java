@@ -4,10 +4,10 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-package com.activeviam.apps.cfg.content;
+package com.activeviam.apps.content;
 
-import static com.activeviam.apps.constants.ContentServiceConstants.CONTENT_SERVICE_PROPERTIES_PREFIX;
-import static com.activeviam.apps.constants.ContentServiceConstants.CONTENT_SERVICE_SECURITY_PROPERTIES;
+import static com.activeviam.apps.content.ContentServiceProperties.CONTENT_SERVICE_PROPERTIES_PREFIX;
+import static com.activeviam.apps.content.ContentServiceProperties.CONTENT_SERVICE_SECURITY_PROPERTIES;
 import static com.activeviam.springboot.atoti.server.starter.api.AtotiSecurityProperties.ROLE_USER;
 
 import java.time.Duration;

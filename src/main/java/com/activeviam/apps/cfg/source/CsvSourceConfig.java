@@ -15,9 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import com.activeviam.database.datastore.api.IDatastore;
 import com.activeviam.source.csv.api.CsvMessageChannelFactory;
 import com.activeviam.source.csv.api.CsvParserConfiguration;
-import com.activeviam.source.csv.api.CsvSourceFactory;
 import com.activeviam.source.csv.api.FileSystemCsvTopicFactory;
-import com.activeviam.source.csv.api.ICsvParserConfiguration;
 import com.activeviam.source.csv.api.ICsvSource;
 
 import lombok.RequiredArgsConstructor;
@@ -40,11 +38,13 @@ public class CsvSourceConfig {
         return FileSystemCsvTopicFactory.withoutWatcherService();
     }
 
-    @Bean(destroyMethod = "close")
+    @Bean
     public ICsvSource<Path> csvSource(FileSystemCsvTopicFactory csvTopicFactory) {
         var datastoreSchema = datastore.getCurrentSchema();
-        ICsvSource<Path> csvSource = CsvSourceFactory.create();
-
+        var csvSource = ICsvSource.<Path>builder()
+                .name("CsvSource")
+                .configuration(csvSourceProperties.toCsvSourceConfiguration())
+                .build();
         csvSourceProperties.getTopics().stream()
                 .map(topicProperties -> {
                     var tableFields = datastoreSchema
@@ -56,8 +56,6 @@ public class CsvSourceConfig {
                             topicProperties.path());
                 })
                 .forEach(csvSource::addTopic);
-
-        csvSource.configure(csvSourceProperties.toCsvSourceConfiguration());
         return csvSource;
     }
 
@@ -66,9 +64,10 @@ public class CsvSourceConfig {
         return new CsvMessageChannelFactory<>(csvSource, datastore);
     }
 
-    private ICsvParserConfiguration createParserConfig(int columnCount, List<String> columns) {
-        var cfg = columns == null ? new CsvParserConfiguration(columnCount) : new CsvParserConfiguration(columns);
-        cfg.setNumberSkippedLines(1); // skip the first line
-        return cfg;
+    private CsvParserConfiguration createParserConfig(int columnCount, List<String> columns) {
+        var builder = CsvParserConfiguration.builder();
+        var cfg = columns == null ? builder.withColumnCount(columnCount) : builder.withColumnNames(columns);
+        cfg.numberSkippedLines(1); // skip the first line
+        return cfg.build();
     }
 }

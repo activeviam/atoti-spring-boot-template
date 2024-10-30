@@ -6,18 +6,24 @@
  */
 package com.activeviam.apps.cfg.content;
 
+import java.util.Optional;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.activeviam.activepivot.server.intf.api.entitlements.IActivePivotContentService;
 import com.activeviam.activepivot.server.spring.api.config.IActivePivotContentServiceConfig;
 import com.activeviam.activepivot.server.spring.api.content.ActivePivotContentServiceBuilder;
+import com.activeviam.apps.content.ConditionalOnEmbeddedContentServer;
+import com.activeviam.apps.content.ContentServiceSecurityProperties;
+import com.activeviam.apps.content.EmbeddedContentServerHibernateProperties;
 import com.activeviam.tech.contentserver.spring.api.config.AtotiUiContentServiceUtil;
 import com.activeviam.tech.contentserver.storage.api.IContentService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+@ConditionalOnEmbeddedContentServer
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
@@ -28,9 +34,13 @@ public class EmbeddedContentServerConfig implements IActivePivotContentServiceCo
     @Override
     @Bean
     public IContentService contentService() {
+        var configuration = embeddedContentServerProperties.toHibernateConfiguration();
+        Optional.ofNullable(embeddedContentServerProperties.getProperty(
+                        EmbeddedContentServerHibernateProperties.PERSISTENCE_ENTITY_MAPPING_PATH))
+                .ifPresent(configuration::addResource);
         var contentService = IContentService.builder()
                 .withPersistence()
-                .configuration(embeddedContentServerProperties.toHibernateConfiguration())
+                .configuration(configuration)
                 .build();
 
         // initialize the ActiveUI structure required on the ContentService side

@@ -37,6 +37,11 @@
   <!-- # TRACE (lowest filtering)                                                  # -->
   <!-- # ALL (lowest filtering)                                                    # -->
   <!-- ############################################################################# -->
+  <!-- Detailed request -->
+  <!--  <logger name="org.springframework.web.filter.CommonsRequestLoggingFilter" level="DEBUG"/>-->
+  <!-- Response -->
+  <!--  <logger name="org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor"-->
+  <!--          level="DEBUG"/>-->
 
   <root level="INFO">
     <appender-ref ref="CONSOLE_OTEL"/>
