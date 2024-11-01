@@ -35,6 +35,15 @@ import lombok.NoArgsConstructor;
 public class CustomWebSecurityFiltersConfig {
     public static final String WILDCARD = "**";
 
+    /**
+     * Add the H2 console which is by default secured in itself. In a real project this should be exposed only for
+     * a local profile as a "standard" DB would be used.
+     * @param http
+     * @param mvc
+     * @param h2ConsoleProperties
+     * @return
+     * @throws Exception
+     */
     @ConditionalOnProperty(prefix = "spring.h2.console", name = "enabled", havingValue = "true")
     @Bean
     @Order(4)

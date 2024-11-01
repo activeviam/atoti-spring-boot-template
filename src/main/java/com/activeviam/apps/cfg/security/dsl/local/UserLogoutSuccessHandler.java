@@ -19,6 +19,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Sample of a custom {@link LogoutSuccessHandler} in case the client requires something specific
+ */
 @Component
 @NoArgsConstructor
 @Slf4j
