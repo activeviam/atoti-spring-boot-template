@@ -15,7 +15,11 @@ import com.activeviam.tech.core.api.tracking.Tracing;
 
 import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender;
 
-@SpringBootApplication
+@SpringBootApplication( // temporary see https://activeviam.atlassian.net/issues/PIVOT-10272
+        exclude = {
+            org.springframework.boot.actuate.autoconfigure.tracing.OpenTelemetryAutoConfiguration.class,
+            org.springframework.boot.actuate.autoconfigure.opentelemetry.OpenTelemetryAutoConfiguration.class
+        })
 @EnableWebMvc
 @ConfigurationPropertiesScan
 public class AtotiSpringBootApplication {
