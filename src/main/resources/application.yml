@@ -39,6 +39,14 @@ management:
     sampling:
       probability: 1
 
+otel:
+  logs:
+    exporter: none
+  metrics:
+    exporter: none
+  traces:
+    exporter: none
+
 # Source configuration
 source:
   csv:

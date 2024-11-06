@@ -19,10 +19,22 @@
     <spring-boot.version>3.2.9</spring-boot.version>
     <activepivot.version>6.1.1</activepivot.version>
     <springdoc.version>2.3.0</springdoc.version>
-    <opentelemetry.logback.version>2.5.0-alpha</opentelemetry.logback.version>
+    <opentelemetry.logback.version>2.6.0-alpha</opentelemetry.logback.version>
     <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
     <palantir-java-format.version>2.50.0</palantir-java-format.version>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.opentelemetry.instrumentation</groupId>
+        <artifactId>opentelemetry-instrumentation-bom</artifactId>
+        <version>2.6.0</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <!-- Spring Boot -->
@@ -37,6 +49,10 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry.instrumentation</groupId>
+      <artifactId>opentelemetry-spring-boot-starter</artifactId>
     </dependency>
 
     <!-- ActiveViam Starters -->
@@ -67,15 +83,15 @@
     </dependency>
 
     <!-- OpenTelemetry -->
-    <dependency>
-      <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-exporter-otlp</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.opentelemetry.instrumentation</groupId>
-      <artifactId>opentelemetry-logback-appender-1.0</artifactId>
-      <version>${opentelemetry.logback.version}</version>
-    </dependency>
+    <!--    <dependency>-->
+    <!--      <groupId>io.opentelemetry</groupId>-->
+    <!--      <artifactId>opentelemetry-exporter-otlp</artifactId>-->
+    <!--    </dependency>-->
+    <!--    <dependency>-->
+    <!--      <groupId>io.opentelemetry.instrumentation</groupId>-->
+    <!--      <artifactId>opentelemetry-logback-appender-1.0</artifactId>-->
+    <!--      <version>${opentelemetry.logback.version}</version>-->
+    <!--    </dependency>-->
     <dependency>
       <groupId>io.opentelemetry.instrumentation</groupId>
       <artifactId>opentelemetry-logback-mdc-1.0</artifactId>
