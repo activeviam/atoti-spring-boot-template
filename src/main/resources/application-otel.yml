@@ -1,0 +1,18 @@
+otel:
+  logs:
+    exporter: otlp
+  metrics:
+    exporter: otlp
+  metric:
+    export:
+      interval: 1s
+  traces:
+    exporter: otlp
+    sampler: always_on
+  exporter:
+    otlp:
+      protocol: grpc
+  resource:
+    attributes:
+      '[service.name]': ${spring.application.name}
+      '[service.version]': 1.0
