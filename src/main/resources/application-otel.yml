@@ -9,9 +9,6 @@ otel:
   traces:
     exporter: otlp
     sampler: always_on
-  exporter:
-    otlp:
-      protocol: grpc
   resource:
     attributes:
       '[service.name]': ${spring.application.name}

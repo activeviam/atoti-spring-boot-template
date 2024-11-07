@@ -19,7 +19,7 @@ services:
       - ./collector-config-local.yaml:/etc/collector-config.yaml
     ports:
       - "6666:6666" # Prometheus exporter metrics
-      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP http / protobuf receiver
     networks:
       - otel-net
 
@@ -78,7 +78,7 @@ services:
       - ./config/tempo-data:/tmp/tempo
     ports:
       - "3200:3200"   # tempo
-      - "7777:7777"   # the collector will use this port to push the traces with the OTLP gRPC protocol
+      - "7777:7777"   # the collector will use this port to push the traces with the OTLP protocol
     healthcheck:
       interval: 5s
       retries: 10

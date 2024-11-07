@@ -14,8 +14,8 @@ above.
 The `docker-compose.yaml` located under `otel/otel-stack` is the file having the configuration of all the
 containers that you can see in the schema above.<br>
 Note that thanks to the OpenTelemetry collector, the SpringBoot app should not be aware of all the observability tools.
-The SpringBoot app will send the traces, metrics and logs to the collector on the default port `4317` with the OTLP (
-OpenTelemetry protocol) over gRCP.<br>
+The SpringBoot app will send the traces, metrics and logs to the collector on the default port `4318` with the OTLP (
+OpenTelemetry protocol) over http.<br>
 
 The SpringBoot app should start with some environment variables, so it can reach the OpenTelemetry collector:
 
@@ -23,8 +23,7 @@ The SpringBoot app should start with some environment variables, so it can reach
 export OTEL_TRACES_EXPORTER=otlp
 export OTEL_METRICS_EXPORTER=otlp
 export OTEL_LOGS_EXPORTER=otlp
-export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317 # default endpoint, use the port defined for gRPC
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
 export OTEL_TRACES_SAMPLER=always_on # collects all traces regardless of the sampling rate
 export OTEL_METRIC_EXPORT_INTERVAL=1000
 export OTEL_RESOURCE_ATTRIBUTES=service.name=atoti-spring-boot,service.version=1.0
@@ -36,15 +35,14 @@ Those environment variables can be used as jvm args too in case you start the ap
 -Dotel.traces.exporter=otlp
 -Dotel.metrics.exporter=otlp
 -Dotel.logs.exporter=otlp
--Dotel.exporter.otlp.protocol=grpc
--Dotel.exporter.otlp.endpoint=http://localhost:4317
+-Dotel.exporter.otlp.endpoint=http://localhost:4318
 -Dotel.traces.sampler=always_on
 -Dotel.metric.export.interval=1000
 -Dotel.resource.attributes=service.name=atoti-spring-boot,service.version=1.0
--javaagent:./otel/otel-agent/opentelemetry-javaagent.jar
+-javaagent:./otel/otel-agent/opentelemetry-javaagent-2.6.0.jar
 ```
 
-Those are telling your application where is the collector is (http://localhost:4317), what are we sending to the
+Those are telling your application where is the collector is (http://localhost:4318), what are we sending to the
 collector (traces, logs and metrics) and how (OTLP).
 
 We start the application with the OpenTelemetry java
