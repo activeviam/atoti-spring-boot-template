@@ -12,6 +12,7 @@ import static com.activeviam.apps.cfg.pivot.PivotManagerConfig.TIMESTAMP_FORMATT
 
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
@@ -22,12 +23,13 @@ import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor
-public class CubeConfig {
+public class CubeConfiguration {
     public static final String CUBE_NAME = "Cube";
 
     private final MeasureConfig measureConfig;
 
-    public IActivePivotInstanceDescription createCubeDescription() {
+    @Bean
+    public IActivePivotInstanceDescription activePivotInstanceDescription() {
         return StartBuilding.cube(CUBE_NAME)
                 .withContributorsCount()
                 .withinFolder(NATIVE_MEASURES)

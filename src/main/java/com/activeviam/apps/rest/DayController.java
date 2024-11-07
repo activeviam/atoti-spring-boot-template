@@ -6,7 +6,7 @@
  */
 package com.activeviam.apps.rest;
 
-import static com.activeviam.apps.cfg.pivot.CubeConfig.CUBE_NAME;
+import static com.activeviam.apps.cfg.pivot.CubeConfiguration.CUBE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.ASOFDATE;
 import static com.activeviam.apps.rest.EndpointConstants.CUSTOM_REST_PATH;
 
