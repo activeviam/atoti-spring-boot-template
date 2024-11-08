@@ -12,13 +12,14 @@ import org.springframework.context.annotation.Configuration;
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.intf.api.description.ISelectionDescription;
 import com.activeviam.apps.constants.StoreAndFieldConstants;
+import com.activeviam.database.datastore.api.description.IDatastoreSchemaDescription;
 
 import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor
 public class DatastoreSelectionConfig {
-    private final DatastoreSchemaConfig datastoreSchemaConfig;
+    private final IDatastoreSchemaDescription datastoreSchemaDescription;
 
     /**
      * Creates the {@link ISelectionDescription} for Pivot Schema.
@@ -27,7 +28,7 @@ public class DatastoreSelectionConfig {
      */
     @Bean
     public ISelectionDescription createSchemaSelectionDescription() {
-        return StartBuilding.selection(datastoreSchemaConfig.datastoreSchemaDescription())
+        return StartBuilding.selection(datastoreSchemaDescription)
                 .fromBaseStore(StoreAndFieldConstants.TRADES_STORE_NAME)
                 .withAllFields()
                 .build();
