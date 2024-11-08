@@ -6,12 +6,13 @@
  */
 package com.activeviam.apps.cfg.pivot;
 
-import static com.activeviam.apps.cfg.pivot.PivotManagerConfig.INT_FORMATTER;
-import static com.activeviam.apps.cfg.pivot.PivotManagerConfig.NATIVE_MEASURES;
-import static com.activeviam.apps.cfg.pivot.PivotManagerConfig.TIMESTAMP_FORMATTER;
+import static com.activeviam.apps.cfg.pivot.ActivePivotManagerConfig.INT_FORMATTER;
+import static com.activeviam.apps.cfg.pivot.ActivePivotManagerConfig.NATIVE_MEASURES;
+import static com.activeviam.apps.cfg.pivot.ActivePivotManagerConfig.TIMESTAMP_FORMATTER;
 
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
@@ -25,8 +26,10 @@ import lombok.RequiredArgsConstructor;
 public class CubeConfig {
     public static final String CUBE_NAME = "Cube";
 
-    private final MeasureConfig measureConfig;
+    private final Measures measures;
+    private final Dimensions dimensions;
 
+    @Bean
     public IActivePivotInstanceDescription createCubeDescription() {
         return StartBuilding.cube(CUBE_NAME)
                 .withContributorsCount()
@@ -39,8 +42,8 @@ public class CubeConfig {
                 .withinFolder(NATIVE_MEASURES)
                 .withAlias("Update.Timestamp")
                 .withFormatter(TIMESTAMP_FORMATTER)
-                .withCalculations(measureConfig::build)
-                .withDimensions(Dimensions::build)
+                .withCalculations(measures::build)
+                .withDimensions(dimensions::build)
 
                 // Aggregate provider
                 .withAggregateProvider()

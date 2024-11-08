@@ -11,13 +11,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
-import com.activeviam.apps.cfg.DatastoreSchemaConfig;
-import com.activeviam.apps.cfg.DatastoreSelectionConfig;
+import com.activeviam.apps.cfg.datastore.DatastoreSchemaConfig;
+import com.activeviam.apps.cfg.datastore.DatastoreSelectionConfig;
 import com.activeviam.atoti.server.test.api.CubeTester;
 import com.activeviam.database.datastore.api.IDatastore;
 
 @Configuration
-@Import(MeasureConfig.class)
+@Import(Measures.class)
 public class CubeTestConfig {
     public static final String CUBE_NAME = "Cube";
 
@@ -27,11 +27,12 @@ public class CubeTestConfig {
     public CubeTestConfig() {
         var datastoreDescConfig = new DatastoreSchemaConfig();
         var datastoreSelectionDesc = new DatastoreSelectionConfig(datastoreDescConfig);
-        var measureConfig = new MeasureConfig();
+        var measures = new Measures();
+        var dimensions = new Dimensions();
         var cubeDescription = StartBuilding.cube()
                 .withName(CUBE_NAME)
-                .withCalculations(measureConfig::build)
-                .withDimensions(Dimensions::build)
+                .withCalculations(measures::build)
+                .withDimensions(dimensions::build)
                 .build();
 
         var managerDescription = StartBuilding.managerDescription()

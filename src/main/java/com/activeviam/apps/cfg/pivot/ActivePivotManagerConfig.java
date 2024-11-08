@@ -6,22 +6,23 @@
  */
 package com.activeviam.apps.cfg.pivot;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
+import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstanceDescription;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotManagerDescription;
+import com.activeviam.activepivot.core.intf.api.description.ISelectionDescription;
 import com.activeviam.activepivot.server.spring.api.config.IActivePivotManagerDescriptionConfig;
-import com.activeviam.apps.cfg.DatastoreSelectionConfig;
 
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 @Configuration
-public class PivotManagerConfig implements IActivePivotManagerDescriptionConfig {
+@RequiredArgsConstructor
+public class ActivePivotManagerConfig implements IActivePivotManagerDescriptionConfig {
     /* *********************/
     /* OLAP Property names */
     /* *********************/
-
     public static final String MANAGER_NAME = "Manager";
     public static final String CATALOG_NAME = "Catalog";
     public static final String SCHEMA_NAME = "Schema";
@@ -35,17 +36,18 @@ public class PivotManagerConfig implements IActivePivotManagerDescriptionConfig 
 
     public static final String NATIVE_MEASURES = "Native Measures";
 
-    private final DatastoreSelectionConfig datastoreSelectionConfig;
-    private final CubeConfig cubeConfig;
+    private final ISelectionDescription selectionDescription;
+    private final IActivePivotInstanceDescription activePivotInstanceDescription;
 
     @Override
+    @Bean
     public IActivePivotManagerDescription managerDescription() {
         return StartBuilding.managerDescription(MANAGER_NAME)
                 .withCatalog(CATALOG_NAME)
                 .containingAllCubes()
                 .withSchema(SCHEMA_NAME)
-                .withSelection(datastoreSelectionConfig.createSchemaSelectionDescription())
-                .withCube(cubeConfig.createCubeDescription())
+                .withSelection(selectionDescription)
+                .withCube(activePivotInstanceDescription)
                 .build();
     }
 }

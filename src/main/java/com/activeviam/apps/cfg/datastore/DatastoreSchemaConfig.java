@@ -4,7 +4,7 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-package com.activeviam.apps.cfg;
+package com.activeviam.apps.cfg.datastore;
 
 import static com.activeviam.database.api.types.ILiteralType.DOUBLE;
 import static com.activeviam.database.api.types.ILiteralType.LOCAL_DATE;
@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.activeviam.activepivot.server.spring.api.config.IDatastoreSchemaDescriptionConfig;
@@ -46,6 +47,7 @@ public class DatastoreSchemaConfig implements IDatastoreSchemaDescriptionConfig 
     }
 
     @Override
+    @Bean
     public IDatastoreSchemaDescription datastoreSchemaDescription() {
         var stores = new LinkedList<IStoreDescription>();
         stores.add(createTradesStoreDescription());

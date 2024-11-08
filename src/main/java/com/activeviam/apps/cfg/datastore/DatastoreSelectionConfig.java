@@ -4,8 +4,9 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-package com.activeviam.apps.cfg;
+package com.activeviam.apps.cfg.datastore;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
@@ -24,6 +25,7 @@ public class DatastoreSelectionConfig {
      *
      * @return The created selection description
      */
+    @Bean
     public ISelectionDescription createSchemaSelectionDescription() {
         return StartBuilding.selection(datastoreSchemaConfig.datastoreSchemaDescription())
                 .fromBaseStore(StoreAndFieldConstants.TRADES_STORE_NAME)
