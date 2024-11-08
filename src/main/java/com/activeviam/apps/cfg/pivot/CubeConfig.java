@@ -30,7 +30,7 @@ public class CubeConfig {
     private final Dimensions dimensions;
 
     @Bean
-    public IActivePivotInstanceDescription createCubeDescription() {
+    public IActivePivotInstanceDescription activePivotInstanceDescription() {
         return StartBuilding.cube(CUBE_NAME)
                 .withContributorsCount()
                 .withinFolder(NATIVE_MEASURES)
