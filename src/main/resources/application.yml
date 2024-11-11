@@ -40,12 +40,15 @@ management:
       probability: 1
 
 otel:
-  logs:
-    exporter: none
-  metrics:
-    exporter: none
+  metric:
+    export:
+      interval: 1s
   traces:
-    exporter: none
+    sampler: always_on
+  resource:
+    attributes:
+      '[service.name]': ${spring.application.name}
+      '[service.version]': 1.0
 
 # Source configuration
 source:
