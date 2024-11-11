@@ -71,7 +71,7 @@ services:
   tempo:
     image: grafana/tempo:$TEMPO_VERSION
     hostname: tempo
-    command: [ "-search.enabled=true", "-config.file=/etc/tempo.yaml" ]
+    command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./config/tempo-config.yaml:/etc/tempo.yaml
       - ./config/tempo-overrides.yaml:/etc/overrides.yaml
