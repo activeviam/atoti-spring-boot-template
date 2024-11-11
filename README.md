@@ -31,39 +31,49 @@ standard java commands.
 
 ## 💻 Usage
 
-### Running the fat jar
+#### Running the fat jar
 
 The project contains, out of the box, an extremely simple datastore schema and small `trades.csv` file. You can find
 this file in `src/main/resources/data`.<br>
 
-### Running on macOS
-
-Add the following
-argument `-Dactiveviam.chunkAllocatorKey=mmap` to your JVM, so it then becomes:
-
 ```bash
-java -Dactiveviam.chunkAllocatorKey=mmap -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
+java -jar ./target/atoti-spring-boot-template.jar
 ```
 
-**Note:** If unable to start the Atoti Spring Boot application, you may need to add some additional arguments as
-well, try the following:
+###### Running on macOS
+
+Add the following argument `-Dactiveviam.chunkAllocatorKey=mmap` to your JVM, so it then becomes:
 
 ```bash
-java --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED -Dactiveviam.chunkAllocatorKey=mmap -Dfile.trades=<absolute path of trades.csv> -jar <fat jar path>
+java -Dactiveviam.chunkAllocatorKey=mmap -jar ./target/atoti-spring-boot-template.jar
 ```
 
-### Running from the IDE
+**Note:** If unable to start the Atoti Spring Boot application, [you may need to add some additional arguments as
+well](https://docs.activeviam.com/products/atoti/server/latest/docs/configuration/java_version/#jvm-options), try the following:
 
-We provide two run configuratios: `AtotiSpringBootApplication` and `AtotiSpringBootApplicationOTEL` for IntelliJ.
+```bash
+java --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED -Dactiveviam.chunkAllocatorKey=mmap -jar ./target/atoti-spring-boot-template.jar
+```
 
-### Connecting to the Atoti Server
+#### Running from the IDE
 
-- Excel: you can connect to the cube from Excel, by connecting to an 'Analysis Services' source. The default URL to use
-  when running locally is `http://localhost:9090/xmla`
+We provide 3 run configurations for IntelliJ:
+- `AtotiSpringBootApplication (no OTEL)`: does not use the OpenTelemetry config, uses the `application-local.yml`.
+- `AtotiSpringBootApplication OTEL`: uses the OpenTelemetry config, uses the `application.yml`, start the OTEL stack else you will see some exceptions.
+- `AtotiSpringBootApplication OTEL w/agent`: uses the OpenTelemetry agent, this run config has `-Dotel.javaagent.enabled=true` which is part of this project.<br>
+it sets a special bean `openTelemetry` defined in `AtotiSpringBootApplication`, in order to avoid a mismatch in the OpenTelemetry SDK configuration.<br>
+Note that Atoti does already OpenTelemetry manual instrumentation, [we are not supposed to start the OpenTelemetry Java agent which does the out-of-the-box instrumentation](https://opentelemetry.io/docs/zero-code/java/spring-boot-starter/) since Atoti does it already.<br>
+We do this just in case you find yourself in this context.
 
-- AtotiUI, ActiveViam's user interface for exploring the cube, will be available from `http://localhost:9090/ui`
+#### Connecting to the Atoti Server
 
-- List of REST endpoints provided can be found at `http://localhost:9090/swagger-ui/index.html`
+- Excel: you can connect to the cube from Excel, by connecting to an 'Analysis Services' source. 
+The default URL to use when running locally is [http://localhost:9090/xmla](http://localhost:9090/xmla).
+
+- AtotiUI, ActiveViam's user interface for exploring the cube, will be available from [http://localhost:9090/ui](http://localhost:9090/ui).
+
+- AdminUI console: [http://localhost:9090/admin/ui](http://localhost:9090/admin/ui).
+- List of REST endpoints provided can be found at [http://localhost:9090/swagger-ui/index.html](http://localhost:9090/swagger-ui/index.html).
 
 The default security credentials are `admin:admin`, but can be modified in the `application.yml` file.<br>
 For a real production deployment you should probably use LDAP instead of hardcoding the users in the `application.yml` file.<br>

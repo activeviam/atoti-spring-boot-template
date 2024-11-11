@@ -25,7 +25,7 @@ public class AtotiSpringBootApplication {
         SpringApplication.run(AtotiSpringBootApplication.class, args);
     }
 
-    // FIXME https://activeviam.atlassian.net/browse/PIVOT-10624
+    // in case you have an OpenTelemetry agent started with your app
     @ConditionalOnOtelJavaAgent
     @Bean
     @Order(Integer.MIN_VALUE)

@@ -17,41 +17,10 @@ containers that you can see in the schema above.<br>
 Note that thanks to the OpenTelemetry collector, the Spring Boot app should not be aware of all the observability tools.
 The Spring Boot app will send the traces, metrics and logs to the collector on the default port `4318` with the OTLP (
 OpenTelemetry protocol) over http.<br>
-The configuration is telling your application where the collector is (http://localhost:4318), what we are sending to the
-collector (traces, logs and metrics) and how (OTLP).
+The configuration is telling your application where the collector is `http://localhost:4318`, what we are sending to the
+collector (traces, logs and metrics) and how (OTLP), this is the default for a Spring Boot app.
 
-The configuration of the Spring Boot app to reach the OpenTelemetry collector can be done in different ways:
-
-#### Using environment variables
-
-```bash
-export OTEL_TRACES_EXPORTER=otlp
-export OTEL_METRICS_EXPORTER=otlp
-export OTEL_LOGS_EXPORTER=otlp
-export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
-export OTEL_TRACES_SAMPLER=always_on # collects all traces regardless of the sampling rate
-export OTEL_METRIC_EXPORT_INTERVAL=1000
-export OTEL_RESOURCE_ATTRIBUTES=service.name=atoti-spring-boot,service.version=1.0
-```
-
-Those environment variables can be used as JVM args too in case you start the application from the IDE.
-
-#### Using Java properties
-
-```
--Dotel.traces.exporter=otlp
--Dotel.metrics.exporter=otlp
--Dotel.logs.exporter=otlp
--Dotel.exporter.otlp.endpoint=http://localhost:4318
--Dotel.traces.sampler=always_on
--Dotel.metric.export.interval=1000
--Dotel.resource.attributes=service.name=atoti-spring-boot,service.version=1.0
--javaagent:./otel/otel-agent/opentelemetry-javaagent-2.9.0.jar
-```
-
-#### Using the Spring Boot application.yaml
-
-We do not need to define the properties for which the default values suit our need.
+The configuration of OpenTelemetry for our Spring Boot app is in the `application.yml`:
 
 ```yaml
 otel:
@@ -66,21 +35,32 @@ otel:
       '[service.version]': 1.0
 ```
 
-This is how it is set up when using the provided launchers `AtotiSpringBootApplication_OTEL` or
-`AtotiSpringBootApplication_OTEL_w_agent` for the IntelliJ users.
+Note that instead of having this in the `application.yml` we could have done this with the following, 
+note that the 4 first parameters are the one by default:
 
-### Java agent
+#### Environment variables
 
-We start the application with the OpenTelemetry Java
-agent, [https://github.com/open-telemetry/opentelemetry-java-instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation):
+```bash
+export OTEL_TRACES_EXPORTER=otlp
+export OTEL_METRICS_EXPORTER=otlp
+export OTEL_LOGS_EXPORTER=otlp
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+export OTEL_TRACES_SAMPLER=always_on # collects all traces regardless of the sampling rate
+export OTEL_METRIC_EXPORT_INTERVAL=1000
+export OTEL_RESOURCE_ATTRIBUTES=service.name=atoti-spring-boot,service.version=1.0
+```
+
+#### Java jvm arguments
 
 ```
-This project provides a Java agent JAR that can be attached to any Java 8+ application and dynamically injects bytecode to capture telemetry from a number of popular libraries and frameworks.<br>
-You can export the telemetry data in a variety of formats. You can also configure the agent and exporter via command line arguments or environment variables.<br>
-The net result is the ability to gather telemetry data from a Java application without code changes.
+-Dotel.traces.exporter=otlp
+-Dotel.metrics.exporter=otlp
+-Dotel.logs.exporter=otlp
+-Dotel.exporter.otlp.endpoint=http://localhost:4318
+-Dotel.traces.sampler=always_on
+-Dotel.metric.export.interval=1000
+-Dotel.resource.attributes=service.name=atoti-spring-boot,service.version=1.0
 ```
-
-This agent provides a standardized approach to instrumenting the Spring Boot application.<br>
 
 ## Collector
 

@@ -139,6 +139,7 @@
   </dependencies>
 
   <build>
+    <finalName>atoti-spring-boot-template</finalName>
     <plugins>
       <plugin>
         <groupId>com.diffplug.spotless</groupId>

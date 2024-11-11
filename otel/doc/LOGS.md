@@ -19,7 +19,20 @@ The logs are pushed to the collector thanks to this appender, check the details 
 ### How to observe
 
 I export the logs from the collector to Loki, this is how we can query them, make sure you select the right `job`, this
-is the `service.name` we used in `-Dotel.resource.attributes=service.name=atoti-spring-boot,service.version=1.0`.<br>
+is the `service.name` we used in the `application.yml`:
+
+```yaml
+otel:
+  metric:
+    export:
+      interval: 1s
+  traces:
+    sampler: always_on
+  resource:
+    attributes:
+      '[service.name]': ${spring.application.name}
+      '[service.version]': 1.0
+```
 Note that you can turn on `Prettify JSON`:
 
 ![alt text](./img/logs_0.png)
