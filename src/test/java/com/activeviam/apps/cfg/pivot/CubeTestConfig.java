@@ -26,7 +26,7 @@ public class CubeTestConfig {
 
     public CubeTestConfig() {
         var datastoreDescConfig = new DatastoreSchemaConfig();
-        var datastoreSelectionDesc = new DatastoreSelectionConfig(datastoreDescConfig);
+        var datastoreSelectionDesc = new DatastoreSelectionConfig(datastoreDescConfig.datastoreSchemaDescription());
         var measures = new Measures();
         var dimensions = new Dimensions();
         var cubeDescription = StartBuilding.cube()
@@ -37,7 +37,7 @@ public class CubeTestConfig {
 
         var managerDescription = StartBuilding.managerDescription()
                 .withSchema()
-                .withSelection(datastoreSelectionDesc.createSchemaSelectionDescription())
+                .withSelection(datastoreSelectionDesc.datastoreSelectionDescription())
                 .withCube(cubeDescription)
                 .build();
 
