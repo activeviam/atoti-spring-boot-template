@@ -39,6 +39,17 @@ management:
     sampling:
       probability: 1
 
+otel:
+  metric:
+    export:
+      interval: 1s
+  traces:
+    sampler: always_on
+  resource:
+    attributes:
+      '[service.name]': ${spring.application.name}
+      '[service.version]': 1.0
+
 # Source configuration
 source:
   csv:
