@@ -6,32 +6,22 @@
  */
 package com.activeviam.apps.cfg.datastore;
 
-import static com.activeviam.database.api.types.ILiteralType.DOUBLE;
-import static com.activeviam.database.api.types.ILiteralType.LOCAL_DATE;
-import static com.activeviam.database.api.types.ILiteralType.STRING;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.activeviam.activepivot.server.spring.api.config.IDatastoreSchemaDescriptionConfig;
-import com.activeviam.apps.constants.StoreAndFieldConstants;
 import com.activeviam.database.datastore.api.description.IDatastoreSchemaDescription;
 import com.activeviam.database.datastore.api.description.IReferenceDescription;
 import com.activeviam.database.datastore.api.description.IStoreDescription;
 import com.activeviam.database.datastore.api.description.impl.DatastoreSchemaDescription;
-import com.activeviam.database.datastore.api.description.impl.StoreDescription;
 
 import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor
 public class DatastoreSchemaConfig implements IDatastoreSchemaDescriptionConfig {
-
     private final List<? extends IStoreDescription> storeDescriptions;
     private final List<? extends IReferenceDescription> referenceDescriptions;
 
