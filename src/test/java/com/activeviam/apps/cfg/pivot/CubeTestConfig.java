@@ -15,18 +15,20 @@ import com.activeviam.apps.cfg.datastore.DatastoreSchemaConfig;
 import com.activeviam.apps.cfg.datastore.DatastoreSelectionConfig;
 import com.activeviam.atoti.server.test.api.CubeTester;
 import com.activeviam.database.datastore.api.IDatastore;
+import com.activeviam.database.datastore.api.description.IDatastoreSchemaDescription;
 
 @Configuration
-@Import(Measures.class)
+@Import({Measures.class,DatastoreSchemaConfig.class})
 public class CubeTestConfig {
     public static final String CUBE_NAME = "Cube";
 
     private final CubeTester cubeTester;
     private final IDatastore datastore;
 
-    public CubeTestConfig() {
-        var datastoreDescConfig = new DatastoreSchemaConfig();
-        var datastoreSelectionDesc = new DatastoreSelectionConfig(datastoreDescConfig.datastoreSchemaDescription());
+
+    public CubeTestConfig(IDatastoreSchemaDescription datastoreSchemaDescription) {
+        //TODO should not recreate all objects here, should be injected from main code
+        var datastoreSelectionDesc = new DatastoreSelectionConfig(datastoreSchemaDescription);
         var measures = new Measures();
         var dimensions = new Dimensions();
         var cubeDescription = StartBuilding.cube()
@@ -42,7 +44,7 @@ public class CubeTestConfig {
                 .build();
 
         var applicationBuilder = StartBuilding.application()
-                .withDatastore(datastoreDescConfig.datastoreSchemaDescription())
+                .withDatastore(datastoreSchemaDescription)
                 .withManager(managerDescription)
                 .withoutBranchRestrictions();
 

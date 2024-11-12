@@ -13,6 +13,7 @@ import static com.activeviam.database.api.types.ILiteralType.STRING;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,27 +32,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DatastoreSchemaConfig implements IDatastoreSchemaDescriptionConfig {
 
-    private IStoreDescription createTradesStoreDescription() {
-        return StoreDescription.builder()
-                .withStoreName(StoreAndFieldConstants.TRADES_STORE_NAME)
-                .withField(StoreAndFieldConstants.ASOFDATE, LOCAL_DATE)
-                .asKeyField()
-                .withField(StoreAndFieldConstants.TRADES_TRADE_ID, STRING)
-                .asKeyField()
-                .withField(StoreAndFieldConstants.TRADES_NOTIONAL, DOUBLE)
-                .build();
-    }
-
-    private Collection<IReferenceDescription> references() {
-        return Collections.emptyList();
-    }
+    private final List<? extends IStoreDescription> storeDescriptions;
+    private final List<? extends IReferenceDescription> referenceDescriptions;
 
     @Override
     @Bean
     public IDatastoreSchemaDescription datastoreSchemaDescription() {
-        var stores = new LinkedList<IStoreDescription>();
-        stores.add(createTradesStoreDescription());
-
-        return new DatastoreSchemaDescription(stores, references());
+        return new DatastoreSchemaDescription(storeDescriptions, referenceDescriptions);
     }
 }

@@ -7,8 +7,8 @@
 package com.activeviam.apps.cfg;
 
 import org.springframework.boot.context.event.ApplicationStartedEvent;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
 
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.tech.core.api.agent.AgentException;
@@ -20,9 +20,9 @@ import lombok.RequiredArgsConstructor;
  *
  * @author ActiveViam
  */
-@Configuration
+@Component
 @RequiredArgsConstructor
-public class ApplicationConfig {
+public class ApplicationManagerService {
     private final IActivePivotManager activePivotManager;
 
     /**
