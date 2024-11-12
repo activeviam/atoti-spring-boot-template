@@ -6,7 +6,7 @@
  */
 package com.activeviam.apps.cfg.pivot;
 
-import static com.activeviam.apps.cfg.pivot.CubeTestConfig.CUBE_NAME;
+import static com.activeviam.apps.cfg.pivot.CubeConfig.CUBE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_NOTIONAL;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IHierarchy;
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IMeasureHierarchy;
 import com.activeviam.atoti.server.test.api.CubeTester;
 import com.activeviam.database.datastore.api.IDatastore;
@@ -77,7 +78,9 @@ class MeasuresTest {
     void countTestMDX() {
         var resultCell = cubeTester
                 .mdxQuery()
-                .withMdx("SELECT [Measures].[contributors.COUNT] ON COLUMNS FROM [Cube]")
+                .withMdx(String.format(
+                        "SELECT [%s].[%s] ON COLUMNS FROM [%s]",
+                        IHierarchy.MEASURES, IMeasureHierarchy.COUNT_ID, CUBE_NAME))
                 .run()
                 .getTester()
                 .hasOnlyOneCell();
