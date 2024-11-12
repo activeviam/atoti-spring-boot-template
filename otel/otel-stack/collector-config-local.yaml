@@ -1,28 +1,30 @@
+# receivers
 receivers:
   otlp:
     protocols:
-      http: #default port 4318
-         
+      http:
+        endpoint: 0.0.0.0:4318
+
+# processors
 processors:
   batch:
     timeout: 1s
     send_batch_size: 1024
-    
+
+# exporters
 exporters:
   otlp:
     endpoint: tempo:7777
     tls:
       insecure: true
-
   prometheus:
     endpoint: collector:6666
-    
   loki:
     endpoint: http://loki:3100/loki/api/v1/push
+  debug:
+    verbosity: detailed # this is useful for troubleshooting, change it to "normal" once issues fixed
 
-  logging: # the logging exporter logs all messages, useful for troubleshooting, change it to "normal" once issues fixed
-    verbosity: detailed  
-
+# service
 service:
   pipelines:
     traces:
