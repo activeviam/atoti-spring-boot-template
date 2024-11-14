@@ -43,7 +43,7 @@ public class CubeConfig {
                 .withAlias("Update.Timestamp")
                 .withFormatter(TIMESTAMP_FORMATTER)
                 .withCalculations(measures::build)
-                .withDimensions(dimensions::build)
+                .withDimensions(dimensions.build())
 
                 // Aggregate provider
                 .withAggregateProvider()

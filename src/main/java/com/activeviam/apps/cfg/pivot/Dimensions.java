@@ -10,8 +10,6 @@ import org.springframework.stereotype.Component;
 
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IDimension;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.ILevelInfo;
-import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstanceDescription;
-import com.activeviam.activepivot.core.intf.api.description.builder.ICanBuildCubeDescription;
 import com.activeviam.activepivot.core.intf.api.description.builder.dimension.ICanStartBuildingDimensions;
 import com.activeviam.apps.constants.StoreAndFieldConstants;
 import com.activeviam.tech.core.api.ordering.IComparator;
@@ -20,13 +18,12 @@ import com.activeviam.tech.core.api.ordering.IComparator;
 public class Dimensions {
 
     /**
-     * Adds the dimensions descriptions to the input builder.
+     * Adds the dimensions descriptions.
      *
-     * @param builder The cube builder
-     * @return The builder for chained calls
+     * @return The dimension adder
      */
-    public ICanBuildCubeDescription<IActivePivotInstanceDescription> build(ICanStartBuildingDimensions builder) {
-        return builder.withSingleLevelDimensions(StoreAndFieldConstants.TRADES_TRADE_ID)
+    public ICanStartBuildingDimensions.DimensionsAdder build() {
+        return b -> b.withSingleLevelDimensions(StoreAndFieldConstants.TRADES_TRADE_ID)
                 // Make the AsOfDate hierarchy slicing - we do not aggregate across dates
                 // Also show the dates in reverse order ie most recent date first
                 .withDimension(StoreAndFieldConstants.ASOFDATE)
