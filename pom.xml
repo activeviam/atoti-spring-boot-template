@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.2.9</version>
+    <version>3.2.10</version>
     <relativePath/>
     <!-- lookup parent from repository -->
   </parent>
@@ -16,7 +16,7 @@
 
   <properties>
     <java.version>21</java.version>
-    <spring-boot.version>3.2.9</spring-boot.version>
+    <spring-boot.version>3.2.10</spring-boot.version>
     <activepivot.version>6.1.1</activepivot.version>
     <springdoc.version>2.3.0</springdoc.version>
 
