@@ -18,7 +18,7 @@ import com.activeviam.database.datastore.api.description.IStoreDescription;
 import com.activeviam.database.datastore.api.description.impl.StoreDescription;
 
 @Configuration
-public class TradeStoreConfiguration {
+public class TradesStoreConfiguration {
 
     @Bean
     public IStoreDescription createTradesStoreDescription() {
