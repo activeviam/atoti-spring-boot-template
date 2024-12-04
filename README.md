@@ -59,7 +59,7 @@ java --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.bas
 
 #### Running from the IDE
 
-We provide 3 run configurations for IntelliJ:
+We provide 3 run configurations for IntelliJ Idea Ultimate:
 
 - `AtotiSpringBootApplication (no OTEL)`: does not use the OpenTelemetry config, uses the `application-local.yml`.
 - `AtotiSpringBootApplication OTEL`: uses the OpenTelemetry config, uses the `application.yml`, start the OTEL stack
@@ -72,6 +72,12 @@ We provide 3 run configurations for IntelliJ:
   instrumentation, [we are not supposed to start the OpenTelemetry Java agent which does the out-of-the-box instrumentation](https://opentelemetry.io/docs/zero-code/java/spring-boot-starter/)
   since Atoti does it already.<br>
   We do this just in case you find yourself in this context.
+
+Similarly, you can find the following run configurations that work with IntelliJ Idea CE:
+
+- `AtotiSpringBootApplication (no OTEL) App`
+- `AtotiSpringBootApplication OTEL App`
+- `AtotiSpringBootApplication OTEL w/agent App`
 
 #### Connecting to the Atoti Server
 
