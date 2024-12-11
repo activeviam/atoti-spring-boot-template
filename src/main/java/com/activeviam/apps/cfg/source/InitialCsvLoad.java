@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import com.activeviam.database.api.DatabasePrinter;
 import com.activeviam.database.datastore.api.IDatastore;
+import com.activeviam.database.datastore.schemaprinter.api.JungSchemaPrinter;
 import com.activeviam.source.common.api.IMessageChannel;
 import com.activeviam.source.common.api.report.IMessageHandler;
 import com.activeviam.source.csv.api.CsvMessageChannelFactory;
@@ -40,6 +41,7 @@ public class InitialCsvLoad {
     void onApplicationReady() {
         log.info("ApplicationReadyEvent triggered");
         initialLoad();
+        showDatastoreSchema();
     }
 
     private void initialLoad() {
@@ -71,5 +73,9 @@ public class InitialCsvLoad {
     private void printStoreSizes() {
         // print sizes
         DatabasePrinter.printTableSizes(datastore.getMasterHead());
+    }
+
+    public void showDatastoreSchema() {
+        new JungSchemaPrinter(false).print("Training datastore", datastore);
     }
 }

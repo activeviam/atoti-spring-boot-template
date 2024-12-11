@@ -92,6 +92,13 @@
       <version>${activepivot.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>com.activeviam.tech</groupId>
+      <artifactId>datastore-schema-printer</artifactId>
+      <version>6.1.0</version>
+      <scope>compile</scope>
+    </dependency>
+
     <!-- Content Server persistence -->
     <dependency>
       <groupId>org.hibernate.orm</groupId>

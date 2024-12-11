@@ -29,8 +29,8 @@ public class DatastoreSelectionConfig {
     @Bean
     public ISelectionDescription datastoreSelectionDescription() {
         return StartBuilding.selection(datastoreSchemaDescription)
-                .fromBaseStore(StoreAndFieldConstants.TRADES_STORE_NAME)
-                .withAllFields()
+                .fromBaseStore(StoreAndFieldConstants.ORDERS_STORE_NAME)
+                .withAllReachableFields()
                 .build();
     }
 }

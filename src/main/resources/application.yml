@@ -58,6 +58,12 @@ source:
       - topic-name: Trades
         store-name: Trades
         path: "data/trades.csv"
+      - topic-name: Products
+        store-name: Products
+        path: "data/products.csv"
+      - topic-name: Orders
+        store-name: Orders
+        path: "data/orders.csv"
 
 # Security configuration
 security:

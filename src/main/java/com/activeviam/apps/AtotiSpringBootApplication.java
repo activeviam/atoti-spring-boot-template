@@ -22,7 +22,9 @@ import io.opentelemetry.api.OpenTelemetry;
 public class AtotiSpringBootApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(AtotiSpringBootApplication.class, args);
+        var application = new SpringApplication(AtotiSpringBootApplication.class);
+        application.setHeadless(false);
+        application.run(args);
     }
 
     // in case you have an OpenTelemetry agent started with your app

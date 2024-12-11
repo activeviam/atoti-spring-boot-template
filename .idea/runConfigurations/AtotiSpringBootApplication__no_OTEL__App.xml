@@ -3,9 +3,10 @@
     <option name="MAIN_CLASS_NAME" value="com.activeviam.apps.AtotiSpringBootApplication" />
     <module name="atoti-spring-boot-template" />
     <shortenClasspath name="ARGS_FILE" />
-    <option name="VM_PARAMETERS" value="--add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED -Dspring.profiles.active=local" />
+    <option name="VM_PARAMETERS" value="-Dactiveviam.chunkAllocatorKey=mmap --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED -Dspring.profiles.active=local" />
     <method v="2">
-      <option name="Make" enabled="true" />
+      <option name="Maven.BeforeRunTask" enabled="true" file="$PROJECT_DIR$/pom.xml" goal="spotless:apply" />
+      <option name="Maven.BeforeRunTask" enabled="true" file="$PROJECT_DIR$/pom.xml" goal="clean install -DskipTests" />
     </method>
   </configuration>
 </component>
