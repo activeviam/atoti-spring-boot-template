@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2024
+ * Copyright (C) ActiveViam 2024-2025
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
@@ -34,6 +35,22 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CustomWebSecurityFiltersConfig {
     public static final String WILDCARD = "**";
+
+    @Bean
+    @Order(0)
+    protected SecurityFilterChain jolokiaFilterChain(HttpSecurity httpSecurity, MvcRequestMatcher.Builder mvc)
+            throws Exception {
+        return httpSecurity
+                // As of Spring Security 4.0, CSRF protection is enabled by default.
+                .csrf(AbstractHttpConfigurer::disable)
+                // Configure CORS
+                .cors(Customizer.withDefaults())
+                .securityMatcher(mvc.servletPath("/actuator/jolokia").pattern(url(WILDCARD)))
+                .authorizeHttpRequests(auth -> auth.anyRequest().hasAnyAuthority("ROLE_ACTUATOR"))
+                .httpBasic(Customizer.withDefaults())
+                .securityContext(securityContext -> securityContext.requireExplicitSave(false))
+                .build();
+    }
 
     /**
      * Add the H2 console which is by default secured in itself. In a real project this should be exposed only for

@@ -69,6 +69,7 @@ security:
           authorities:
             - ROLE_USER
             - ROLE_ADMIN
+            - ROLE_ACTUATOR
   tech-user:
     passwords:
       pivot: "{bcrypt}$2a$10$87iR319r7HvSvs5k9.jutuDzjuKqO6riilSjl/9u2LGDpn4/7.1he"
