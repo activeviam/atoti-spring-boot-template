@@ -1,0 +1,6 @@
+{
+  "atotiUICLIVersion": "5.2.2",
+  "name": "@activeviam/limits-ui",
+  "version": "0.0.0",
+  "entry": "extensionEntry.js"
+}

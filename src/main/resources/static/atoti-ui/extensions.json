@@ -1,4 +1,5 @@
 {
   "@activeviam/starter": "extensions/@activeviam/starter/extensionEntry.js",
-  "@activeviam/advanced-extension": "extensions/@activeviam/advanced-extension/extensionEntry.js"
+  "@activeviam/advanced-extension": "extensions/@activeviam/advanced-extension/extensionEntry.js",
+  "@activeviam/limits-ui": "extensions/@activeviam/limits-ui/extensionEntry.js"
 }
