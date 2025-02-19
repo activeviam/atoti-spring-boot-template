@@ -18,6 +18,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -26,11 +27,23 @@ import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IHierarchy;
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IMeasureHierarchy;
 import com.activeviam.atoti.server.test.api.CubeTester;
 import com.activeviam.database.datastore.api.IDatastore;
+import com.activeviam.web.spring.internal.JMXEnabler;
 
 @SpringJUnitConfig
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@Import({CubeTestConfig.class})
+@Import({CubeTestConfig.class, MeasuresTest.CustomConfiguration.class})
 class MeasuresTest {
+
+
+    public static class CustomConfiguration{
+        @Bean
+        public JMXEnabler jmxDatastoreEnabler(IDatastore datastore) {
+            return new JMXEnabler(datastore);
+        }
+    }
+
+
+
     @Autowired
     CubeTester cubeTester;
 
