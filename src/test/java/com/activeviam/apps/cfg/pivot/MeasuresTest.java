@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2023-2024
+ * Copyright (C) ActiveViam 2023-2025
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -34,15 +34,12 @@ import com.activeviam.web.spring.internal.JMXEnabler;
 @Import({CubeTestConfig.class, MeasuresTest.CustomConfiguration.class})
 class MeasuresTest {
 
-
-    public static class CustomConfiguration{
+    public static class CustomConfiguration {
         @Bean
         public JMXEnabler jmxDatastoreEnabler(IDatastore datastore) {
             return new JMXEnabler(datastore);
         }
     }
-
-
 
     @Autowired
     CubeTester cubeTester;
