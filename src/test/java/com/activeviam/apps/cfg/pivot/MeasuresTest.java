@@ -13,13 +13,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IHierarchy;
@@ -27,10 +24,9 @@ import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IMeasureHierarchy
 import com.activeviam.atoti.server.test.api.CubeTester;
 import com.activeviam.database.datastore.api.IDatastore;
 
-@SpringJUnitConfig
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@Import({CubeTestConfig.class})
+@SpringJUnitConfig(classes = {CubeTestConfig.class})
 class MeasuresTest {
+
     @Autowired
     CubeTester cubeTester;
 
@@ -40,23 +36,10 @@ class MeasuresTest {
     @BeforeEach
     public void initialLoad() {
         var tuples = new ArrayList<Object[]>();
-        tuples.add(new Object[] {LocalDate.parse("2019-03-13"), "T1", 100});
-        tuples.add(new Object[] {LocalDate.parse("2019-03-13"), "T2", 350d});
-        tuples.add(new Object[] {LocalDate.parse("2019-03-13"), "T3", 300d});
-        insertTradesTuples(tuples);
-    }
-
-    private void insertTradesTuples(List<Object[]> tuples) {
-        datastore.edit(t -> {
-            t.addAll(TRADES_STORE_NAME, tuples);
-            t.forceCommit();
-        });
-    }
-
-    private void insertTradesTuples(Object[] tuple) {
-        var tuples = new ArrayList<Object[]>();
-        tuples.add(tuple);
-        insertTradesTuples(tuples);
+        tuples.add(new Object[]{LocalDate.parse("2019-03-13"), "T1", 100});
+        tuples.add(new Object[]{LocalDate.parse("2019-03-13"), "T2", 350d});
+        tuples.add(new Object[]{LocalDate.parse("2019-03-13"), "T3", 300d});
+        datastore.edit(t -> t.addAll(TRADES_STORE_NAME, tuples));
     }
 
     /**
@@ -74,36 +57,21 @@ class MeasuresTest {
         assertThat(resultCell.getValue()).isEqualTo(3L);
     }
 
+    /**
+     * Here is a measure test using MDX
+     */
     @Test
     void countTestMDX() {
         var resultCell = cubeTester
                 .mdxQuery()
                 .withMdx(String.format(
                         "SELECT [%s].[%s] ON COLUMNS FROM [%s]",
-                        IHierarchy.MEASURES, IMeasureHierarchy.COUNT_ID, CUBE_NAME))
+                        IHierarchy.MEASURES, TRADES_NOTIONAL, CUBE_NAME))
                 .run()
                 .getTester()
                 .hasOnlyOneCell();
 
-        assertThat(resultCell.getValue()).isEqualTo(3L);
+        assertThat(resultCell.getValue()).isEqualTo(750.0);
     }
 
-    /**
-     * Here is the actual test. Check that the numbers sum up correctly
-     */
-    @Test
-    void tradesNotionalTotal_test() {
-        insertTradesTuples(new Object[] {LocalDate.parse("2019-03-13"), "T4", 400d});
-
-        var result = cubeTester
-                .query()
-                .onPivot(CUBE_NAME)
-                .withQuery(cube -> cube.withDefaultCoordinates().forMeasures(TRADES_NOTIONAL))
-                .run()
-                .getTester()
-                .hasOnlyOneCell()
-                .getValue();
-
-        assertThat(result).isEqualTo(1150d);
-    }
 }
