@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2023-2024
+ * Copyright (C) ActiveViam 2023-2025
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -12,7 +12,7 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,8 +24,9 @@ import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IMeasureHierarchy
 import com.activeviam.atoti.server.test.api.CubeTester;
 import com.activeviam.database.datastore.api.IDatastore;
 
-@SpringJUnitConfig(classes = {CubeTestConfig.class})
+@SpringJUnitConfig({CubeTestConfig.class})
 class MeasuresTest {
+    private static final LocalDate TEST_DATE = LocalDate.parse("2019-03-13");
 
     @Autowired
     CubeTester cubeTester;
@@ -35,11 +36,11 @@ class MeasuresTest {
 
     @BeforeEach
     public void initialLoad() {
-        var tuples = new ArrayList<Object[]>();
-        tuples.add(new Object[]{LocalDate.parse("2019-03-13"), "T1", 100});
-        tuples.add(new Object[]{LocalDate.parse("2019-03-13"), "T2", 350d});
-        tuples.add(new Object[]{LocalDate.parse("2019-03-13"), "T3", 300d});
-        datastore.edit(t -> t.addAll(TRADES_STORE_NAME, tuples));
+        datastore.edit(t -> t.addAll(
+                TRADES_STORE_NAME,
+                List.of(new Object[] {TEST_DATE, "T1", 100}, new Object[] {TEST_DATE, "T2", 350d}, new Object[] {
+                    TEST_DATE, "T3", 300d
+                })));
     }
 
     /**
@@ -65,13 +66,11 @@ class MeasuresTest {
         var resultCell = cubeTester
                 .mdxQuery()
                 .withMdx(String.format(
-                        "SELECT [%s].[%s] ON COLUMNS FROM [%s]",
-                        IHierarchy.MEASURES, TRADES_NOTIONAL, CUBE_NAME))
+                        "SELECT [%s].[%s] ON COLUMNS FROM [%s]", IHierarchy.MEASURES, TRADES_NOTIONAL, CUBE_NAME))
                 .run()
                 .getTester()
                 .hasOnlyOneCell();
 
         assertThat(resultCell.getValue()).isEqualTo(750.0);
     }
-
 }
