@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2024
+ * Copyright (C) ActiveViam 2024-2025
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.activeviam.database.datastore.api.IDatastore;
+import com.activeviam.io.dlc.impl.DataLoadControllerService;
 import com.activeviam.source.csv.api.CsvMessageChannelFactory;
 import com.activeviam.source.csv.api.CsvParserConfiguration;
 import com.activeviam.source.csv.api.FileSystemCsvTopicFactory;
@@ -69,5 +70,10 @@ public class CsvSourceConfig {
         var cfg = columns == null ? builder.withColumnCount(columnCount) : builder.withColumnNames(columns);
         cfg.numberSkippedLines(1); // skip the first line
         return cfg.build();
+    }
+
+    @Bean
+    public Void test(DataLoadControllerService service) {
+        return null;
     }
 }
