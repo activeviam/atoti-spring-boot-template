@@ -50,7 +50,7 @@
             "uid": "loki"
           },
           "editorMode": "builder",
-          "expr": "{job=\"atoti-spring-boot\"} |= ``",
+          "expr": "{service_name=\"atoti-spring-boot\"} |= ``",
           "queryType": "range",
           "refId": "A"
         }
