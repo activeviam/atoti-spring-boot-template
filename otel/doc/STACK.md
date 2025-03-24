@@ -46,7 +46,7 @@ Those environment variables can be used as JVM args too in case you start the ap
 -Dotel.traces.sampler=always_on
 -Dotel.metric.export.interval=1000
 -Dotel.resource.attributes=service.name=atoti-spring-boot,service.version=1.0
--javaagent:./otel/otel-agent/opentelemetry-javaagent-2.9.0.jar
+-javaagent:./otel/otel-agent/opentelemetry-javaagent-2.14.0.jar
 ```
 
 #### Using the Spring Boot application.yaml

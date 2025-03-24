@@ -20,7 +20,7 @@ exporters:
     endpoint: collector:6666
   loki:
     endpoint: http://loki:3100/loki/api/v1/push
-  logging: # the logging exporter logs all messages, useful for troubleshooting, change it to "normal" once issues fixed
+  debug: # the logging exporter logs all messages, useful for troubleshooting, change it to "normal" once issues fixed
     verbosity: detailed  
 
 # service
