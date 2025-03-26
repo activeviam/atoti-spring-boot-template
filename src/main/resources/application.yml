@@ -1,3 +1,23 @@
+# DLC configuration
+dlc:
+  csv:
+    local:
+      sources:
+        localCsvSource:
+          root-base-dir: data
+          topics-to-include:
+            - Trades
+            - Employees
+    topics:
+      Trades:
+        file-pattern: 'glob:trades*.csv'
+      Employees:
+        file-pattern: 'glob:employees*.csv'
+  aliases:
+    alias:
+      - Trades
+      - Employees
+
 # Spring Boot server port and compression
 server:
   port: 9090
@@ -51,13 +71,13 @@ otel:
       '[service.version]': 1.0
 
 # Source configuration
-source:
-  csv:
-    synchronous-mode: false
-    topics:
-      - topic-name: Trades
-        store-name: Trades
-        path: "data/trades.csv"
+#source:
+#  csv:
+#    synchronous-mode: false
+#    topics:
+#      - topic-name: Trades
+#        store-name: Trades
+#        path: "data/trades.csv"
 
 # Security configuration
 security:

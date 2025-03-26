@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2024
+ * Copyright (C) ActiveViam 2024-2025
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -32,6 +32,15 @@ public class Dimensions {
                 .slicing()
                 .withLevelOfSameName()
                 .withType(ILevelInfo.LevelType.TIME)
-                .withComparator(IComparator.DESCENDING_NATURAL_ORDER_PLUGIN_KEY);
+                .withComparator(IComparator.DESCENDING_NATURAL_ORDER_PLUGIN_KEY)
+
+                // Employees Hierarchies
+                .withDimension(StoreAndFieldConstants.EMPLOYEES_STORE_NAME)
+                .withHierarchy(StoreAndFieldConstants.EMPLOYEES_EMPLOYEE_ID)
+                .withLevel(StoreAndFieldConstants.EMPLOYEES_EMPLOYEE_ID)
+                .withHierarchy(StoreAndFieldConstants.EMPLOYEES_FIRST_NAME)
+                .withLevel(StoreAndFieldConstants.EMPLOYEES_FIRST_NAME)
+                .withHierarchy(StoreAndFieldConstants.EMPLOYEES_LAST_NAME)
+                .withLevel(StoreAndFieldConstants.EMPLOYEES_LAST_NAME);
     }
 }
