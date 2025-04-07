@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2024
+ * Copyright (C) ActiveViam 2024-2025
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
 @Configuration
 @NoArgsConstructor
 public class CustomUiEnvJsResourceConfig {
-    private static final String VERSION = "6.1.5";
+    private static final String VERSION = "6.1.6";
     // Here we are using the same env.js content for both, however in case of remote CS we would have a different
     // content.
     private static final String ENV_JS =
