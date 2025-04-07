@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2024
+ * Copyright (C) ActiveViam 2024-2025
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -14,9 +14,14 @@ public class StoreAndFieldConstants {
     /*********************** Stores names **********************/
     public static final String TRADES_STORE_NAME = "Trades";
 
+    public static final String TRADE_ATTRIBUTES_STORE_NAME = "TradeAttributes";
+
     /********************* Stores fields ***********************/
     public static final String ASOFDATE = "AsOfDate";
 
-    public static final String TRADES_TRADE_ID = "TradeID";
-    public static final String TRADES_NOTIONAL = "Notional";
+    public static final String TRADE_ID = "TradeID";
+    public static final String NOTIONAL = "Notional";
+
+    public static final String TRADE_DATE = "TradeDate";
+    public static final String COUNTERPARTY_ID = "CounterpartyID";
 }
