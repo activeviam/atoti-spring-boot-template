@@ -58,6 +58,9 @@ source:
       - topic-name: Trades
         store-name: Trades
         path: "data/trades.csv"
+      - topic-name: TradeAttributes
+        store-name: TradeAttributes
+        path: "data/trade_attributes.csv"
 
 # Security configuration
 security:
