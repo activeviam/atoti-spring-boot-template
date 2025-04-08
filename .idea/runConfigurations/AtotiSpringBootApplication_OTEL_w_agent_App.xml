@@ -1,5 +1,8 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="AtotiSpringBootApplication OTEL w/agent App" type="Application" factoryName="Application">
+    <envs>
+      <env name="CSV_DATA_BASE_DIR" value="./src/main/resources/data" />
+    </envs>
     <option name="MAIN_CLASS_NAME" value="com.activeviam.apps.AtotiSpringBootApplication" />
     <module name="atoti-spring-boot-template" />
     <shortenClasspath name="ARGS_FILE" />

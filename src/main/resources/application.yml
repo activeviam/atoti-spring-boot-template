@@ -50,17 +50,15 @@ otel:
       '[service.name]': ${spring.application.name}
       '[service.version]': 1.0
 
-# Source configuration
-source:
+dlc:
   csv:
-    synchronous-mode: false
-    topics:
-      - topic-name: Trades
-        store-name: Trades
-        path: "data/trades.csv"
-      - topic-name: TradeAttributes
-        store-name: TradeAttributes
-        path: "data/trade_attributes.csv"
+    local:
+      sources:
+        test_data:
+          root-base-dir: ${CSV_DATA_BASE_DIR}
+#    topics:
+#      Trades:
+#        file-pattern: "glob:**trades.csv"
 
 # Security configuration
 security:
@@ -132,12 +130,3 @@ content-service:
         dataSource:
           url: "jdbc:h2:mem:content_service;DB_CLOSE_DELAY=-1;IGNORECASE=TRUE"
         poolName: ContentServer-ConnectionPool
-dlc:
-  csv:
-    local:
-      sources:
-        test_data:
-          root-base-dir: ./src/main/resources/data
-#    topics:
-#      Trades:
-#        file-pattern: "glob:**trades.csv"

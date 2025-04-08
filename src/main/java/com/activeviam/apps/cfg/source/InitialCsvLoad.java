@@ -7,6 +7,7 @@
 package com.activeviam.apps.cfg.source;
 
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Configuration;
@@ -24,9 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Configuration
 public class InitialCsvLoad {
-
     private final DataLoadControllerService dataLoadControllerService;
-
     private final IDatastore datastore;
 
     @EventListener(value = ApplicationReadyEvent.class)
@@ -37,8 +36,9 @@ public class InitialCsvLoad {
 
     private void initialLoad() {
         log.info("Initial data load started...");
-        dataLoadControllerService.execute(
-                DlcLoadRequest.builder().topics(TRADES_STORE_NAME).build());
+        dataLoadControllerService.execute(DlcLoadRequest.builder()
+                .topics(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME)
+                .build());
         log.info("Initial data load completed");
         DatabasePrinter.printTableSizes(datastore.getMasterHead());
     }

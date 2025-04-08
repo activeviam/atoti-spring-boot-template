@@ -7,6 +7,7 @@
 package com.activeviam.apps.cfg.source;
 
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,12 +21,18 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class CsvSourceConfig {
-
     private static final String TRADES_FILE_PATTERN = "glob:**trades.csv";
+    private static final String TRADE_ATTRIBUTES_FILE_PATTERN = "glob:**trade_attributes.csv";
 
     @Bean
     CsvTopicDescription tradesCsvTopic() {
         return CsvTopicDescription.builder(TRADES_STORE_NAME, TRADES_FILE_PATTERN)
+                .build();
+    }
+
+    @Bean
+    CsvTopicDescription tradeAttributesCsvTopic() {
+        return CsvTopicDescription.builder(TRADE_ATTRIBUTES_STORE_NAME, TRADE_ATTRIBUTES_FILE_PATTERN)
                 .build();
     }
 }
