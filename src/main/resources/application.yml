@@ -132,3 +132,12 @@ content-service:
         dataSource:
           url: "jdbc:h2:mem:content_service;DB_CLOSE_DELAY=-1;IGNORECASE=TRUE"
         poolName: ContentServer-ConnectionPool
+dlc:
+  csv:
+    local:
+      sources:
+        test_data:
+          root-base-dir: ./src/main/resources/data
+#    topics:
+#      Trades:
+#        file-pattern: "glob:**trades.csv"
