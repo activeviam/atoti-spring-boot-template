@@ -26,7 +26,7 @@ import com.activeviam.database.datastore.api.description.impl.ReferenceDescripti
 import com.activeviam.database.datastore.api.description.impl.StoreDescription;
 
 @Configuration
-public class StoresConfiguration {
+public class StoreDefinitionsConfig {
 
     public static String referenceName(String from, String to) {
         return String.format("%s_to_%s", from, to);

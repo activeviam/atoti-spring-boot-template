@@ -10,15 +10,12 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
 
-import org.springframework.stereotype.Component;
-
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IDimension;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.ILevelInfo;
 import com.activeviam.activepivot.core.intf.api.description.builder.dimension.ICanStartBuildingDimensions;
 import com.activeviam.apps.constants.StoreAndFieldConstants;
 import com.activeviam.tech.core.api.ordering.IComparator;
 
-@Component
 public class Dimensions {
 
     public static final String TRADE_ATTRIBUTES_DIMENSION = "Trade Attributes";
