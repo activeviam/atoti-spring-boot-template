@@ -36,10 +36,14 @@ public class InitialCsvLoad {
 
     private void initialLoad() {
         log.info("Initial data load started...");
-        dataLoadControllerService.execute(DlcLoadRequest.builder()
-                .topics(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME)
-                .build());
-        log.info("Initial data load completed");
-        DatabasePrinter.printTableSizes(datastore.getMasterHead());
+        try {
+            dataLoadControllerService.execute(DlcLoadRequest.builder()
+                    .topics(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME)
+                    .build());
+            log.info("Initial data load completed");
+            DatabasePrinter.printTableSizes(datastore.getMasterHead());
+        } catch (Exception e) {
+            log.warn("Failed to load initial data", e);
+        }
     }
 }
