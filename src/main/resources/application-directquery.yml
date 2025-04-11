@@ -1,0 +1,14 @@
+otel:
+  logs:
+    exporter: none
+  metrics:
+    exporter: none
+  traces:
+    exporter: none
+distribution.type: none
+database:
+  type: dremio
+  dremio:
+    connection-string: "jdbc:arrow-flight-sql://localhost:32010/?useEncryption=false&schema=nessie"
+    database: "nessie"
+    schema: "nessie"
