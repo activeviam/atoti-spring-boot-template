@@ -6,6 +6,8 @@
  */
 package com.activeviam.apps.cfg.pivot;
 
+import java.util.Collections;
+
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,32 +20,30 @@ import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotManagerDescription;
 import com.activeviam.activepivot.server.spring.api.config.IActivePivotConfig;
 import com.activeviam.activepivot.server.spring.api.config.IDatastoreConfig;
-import com.activeviam.apps.annotations.ConditionalOnApplicationWithDatastore;
-import com.activeviam.apps.cfg.database.datastore.DatastoreConfig;
-import com.activeviam.apps.cfg.pivot.datanode.DataCubeConfig;
+import com.activeviam.apps.annotations.ConditionalOnQueryNode;
+import com.activeviam.apps.cfg.pivot.distribution.DistributionConfiguration;
+import com.activeviam.apps.cfg.pivot.querynode.QueryCubeConfig;
 import com.activeviam.database.datastore.api.IDatastore;
-import com.activeviam.database.datastore.api.description.IDatastoreSchemaDescription;
+import com.activeviam.database.datastore.api.description.impl.DatastoreSchemaDescription;
 import com.activeviam.tech.core.api.agent.AgentException;
 import com.activeviam.tech.mvcc.api.policy.IEpochManagementPolicy;
 
 import lombok.RequiredArgsConstructor;
 
-@ConditionalOnApplicationWithDatastore
+@ConditionalOnQueryNode
 @Configuration
-@Import({DatastoreConfig.class, DataCubeConfig.class, ActivePivotManagerConfig.class})
+@Import({ActivePivotManagerConfig.class, DistributionConfiguration.class, QueryCubeConfig.class})
 @RequiredArgsConstructor
-public class ApplicationWithDatastoreConfig implements IActivePivotConfig, IDatastoreConfig {
-    private final IDatastoreSchemaDescription datastoreSchemaDescription;
+public class QueryNodeApplicationConfig implements IActivePivotConfig, IDatastoreConfig {
     private final IActivePivotManagerDescription activePivotManagerDescription;
     private final IEpochManagementPolicy epochManagementPolicy;
 
     @Bean
     public ApplicationWithDatastore applicationWithDatastore() {
         return StartBuilding.application()
-                .withDatastore(datastoreSchemaDescription)
+                .withDatastore(new DatastoreSchemaDescription(Collections.emptyList(), Collections.emptyList()))
                 .withManager(activePivotManagerDescription)
                 .withEpochPolicy(epochManagementPolicy)
-                .withoutBranchRestrictions()
                 .build();
     }
 

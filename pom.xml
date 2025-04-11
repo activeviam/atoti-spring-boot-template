@@ -56,10 +56,44 @@
       <artifactId>spring-boot-starter-validation</artifactId>
     </dependency>
 
+    <!-- Direct query -->
+    <dependency>
+      <groupId>com.activeviam.activepivot</groupId>
+      <artifactId>activepivot-external-database</artifactId>
+      <version>${atoti-server.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.activeviam.directquery</groupId>
+      <artifactId>api-application</artifactId>
+      <version>${atoti-server.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.activeviam.directquery</groupId>
+      <artifactId>api-generic-jdbc</artifactId>
+      <version>${atoti-server.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.activeviam.database.jdbc.dialect.dremio</groupId>
+      <artifactId>dremio-dialect</artifactId>
+      <version>${atoti-server.version}</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.arrow/flight-sql-jdbc-driver -->
+    <dependency>
+      <groupId>org.apache.arrow</groupId>
+      <artifactId>flight-sql-jdbc-driver</artifactId>
+      <version>16.1.0</version>
+    </dependency>
+
     <dependency>
       <groupId>com.activeviam.io</groupId>
       <artifactId>data-load-controller</artifactId>
       <version>${dlc.version}</version>
+    </dependency>
+    <!-- ActivePivot Core JDBC Dependency -->
+    <dependency>
+      <groupId>com.activeviam.source</groupId>
+      <artifactId>jdbc-source</artifactId>
+      <version>${atoti-server.version}</version>
     </dependency>
 
     <!-- OpenTelemetry -->

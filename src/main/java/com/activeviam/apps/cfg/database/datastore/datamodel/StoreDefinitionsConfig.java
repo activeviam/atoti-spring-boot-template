@@ -4,7 +4,7 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-package com.activeviam.apps.cfg.datastore.datamodel;
+package com.activeviam.apps.cfg.database.datastore.datamodel;
 
 import static com.activeviam.apps.constants.StoreAndFieldConstants.ASOFDATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
@@ -18,14 +18,12 @@ import static com.activeviam.database.api.types.ILiteralType.LOCAL_DATE;
 import static com.activeviam.database.api.types.ILiteralType.STRING;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import com.activeviam.database.datastore.api.description.IReferenceDescription;
 import com.activeviam.database.datastore.api.description.IStoreDescription;
 import com.activeviam.database.datastore.api.description.impl.ReferenceDescription;
 import com.activeviam.database.datastore.api.description.impl.StoreDescription;
 
-@Configuration
 public class StoreDefinitionsConfig {
 
     public static String referenceName(String from, String to) {

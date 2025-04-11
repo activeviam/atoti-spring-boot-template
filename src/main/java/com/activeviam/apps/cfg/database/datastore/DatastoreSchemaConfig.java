@@ -4,7 +4,7 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-package com.activeviam.apps.cfg.datastore;
+package com.activeviam.apps.cfg.database.datastore;
 
 import java.util.List;
 

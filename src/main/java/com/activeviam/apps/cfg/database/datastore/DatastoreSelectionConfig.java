@@ -4,7 +4,7 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-package com.activeviam.apps.cfg.datastore;
+package com.activeviam.apps.cfg.database.datastore;
 
 import org.springframework.context.annotation.Bean;
 
@@ -28,6 +28,9 @@ public class DatastoreSelectionConfig {
     public ISelectionDescription datastoreSelectionDescription() {
         return StartBuilding.selection(datastoreSchemaDescription)
                 .fromBaseStore(StoreAndFieldConstants.TRADES_STORE_NAME)
+                //                .withAllFields()
+                //                .usingReference(referenceName(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME))
+                //                .withFields(COUNTERPARTY_ID)
                 .withAllReachableFields()
                 .build();
     }

@@ -12,51 +12,51 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.EventListener;
 
-import com.activeviam.activepivot.core.datastore.api.builder.ApplicationWithDatastore;
-import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotManagerDescription;
 import com.activeviam.activepivot.server.spring.api.config.IActivePivotConfig;
-import com.activeviam.activepivot.server.spring.api.config.IDatastoreConfig;
-import com.activeviam.apps.annotations.ConditionalOnApplicationWithDatastore;
-import com.activeviam.apps.cfg.database.datastore.DatastoreConfig;
+import com.activeviam.activepivot.server.spring.private_.config.IDatabaseConfig;
+import com.activeviam.apps.annotations.ConditionalOnApplicationWithDirectQuery;
+import com.activeviam.apps.cfg.database.directquery.DirectQueryConfig;
 import com.activeviam.apps.cfg.pivot.datanode.DataCubeConfig;
-import com.activeviam.database.datastore.api.IDatastore;
-import com.activeviam.database.datastore.api.description.IDatastoreSchemaDescription;
+import com.activeviam.database.api.IDatabase;
+import com.activeviam.directquery.api.DirectQueryConnector;
+import com.activeviam.directquery.api.schema.SchemaDescription;
+import com.activeviam.directquery.application.api.Application;
 import com.activeviam.tech.core.api.agent.AgentException;
 import com.activeviam.tech.mvcc.api.policy.IEpochManagementPolicy;
 
 import lombok.RequiredArgsConstructor;
 
-@ConditionalOnApplicationWithDatastore
+@ConditionalOnApplicationWithDirectQuery
 @Configuration
-@Import({DatastoreConfig.class, DataCubeConfig.class, ActivePivotManagerConfig.class})
+@Import({DirectQueryConfig.class, ActivePivotManagerConfig.class, DataCubeConfig.class})
 @RequiredArgsConstructor
-public class ApplicationWithDatastoreConfig implements IActivePivotConfig, IDatastoreConfig {
-    private final IDatastoreSchemaDescription datastoreSchemaDescription;
+public class ApplicationWithDirectQueryConfig implements IActivePivotConfig, IDatabaseConfig {
+    private final SchemaDescription schemaDescription;
     private final IActivePivotManagerDescription activePivotManagerDescription;
     private final IEpochManagementPolicy epochManagementPolicy;
+    private final DirectQueryConnector<?> directQueryConnector;
 
     @Bean
-    public ApplicationWithDatastore applicationWithDatastore() {
-        return StartBuilding.application()
-                .withDatastore(datastoreSchemaDescription)
-                .withManager(activePivotManagerDescription)
-                .withEpochPolicy(epochManagementPolicy)
-                .withoutBranchRestrictions()
+    Application applicationWithDirectQuery() {
+        return Application.builder(directQueryConnector)
+                .managerDescription(activePivotManagerDescription)
+                .schema(schemaDescription)
+                .epochPolicy(epochManagementPolicy)
                 .build();
     }
 
     @Bean
     @Override
     public IActivePivotManager activePivotManager() {
-        return applicationWithDatastore().getManager();
+        return applicationWithDirectQuery().getManager();
     }
 
     @Bean
     @Override
-    public IDatastore database() {
-        return applicationWithDatastore().getDatastore();
+    public IDatabase database() {
+        return applicationWithDirectQuery().getDatabase();
     }
     /**
      * Initialize and start the ActivePivot Manager, after performing all the injections into the ActivePivot plug-ins.

@@ -4,16 +4,14 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-package com.activeviam.apps.cfg.datastore;
+package com.activeviam.apps.cfg.database.datastore;
 
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import com.activeviam.apps.cfg.datastore.datamodel.StoreDefinitionsConfig;
+import com.activeviam.apps.cfg.database.datastore.datamodel.StoreDefinitionsConfig;
 
 import lombok.RequiredArgsConstructor;
 
-@Configuration
 @Import({StoreDefinitionsConfig.class, DatastoreSchemaConfig.class, DatastoreSelectionConfig.class})
 @RequiredArgsConstructor
 public class DatastoreConfig {}

@@ -1,10 +1,10 @@
 /*
- * Copyright (C) ActiveViam 2019-2024
+ * Copyright (C) ActiveViam 2019-2025
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-package com.activeviam.apps;
+package com.activeviam.apps.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
