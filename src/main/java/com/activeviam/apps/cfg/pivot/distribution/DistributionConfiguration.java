@@ -6,12 +6,15 @@
  */
 package com.activeviam.apps.cfg.pivot.distribution;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
 import com.activeviam.apps.annotations.ConditionalOnDistribution;
+import com.activeviam.apps.constants.PropertyConstants;
 
 @ConditionalOnDistribution
 public class DistributionConfiguration {
+    @ConfigurationProperties(prefix = PropertyConstants.DISTRIBUTION_PROPERTIES_PREFIX)
     @Bean
     DistributionProperties clusterProperties() {
         return new DistributionProperties();

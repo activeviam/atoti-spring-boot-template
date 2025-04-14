@@ -8,10 +8,12 @@ package com.activeviam.apps.cfg.database.directquery;
 
 import org.springframework.context.annotation.Import;
 
+import com.activeviam.apps.cfg.database.DatabaseSelectionConfig;
 import com.activeviam.apps.cfg.database.directquery.datamodel.TableDefinitionsConfig;
 
 @Import(
         value = {
+            DatabaseSelectionConfig.class,
             DirectQuerySchemaConfig.class,
             DirectQuerySchemaConfig.class,
             DremioDirectQueryConnectorConfiguration.class,

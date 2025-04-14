@@ -7,12 +7,16 @@
 package com.activeviam.apps.rest;
 
 import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.COB_DATE_SCOPE_PARAMETER;
-import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.DREMIO_TOPICS;
 import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.DREMIO_UNLOAD_TOPIC;
+import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.TRADES_SQL_QUERY;
+import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.TRADES_SQL_TOPIC;
+import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.TRADE_ATTRIBUTES_SQL_QUERY;
+import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.TRADE_ATTRIBUTES_SQL_TOPIC;
 import static com.activeviam.apps.rest.EndpointConstants.CUSTOM_REST_PATH;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Set;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,6 +29,7 @@ import com.activeviam.database.api.DatabasePrinter;
 import com.activeviam.database.datastore.api.IDatastore;
 import com.activeviam.io.dlc.api.description.source.DlcSourceType;
 import com.activeviam.io.dlc.impl.DataLoadControllerService;
+import com.activeviam.io.dlc.impl.description.topic.JdbcTopicDescription;
 import com.activeviam.io.dlc.impl.operations.request.DlcLoadRequest;
 import com.activeviam.io.dlc.impl.operations.request.DlcUnloadRequest;
 import com.activeviam.io.dlc.impl.operations.request.scope.DlcScope;
@@ -48,12 +53,28 @@ public class CobDateDataController {
 
     private final IDatastore datastore;
 
+    private static String injectCobDate(String query, LocalDate cobDate) {
+        return query.replace("?", "'" + cobDate.format(DATE_FORMATTER) + "'");
+    }
+
+    private static JdbcTopicDescription overrideTradeTopic(LocalDate cobDate) {
+        return JdbcTopicDescription.builder(TRADES_SQL_TOPIC, injectCobDate(TRADES_SQL_QUERY, cobDate))
+                .build();
+    }
+
+    private static JdbcTopicDescription overrideTradeAttributesTopic(LocalDate cobDate) {
+        return JdbcTopicDescription.builder(
+                        TRADE_ATTRIBUTES_SQL_TOPIC, injectCobDate(TRADE_ATTRIBUTES_SQL_QUERY, cobDate))
+                .build();
+    }
+
     @PostMapping({"/{cobDate}"})
     public DlcLoadResponseDTO loadCobDate(@PathVariable @DateTimeFormat(pattern = DATE_FORMAT) LocalDate cobDate) {
+        // Workaround: we need to override the parameterized topics because Dremio does not support
+        // parameterized queries yet (it will from v. 26)
         var result = dataLoadControllerService
                 .execute(DlcLoadRequest.builder()
-                        .topics(DREMIO_TOPICS)
-                        .scope(DlcScope.of(COB_DATE_SCOPE_PARAMETER, cobDate.format(DATE_FORMATTER))) // FIXME: do we need to format?
+                        .topicOverrides(Set.of(overrideTradeTopic(cobDate), overrideTradeAttributesTopic(cobDate)))
                         .sourceType(DlcSourceType.JDBC_SOURCE)
                         .build())
                 .toDto();
@@ -66,7 +87,9 @@ public class CobDateDataController {
         var result = dataLoadControllerService
                 .execute(DlcUnloadRequest.builder()
                         .topics(DREMIO_UNLOAD_TOPIC)
-                        .scope(DlcScope.of(COB_DATE_SCOPE_PARAMETER, cobDate.format(DATE_FORMATTER))) // FIXME: do we need to format?
+                        .scope(DlcScope.of(
+                                COB_DATE_SCOPE_PARAMETER,
+                                cobDate.format(DATE_FORMATTER))) // FIXME: do we need to format?
                         .build())
                 .toDto();
         DatabasePrinter.printTableSizes(datastore.getMasterHead());

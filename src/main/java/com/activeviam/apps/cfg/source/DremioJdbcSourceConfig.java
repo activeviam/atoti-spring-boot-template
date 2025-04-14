@@ -6,7 +6,7 @@
  */
 package com.activeviam.apps.cfg.source;
 
-import static com.activeviam.apps.constants.StoreAndFieldConstants.ASOFDATE;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 
@@ -34,17 +34,17 @@ public class DremioJdbcSourceConfig {
     public static final String TRADES_SQL_TOPIC = TRADES_STORE_NAME;
     public static final String TRADE_ATTRIBUTES_SQL_TOPIC = TRADE_ATTRIBUTES_STORE_NAME;
 
-    private static final String TRADES_SQL_QUERY =
+    public static final String TRADES_SQL_QUERY =
             """
             SELECT *
             FROM Trades
-            WHERE cobDate = ?
+            WHERE CobDate = ?
             """;
-    private static final String TRADE_ATTRIBUTES_SQL_QUERY =
+    public static final String TRADE_ATTRIBUTES_SQL_QUERY =
             """
             SELECT *
             FROM TradeAttributes
-            WHERE cobDate = ?
+            WHERE CobDate = ?
             """;
 
     public static final String COB_DATE_SCOPE_PARAMETER = "cobDate";
@@ -63,7 +63,7 @@ public class DremioJdbcSourceConfig {
                 .stores(Set.of(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME))
                 .removalConditionFactory((storeDescription, scope) -> {
                     assert scope.containsKey(COB_DATE_SCOPE_PARAMETER);
-                    return BaseConditions.equal(FieldPath.of(ASOFDATE), scope.get(COB_DATE_SCOPE_PARAMETER));
+                    return BaseConditions.equal(FieldPath.of(COB_DATE), scope.get(COB_DATE_SCOPE_PARAMETER));
                 })
                 .build();
     }

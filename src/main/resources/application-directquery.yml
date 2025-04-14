@@ -5,10 +5,14 @@ otel:
     exporter: none
   traces:
     exporter: none
-distribution.type: none
+distribution:
+  type: data
+  cluster-id: atoti-cluster
 database:
   type: dremio
   dremio:
-    connection-string: "jdbc:arrow-flight-sql://localhost:32010/?useEncryption=false&schema=nessie"
-    database: "nessie"
-    schema: "nessie"
+    connection-string: "jdbc:arrow-flight-sql://localhost:32010/?useEncryption=false"
+    jdbc-properties:
+      user: admin
+      password: admin12345
+    schema: nessie

@@ -11,7 +11,7 @@ import static com.activeviam.apps.cfg.pivot.ActivePivotManagerConfig.NATIVE_MEAS
 import static com.activeviam.apps.cfg.pivot.ActivePivotManagerConfig.TIMESTAMP_FORMATTER;
 import static com.activeviam.apps.constants.CubeConstants.APPLICATION_NAME;
 import static com.activeviam.apps.constants.CubeConstants.CUBE_NAME;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.ASOFDATE;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 
 import java.util.concurrent.TimeUnit;
 
@@ -48,7 +48,7 @@ public class QueryCubeConfig {
                 .withProtocolPath(distributionProperties.getProtocolPath())
                 .end()
                 .withApplication(APPLICATION_NAME)
-                .withDistributingLevels(LevelIdentifier.simple(ASOFDATE))
+                .withDistributingLevels(LevelIdentifier.simple(COB_DATE))
                 .end()
 
                 // Shared context values

@@ -21,11 +21,13 @@ public class DremioConfigurationProperties {
     private Map<String, String> jdbcProperties = new HashMap<>();
 
     public GenericJdbcProperties toProperties() {
-        return GenericJdbcProperties.builder()
-                .connectionString(connectionString)
-                .additionalOption("database", database)
-                .additionalOption("schema", schema)
-                .additionalOptions(jdbcProperties)
-                .build();
+        var builder = GenericJdbcProperties.builder().connectionString(connectionString);
+        if (database != null) {
+            builder = builder.additionalOption("database", database);
+        }
+        if (schema != null) {
+            builder = builder.additionalOption("schema", schema);
+        }
+        return builder.additionalOptions(jdbcProperties).build();
     }
 }

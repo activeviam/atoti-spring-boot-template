@@ -32,9 +32,9 @@ public class Dimensions {
                 .withType(ILevelInfo.LevelType.TIME)
                 // Make the AsOfDate hierarchy slicing - we do not aggregate across dates
                 // Also show the dates in reverse order ie most recent date first
-                .withDimension(StoreAndFieldConstants.ASOFDATE)
+                .withDimension(StoreAndFieldConstants.COB_DATE)
                 .withType(IDimension.DimensionType.TIME)
-                .withHierarchy(StoreAndFieldConstants.ASOFDATE)
+                .withHierarchy(StoreAndFieldConstants.COB_DATE)
                 .slicing()
                 .withLevelOfSameName()
                 .withType(ILevelInfo.LevelType.TIME)

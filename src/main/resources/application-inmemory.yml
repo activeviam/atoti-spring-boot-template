@@ -5,9 +5,10 @@ otel:
     exporter: none
   traces:
     exporter: none
-distribution.type: none
-database:
-  type: datastore
+distribution:
+  type: data
+  cluster-id: atoti-cluster
+database.type: datastore
 dlc:
   jdbc:
     sources:
@@ -16,3 +17,4 @@ dlc:
         url: "jdbc:arrow-flight-sql://localhost:32010/?useEncryption=false&schema=nessie"
         username: "admin"
         password: "admin12345"
+        accepts-topic-overrides: true

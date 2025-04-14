@@ -7,7 +7,7 @@
 package com.activeviam.apps.cfg.database.directquery.datamodel;
 
 import static com.activeviam.apps.cfg.database.datastore.datamodel.StoreDefinitionsConfig.referenceName;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.ASOFDATE;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
@@ -57,7 +57,7 @@ public class TableDefinitionsConfig {
                 .targetTableName(TRADE_ATTRIBUTES_STORE_NAME)
                 .name(referenceName(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME))
                 .fieldMappings(Set.of(
-                        new ITableJoin.FieldMapping(ASOFDATE, ASOFDATE),
+                        new ITableJoin.FieldMapping(COB_DATE, COB_DATE),
                         new ITableJoin.FieldMapping(TRADE_ID, TRADE_ID)))
                 .build();
     }

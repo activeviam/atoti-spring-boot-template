@@ -20,3 +20,4 @@ dlc:
         url: ${database.dremio.connection-string}
         username: "admin"
         password: "admin12345"
+        accepts-topic-overrides: true

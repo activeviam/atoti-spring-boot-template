@@ -6,7 +6,7 @@
  */
 package com.activeviam.apps.cfg.database.datastore.datamodel;
 
-import static com.activeviam.apps.constants.StoreAndFieldConstants.ASOFDATE;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
@@ -34,7 +34,7 @@ public class StoreDefinitionsConfig {
     public IStoreDescription createTradesStoreDescription() {
         return StoreDescription.builder()
                 .withStoreName(TRADES_STORE_NAME)
-                .withField(ASOFDATE, LOCAL_DATE)
+                .withField(COB_DATE, LOCAL_DATE)
                 .asKeyField()
                 .withField(TRADE_ID, STRING)
                 .asKeyField()
@@ -46,7 +46,7 @@ public class StoreDefinitionsConfig {
     public IStoreDescription createTradeAttributesStoreDescription() {
         return StoreDescription.builder()
                 .withStoreName(TRADE_ATTRIBUTES_STORE_NAME)
-                .withField(ASOFDATE, LOCAL_DATE)
+                .withField(COB_DATE, LOCAL_DATE)
                 .asKeyField()
                 .withField(TRADE_ID, STRING)
                 .asKeyField()
@@ -61,7 +61,7 @@ public class StoreDefinitionsConfig {
                 .fromStore(TRADES_STORE_NAME)
                 .toStore(TRADE_ATTRIBUTES_STORE_NAME)
                 .withName(referenceName(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME))
-                .withMapping(ASOFDATE, ASOFDATE)
+                .withMapping(COB_DATE, COB_DATE)
                 .withMapping(TRADE_ID, TRADE_ID)
                 .build();
     }
