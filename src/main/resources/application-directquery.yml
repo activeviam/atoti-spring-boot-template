@@ -5,9 +5,6 @@ otel:
     exporter: none
   traces:
     exporter: none
-distribution:
-  type: data
-  cluster-id: atoti-cluster
 database:
   type: dremio
   dremio:
@@ -16,3 +13,5 @@ database:
       user: admin
       password: admin12345
     schema: nessie
+server:
+  port: 9092

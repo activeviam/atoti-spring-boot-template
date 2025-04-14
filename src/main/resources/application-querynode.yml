@@ -5,4 +5,7 @@ otel:
     exporter: none
   traces:
     exporter: none
-distribution.type: query
+distribution:
+  type: query
+  cluster-id: atoti-cluster
+  protocol-path: jgroups-protocols/protocol-tcp-gossip.xml

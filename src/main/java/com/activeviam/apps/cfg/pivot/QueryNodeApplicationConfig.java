@@ -7,7 +7,9 @@
 package com.activeviam.apps.cfg.pivot;
 
 import java.util.Collections;
+import java.util.Objects;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,30 +23,43 @@ import com.activeviam.activepivot.core.intf.api.description.IActivePivotManagerD
 import com.activeviam.activepivot.server.spring.api.config.IActivePivotConfig;
 import com.activeviam.activepivot.server.spring.api.config.IDatastoreConfig;
 import com.activeviam.apps.annotations.ConditionalOnQueryNode;
-import com.activeviam.apps.cfg.pivot.distribution.DistributionConfiguration;
 import com.activeviam.apps.cfg.pivot.querynode.QueryCubeConfig;
+import com.activeviam.apps.cfg.pivot.querynode.QueryNodeActivePivotManagerConfig;
 import com.activeviam.database.datastore.api.IDatastore;
 import com.activeviam.database.datastore.api.description.impl.DatastoreSchemaDescription;
 import com.activeviam.tech.core.api.agent.AgentException;
 import com.activeviam.tech.mvcc.api.policy.IEpochManagementPolicy;
-
-import lombok.RequiredArgsConstructor;
+import com.activeviam.tech.mvcc.api.security.impl.BranchPermissionsManager;
 
 @ConditionalOnQueryNode
 @Configuration
-@Import({ActivePivotManagerConfig.class, DistributionConfiguration.class, QueryCubeConfig.class})
-@RequiredArgsConstructor
+@Import({QueryNodeActivePivotManagerConfig.class, QueryCubeConfig.class})
 public class QueryNodeApplicationConfig implements IActivePivotConfig, IDatastoreConfig {
     private final IActivePivotManagerDescription activePivotManagerDescription;
     private final IEpochManagementPolicy epochManagementPolicy;
+    private final BranchPermissionsManager branchPermissionsManager;
+
+    public QueryNodeApplicationConfig(
+            IActivePivotManagerDescription activePivotManagerDescription,
+            IEpochManagementPolicy epochManagementPolicy,
+            @Autowired(required = false) BranchPermissionsManager branchPermissionsManager) {
+        this.activePivotManagerDescription = activePivotManagerDescription;
+        this.epochManagementPolicy = epochManagementPolicy;
+        this.branchPermissionsManager = branchPermissionsManager;
+    }
 
     @Bean
     public ApplicationWithDatastore applicationWithDatastore() {
-        return StartBuilding.application()
+        var builder = StartBuilding.application()
                 .withDatastore(new DatastoreSchemaDescription(Collections.emptyList(), Collections.emptyList()))
                 .withManager(activePivotManagerDescription)
-                .withEpochPolicy(epochManagementPolicy)
-                .build();
+                .withEpochPolicy(epochManagementPolicy);
+        if (Objects.nonNull(branchPermissionsManager)) {
+            return builder.withBranchPermissionsManager(branchPermissionsManager)
+                    .build();
+        } else {
+            return builder.withoutBranchRestrictions().build();
+        }
     }
 
     @Bean

@@ -5,9 +5,6 @@ otel:
     exporter: none
   traces:
     exporter: none
-distribution:
-  type: data
-  cluster-id: atoti-cluster
 database.type: datastore
 dlc:
   jdbc:
@@ -18,3 +15,5 @@ dlc:
         username: "admin"
         password: "admin12345"
         accepts-topic-overrides: true
+server:
+  port: 9091

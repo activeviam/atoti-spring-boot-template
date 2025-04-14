@@ -6,11 +6,11 @@
  */
 package com.activeviam.apps.cfg.pivot.querynode;
 
-import static com.activeviam.apps.cfg.pivot.ActivePivotManagerConfig.INT_FORMATTER;
-import static com.activeviam.apps.cfg.pivot.ActivePivotManagerConfig.NATIVE_MEASURES;
-import static com.activeviam.apps.cfg.pivot.ActivePivotManagerConfig.TIMESTAMP_FORMATTER;
 import static com.activeviam.apps.constants.CubeConstants.APPLICATION_NAME;
 import static com.activeviam.apps.constants.CubeConstants.CUBE_NAME;
+import static com.activeviam.apps.constants.CubeConstants.INT_FORMATTER;
+import static com.activeviam.apps.constants.CubeConstants.NATIVE_MEASURES;
+import static com.activeviam.apps.constants.CubeConstants.TIMESTAMP_FORMATTER;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 
 import java.util.concurrent.TimeUnit;
@@ -29,16 +29,16 @@ public class QueryCubeConfig {
     public IDistributedActivePivotInstanceDescription activePivotInstanceDescription(
             DistributionProperties distributionProperties) {
         return StartBuilding.cube(CUBE_NAME)
-                .withContributorsCount()
-                .withinFolder(NATIVE_MEASURES)
-                .withAlias("Count")
-                .withFormatter(INT_FORMATTER)
-
-                // WARN: This will not be available for AggregateProvider `jit`
-                .withUpdateTimestamp()
-                .withinFolder(NATIVE_MEASURES)
-                .withAlias("Update.Timestamp")
-                .withFormatter(TIMESTAMP_FORMATTER)
+//                .withContributorsCount()
+//                .withinFolder(NATIVE_MEASURES)
+//                .withAlias("Count")
+//                .withFormatter(INT_FORMATTER)
+//
+//                // WARN: This will not be available for AggregateProvider `jit`
+//                .withUpdateTimestamp()
+//                .withinFolder(NATIVE_MEASURES)
+//                .withAlias("Update.Timestamp")
+//                .withFormatter(TIMESTAMP_FORMATTER)
                 .asQueryCube()
                 .withClusterDefinition()
                 .withClusterId(distributionProperties.getClusterId())

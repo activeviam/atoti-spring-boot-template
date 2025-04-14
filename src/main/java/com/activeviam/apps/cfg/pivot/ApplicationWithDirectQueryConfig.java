@@ -17,9 +17,11 @@ import com.activeviam.activepivot.core.intf.api.description.IActivePivotManagerD
 import com.activeviam.activepivot.server.spring.api.config.IActivePivotConfig;
 import com.activeviam.activepivot.server.spring.private_.config.IDatabaseConfig;
 import com.activeviam.apps.annotations.ConditionalOnApplicationWithDirectQuery;
+import com.activeviam.apps.annotations.ConditionalOnDataNode;
 import com.activeviam.apps.cfg.database.DatabaseConfig;
 import com.activeviam.apps.cfg.database.directquery.DirectQueryConfig;
 import com.activeviam.apps.cfg.pivot.datanode.DataCubeConfig;
+import com.activeviam.apps.cfg.pivot.datanode.DataNodeActivePivotManagerConfig;
 import com.activeviam.database.api.IDatabase;
 import com.activeviam.database.datastore.api.IDatastore;
 import com.activeviam.directquery.api.DirectQueryConnector;
@@ -31,8 +33,9 @@ import com.activeviam.tech.mvcc.api.policy.IEpochManagementPolicy;
 import lombok.RequiredArgsConstructor;
 
 @ConditionalOnApplicationWithDirectQuery
+@ConditionalOnDataNode
 @Configuration
-@Import({DatabaseConfig.class, DirectQueryConfig.class, ActivePivotManagerConfig.class, DataCubeConfig.class})
+@Import({DatabaseConfig.class, DirectQueryConfig.class, DataNodeActivePivotManagerConfig.class, DataCubeConfig.class})
 @RequiredArgsConstructor
 public class ApplicationWithDirectQueryConfig implements IActivePivotConfig, IDatabaseConfig {
     private final SchemaDescription schemaDescription;

@@ -6,11 +6,11 @@
  */
 package com.activeviam.apps.cfg.pivot.datanode;
 
-import static com.activeviam.apps.cfg.pivot.ActivePivotManagerConfig.INT_FORMATTER;
-import static com.activeviam.apps.cfg.pivot.ActivePivotManagerConfig.NATIVE_MEASURES;
-import static com.activeviam.apps.cfg.pivot.ActivePivotManagerConfig.TIMESTAMP_FORMATTER;
 import static com.activeviam.apps.constants.CubeConstants.APPLICATION_NAME;
 import static com.activeviam.apps.constants.CubeConstants.CUBE_NAME;
+import static com.activeviam.apps.constants.CubeConstants.INT_FORMATTER;
+import static com.activeviam.apps.constants.CubeConstants.NATIVE_MEASURES;
+import static com.activeviam.apps.constants.CubeConstants.TIMESTAMP_FORMATTER;
 
 import java.util.concurrent.TimeUnit;
 

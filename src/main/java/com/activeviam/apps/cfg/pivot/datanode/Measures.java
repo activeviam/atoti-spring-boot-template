@@ -6,7 +6,7 @@
  */
 package com.activeviam.apps.cfg.pivot.datanode;
 
-import static com.activeviam.apps.cfg.pivot.ActivePivotManagerConfig.DOUBLE_FORMATTER;
+import static com.activeviam.apps.constants.CubeConstants.DOUBLE_FORMATTER;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 
 import com.activeviam.activepivot.copper.api.Copper;

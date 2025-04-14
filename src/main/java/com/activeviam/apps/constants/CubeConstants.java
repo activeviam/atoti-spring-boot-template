@@ -15,4 +15,20 @@ public class CubeConstants {
     public static final String CUBE_NAME = "Cube";
 
     public static final String APPLICATION_NAME = "AtotiApplication";
+
+    /* *********************/
+    /* OLAP Property names */
+    /* *********************/
+    public static final String MANAGER_NAME = "Manager";
+    public static final String CATALOG_NAME = "Catalog";
+    public static final String SCHEMA_NAME = "Schema";
+
+    /* ********** */
+    /* Formatters */
+    /* ********** */
+    public static final String DOUBLE_FORMATTER = "DOUBLE[#,###.##]";
+    public static final String INT_FORMATTER = "INT[#,###]";
+    public static final String TIMESTAMP_FORMATTER = "DATE[HH:mm:ss]";
+
+    public static final String NATIVE_MEASURES = "Native Measures";
 }
