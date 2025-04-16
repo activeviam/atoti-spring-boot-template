@@ -10,6 +10,7 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import com.activeviam.activepivot.core.impl.api.condition.FactFilterConditions;
@@ -21,15 +22,19 @@ import lombok.Data;
 public class CobDatesProperties {
     private Set<LocalDate> inMemoryDates = new HashSet<>();
 
-    public LocalDate lastDateInMemory() {
-        return inMemoryDates.stream().min(LocalDate::compareTo).orElse(null);
+    public Optional<LocalDate> lastDateInMemory() {
+        return inMemoryDates.stream().min(LocalDate::compareTo);
     }
 
     public ICondition inMemoryDatesFilterCondition() {
-        return FactFilterConditions.gteq(COB_DATE, lastDateInMemory());
+        return lastDateInMemory()
+                .map(lastDate -> FactFilterConditions.gteq(COB_DATE, lastDate))
+                .orElse(null);
     }
 
     public ICondition directQueryDatesFilterCondition() {
-        return FactFilterConditions.lt(COB_DATE, lastDateInMemory());
+        return lastDateInMemory()
+                .map(lastDate -> FactFilterConditions.lt(COB_DATE, lastDate))
+                .orElse(null);
     }
 }

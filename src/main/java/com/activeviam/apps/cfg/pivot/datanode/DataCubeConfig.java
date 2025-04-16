@@ -9,6 +9,7 @@ package com.activeviam.apps.cfg.pivot.datanode;
 import static com.activeviam.apps.constants.CubeConstants.APPLICATION_NAME;
 import static com.activeviam.apps.constants.CubeConstants.CUBE_NAME;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,11 +43,12 @@ public class DataCubeConfig {
                 ? cobDatesProperties.inMemoryDatesFilterCondition()
                 : cobDatesProperties.directQueryDatesFilterCondition();
         log.info("Applying cobDate filter condition to data node: {}", cobDatesFilterCondition);
-        var builder = StartBuilding.cube(CUBE_NAME)
-                .withCalculations(calculations)
-                .withDimensions(dimensions)
-                .withFactFilter(cobDatesFilterCondition)
-                .withAggregateProvider()
+        var builder =
+                StartBuilding.cube(CUBE_NAME).withCalculations(calculations).withDimensions(dimensions);
+        if (Objects.nonNull(cobDatesFilterCondition)) {
+            builder = builder.withFactFilter(cobDatesFilterCondition);
+        }
+        builder = builder.withAggregateProvider()
                 .jit()
                 // Shared context values
                 // Query maximum execution time (before timeout cancellation): 30s

@@ -14,7 +14,6 @@ import com.activeviam.activepivot.core.datastore.api.builder.ApplicationWithData
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.dist.impl.api.cube.IMultiVersionDataActivePivot;
 import com.activeviam.apps.annotations.ConditionalOnApplicationWithDatastore;
-import com.activeviam.apps.annotations.ConditionalOnDataNode;
 import com.activeviam.apps.rest.CobDateDataController;
 import com.activeviam.database.api.DatabasePrinter;
 
@@ -22,7 +21,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @ConditionalOnApplicationWithDatastore
-@ConditionalOnDataNode
 @Slf4j
 @Component
 @RequiredArgsConstructor

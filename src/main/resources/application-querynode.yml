@@ -9,3 +9,5 @@ distribution:
   type: query
   cluster-id: atoti-cluster
   protocol-path: jgroups-protocols/protocol-tcp-gossip.xml
+database:
+  type: none

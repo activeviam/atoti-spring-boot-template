@@ -19,7 +19,6 @@ import com.activeviam.activepivot.core.intf.api.description.IActivePivotManagerD
 import com.activeviam.activepivot.server.spring.api.config.IActivePivotConfig;
 import com.activeviam.activepivot.server.spring.api.config.IDatastoreConfig;
 import com.activeviam.apps.annotations.ConditionalOnApplicationWithDatastore;
-import com.activeviam.apps.annotations.ConditionalOnDataNode;
 import com.activeviam.apps.cfg.database.DatabaseConfig;
 import com.activeviam.apps.cfg.database.datastore.DatastoreConfig;
 import com.activeviam.apps.cfg.pivot.datanode.DataCubeConfig;
@@ -32,7 +31,6 @@ import com.activeviam.tech.mvcc.api.policy.IEpochManagementPolicy;
 import lombok.RequiredArgsConstructor;
 
 @ConditionalOnApplicationWithDatastore
-@ConditionalOnDataNode
 @Configuration
 @Import({DatabaseConfig.class, DatastoreConfig.class, DataCubeConfig.class, DataNodeActivePivotManagerConfig.class})
 @RequiredArgsConstructor
