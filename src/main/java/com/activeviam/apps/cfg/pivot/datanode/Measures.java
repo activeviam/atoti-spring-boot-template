@@ -30,8 +30,8 @@ public class Measures implements Consumer<ICopperContext> {
                 .withAlias("Update.Timestamp")
                 .withinFolder(NATIVE_MEASURES)
                 .withFormatter(TIMESTAMP_FORMATTER));
-        copperMeasures.add(Copper.sum(NOTIONAL).withFormatter(DOUBLE_FORMATTER));
-        copperMeasures.add(Copper.avg(NOTIONAL).withFormatter(DOUBLE_FORMATTER));
+        copperMeasures.add(Copper.sum(NOTIONAL).as(NOTIONAL + ".Sum").withFormatter(DOUBLE_FORMATTER));
+        copperMeasures.add(Copper.avg(NOTIONAL).as(NOTIONAL + ".Mean").withFormatter(DOUBLE_FORMATTER));
     }
 
     @Override
