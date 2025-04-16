@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PropertyConstants {
     public static final String DATABASE_PROPERTIES_PREFIX = "database";
+    public static final String COB_DATES_PROPERTIES_PREFIX = "cob-dates";
 
     public static final String TYPE_PROPERTY = "type";
 

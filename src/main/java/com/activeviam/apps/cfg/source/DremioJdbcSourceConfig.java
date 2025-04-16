@@ -16,16 +16,24 @@ import java.util.Set;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.activeviam.apps.annotations.ConditionalOnApplicationWithDatastore;
+import com.activeviam.apps.annotations.ConditionalOnDataNode;
 import com.activeviam.database.api.conditions.BaseConditions;
 import com.activeviam.database.api.schema.FieldPath;
 import com.activeviam.io.dlc.impl.description.topic.JdbcTopicDescription;
 import com.activeviam.io.dlc.impl.description.topic.UnloadTopicDescription;
+import com.activeviam.io.dlc.impl.description.topic.channel.ChannelDescription;
+import com.activeviam.io.dlc.impl.description.topic.channel.column.calc.CustomFieldDescription;
+import com.activeviam.io.dlc.impl.utils.NamedEntityResolverService;
+import com.activeviam.source.jdbc.api.calculator.LocalDateJdbcColumnCalculator;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Configuration
 @RequiredArgsConstructor
+@ConditionalOnApplicationWithDatastore
+@ConditionalOnDataNode
 @Slf4j
 public class DremioJdbcSourceConfig {
     public static final String DREMIO_TOPICS = "DremioTopics";
@@ -33,6 +41,8 @@ public class DremioJdbcSourceConfig {
 
     public static final String TRADES_SQL_TOPIC = TRADES_STORE_NAME;
     public static final String TRADE_ATTRIBUTES_SQL_TOPIC = TRADE_ATTRIBUTES_STORE_NAME;
+
+    public static final String COB_DATE_SQL_PARSER = "CobDateSqlParser";
 
     public static final String TRADES_SQL_QUERY =
             """
@@ -50,9 +60,17 @@ public class DremioJdbcSourceConfig {
     public static final String COB_DATE_SCOPE_PARAMETER = "cobDate";
 
     @Bean
-    JdbcTopicDescription tradesJdbcTopic() {
+    CustomFieldDescription cobDateJdbcParser() {
+        return CustomFieldDescription.of(COB_DATE_SQL_PARSER, scope -> new LocalDateJdbcColumnCalculator(COB_DATE));
+    }
+
+    @Bean
+    JdbcTopicDescription tradesJdbcTopic(NamedEntityResolverService namedEntityResolverService) {
         return JdbcTopicDescription.builder(TRADES_SQL_TOPIC, TRADES_SQL_QUERY)
                 .parameterOrder(List.of(COB_DATE_SCOPE_PARAMETER))
+                .channel(ChannelDescription.builder(namedEntityResolverService.getTarget(TRADES_STORE_NAME))
+                        .customFields(namedEntityResolverService.getCustomFields(Set.of(COB_DATE_SQL_PARSER)))
+                        .build())
                 .build();
     }
 
@@ -69,9 +87,12 @@ public class DremioJdbcSourceConfig {
     }
 
     @Bean
-    JdbcTopicDescription tradeAttributesJdbcTopic() {
+    JdbcTopicDescription tradeAttributesJdbcTopic(NamedEntityResolverService namedEntityResolverService) {
         return JdbcTopicDescription.builder(TRADE_ATTRIBUTES_SQL_TOPIC, TRADE_ATTRIBUTES_SQL_QUERY)
                 .parameterOrder(List.of(COB_DATE_SCOPE_PARAMETER))
+                .channel(ChannelDescription.builder(namedEntityResolverService.getTarget(TRADE_ATTRIBUTES_STORE_NAME))
+                        .customFields(namedEntityResolverService.getCustomFields(Set.of(COB_DATE_SQL_PARSER)))
+                        .build())
                 .build();
     }
 }

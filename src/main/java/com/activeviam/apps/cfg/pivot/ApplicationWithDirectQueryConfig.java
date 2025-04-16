@@ -6,6 +6,8 @@
  */
 package com.activeviam.apps.cfg.pivot;
 
+import static com.activeviam.apps.cfg.source.InitialLoad.startDistributionMessenger;
+
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,12 +33,14 @@ import com.activeviam.tech.core.api.agent.AgentException;
 import com.activeviam.tech.mvcc.api.policy.IEpochManagementPolicy;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @ConditionalOnApplicationWithDirectQuery
 @ConditionalOnDataNode
 @Configuration
 @Import({DatabaseConfig.class, DirectQueryConfig.class, DataNodeActivePivotManagerConfig.class, DataCubeConfig.class})
 @RequiredArgsConstructor
+@Slf4j
 public class ApplicationWithDirectQueryConfig implements IActivePivotConfig, IDatabaseConfig {
     private final SchemaDescription schemaDescription;
     private final IActivePivotManagerDescription activePivotManagerDescription;
@@ -78,7 +82,8 @@ public class ApplicationWithDirectQueryConfig implements IActivePivotConfig, IDa
         /* *********************************************** */
         /* Initialize the ActivePivot Manager and start it */
         /* *********************************************** */
-        activePivotManager().init(null);
-        activePivotManager().start();
+        var app = applicationWithDirectQuery();
+        app.start();
+        startDistributionMessenger(app.getManager());
     }
 }

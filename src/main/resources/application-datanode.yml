@@ -2,3 +2,7 @@ distribution:
   type: data
   cluster-id: atoti-cluster
   protocol-path: jgroups-protocols/protocol-tcp-gossip.xml
+cob-dates:
+  in-memory-dates:
+    - 2025-03-03
+    - 2025-03-02

@@ -8,9 +8,6 @@ package com.activeviam.apps.cfg.pivot.datanode;
 
 import static com.activeviam.apps.constants.CubeConstants.APPLICATION_NAME;
 import static com.activeviam.apps.constants.CubeConstants.CUBE_NAME;
-import static com.activeviam.apps.constants.CubeConstants.INT_FORMATTER;
-import static com.activeviam.apps.constants.CubeConstants.NATIVE_MEASURES;
-import static com.activeviam.apps.constants.CubeConstants.TIMESTAMP_FORMATTER;
 
 import java.util.concurrent.TimeUnit;
 
@@ -21,34 +18,34 @@ import org.springframework.context.annotation.Import;
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.impl.api.contextvalues.QueriesTimeLimit;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstanceDescription;
+import com.activeviam.activepivot.core.intf.api.description.IMessengerDefinition;
+import com.activeviam.apps.cfg.database.DatabaseProperties;
 import com.activeviam.apps.cfg.pivot.distribution.DistributionProperties;
+import com.activeviam.apps.cfg.source.CobDatesProperties;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Import({Measures.class, Dimensions.class})
 @RequiredArgsConstructor
+@Slf4j
 public class DataCubeConfig {
 
     @Bean
     public IActivePivotInstanceDescription activePivotInstanceDescription(
             Dimensions dimensions,
-            Measures measures,
+            Measures calculations,
+            DatabaseProperties databaseProperties,
+            CobDatesProperties cobDatesProperties,
             @Autowired(required = false) DistributionProperties distributionProperties) {
+        var cobDatesFilterCondition = databaseProperties.isDatastoreType()
+                ? cobDatesProperties.inMemoryDatesFilterCondition()
+                : cobDatesProperties.directQueryDatesFilterCondition();
+        log.info("Applying cobDate filter condition to data node: {}", cobDatesFilterCondition);
         var builder = StartBuilding.cube(CUBE_NAME)
-                .withContributorsCount()
-                .withinFolder(NATIVE_MEASURES)
-                .withAlias("Count")
-                .withFormatter(INT_FORMATTER)
-
-                // WARN: This will not be available for AggregateProvider `jit`
-                .withUpdateTimestamp()
-                .withinFolder(NATIVE_MEASURES)
-                .withAlias("Update.Timestamp")
-                .withFormatter(TIMESTAMP_FORMATTER)
-                .withCalculations(measures::build)
-                .withDimensions(dimensions.build())
-
-                // Aggregate provider
+                .withCalculations(calculations)
+                .withDimensions(dimensions)
+                .withFactFilter(cobDatesFilterCondition)
                 .withAggregateProvider()
                 .jit()
                 // Shared context values
@@ -67,7 +64,9 @@ public class DataCubeConfig {
                     .withClusterId(distributionProperties.getClusterId())
                     .withMessengerDefinition()
                     .withNettyMessenger()
-                    .withNoProperty()
+                    // Dont connect to the cluster at startup. We do this after we load the data
+                    .withProperty(IMessengerDefinition.AUTO_START, Boolean.FALSE.toString())
+                    .end()
                     .withProtocolPath(distributionProperties.getProtocolPath())
                     .end()
                     .withApplicationId(APPLICATION_NAME)

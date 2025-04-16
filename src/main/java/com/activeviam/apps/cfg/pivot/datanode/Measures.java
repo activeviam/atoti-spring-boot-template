@@ -7,14 +7,34 @@
 package com.activeviam.apps.cfg.pivot.datanode;
 
 import static com.activeviam.apps.constants.CubeConstants.DOUBLE_FORMATTER;
+import static com.activeviam.apps.constants.CubeConstants.INT_FORMATTER;
+import static com.activeviam.apps.constants.CubeConstants.NATIVE_MEASURES;
+import static com.activeviam.apps.constants.CubeConstants.TIMESTAMP_FORMATTER;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
 import com.activeviam.activepivot.copper.api.Copper;
+import com.activeviam.activepivot.copper.api.CopperMeasure;
 import com.activeviam.activepivot.core.intf.api.copper.ICopperContext;
 
-public class Measures {
+public class Measures implements Consumer<ICopperContext> {
+    private final List<CopperMeasure> copperMeasures = new ArrayList<>();
 
-    public void build(ICopperContext context) {
-        Copper.sum(NOTIONAL).as(NOTIONAL).withFormatter(DOUBLE_FORMATTER).publish(context);
+    public Measures() {
+        copperMeasures.add(
+                Copper.count().withAlias("Count").withFormatter(INT_FORMATTER).withinFolder(NATIVE_MEASURES));
+        copperMeasures.add(Copper.timestamp()
+                .withAlias("Update.Timestamp")
+                .withinFolder(NATIVE_MEASURES)
+                .withFormatter(TIMESTAMP_FORMATTER));
+        copperMeasures.add(Copper.sum(NOTIONAL).as(NOTIONAL).withFormatter(DOUBLE_FORMATTER));
+    }
+
+    @Override
+    public void accept(ICopperContext context) {
+        copperMeasures.forEach(m -> m.publish(context));
     }
 }
