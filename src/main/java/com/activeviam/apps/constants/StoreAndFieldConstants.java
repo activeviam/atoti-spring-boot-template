@@ -22,6 +22,8 @@ public class StoreAndFieldConstants {
     public static final String TRADE_ID = "TradeID";
     public static final String NOTIONAL = "Notional";
 
+    public static final String TEST_DECIMAL = "TestDecimal";
+
     public static final String TRADE_DATE = "TradeDate";
     public static final String COUNTERPARTY_ID = "CounterpartyID";
 }
