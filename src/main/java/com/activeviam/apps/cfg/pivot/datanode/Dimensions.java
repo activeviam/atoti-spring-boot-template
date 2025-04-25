@@ -12,7 +12,6 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
 
-import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IDimension;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.ILevelInfo;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstanceDescription;
 import com.activeviam.activepivot.core.intf.api.description.builder.ICanBuildCubeDescription;
@@ -32,8 +31,8 @@ public class Dimensions implements ICanStartBuildingDimensions.DimensionsAdder {
                 .withType(ILevelInfo.LevelType.TIME)
                 // Make the AsOfDate hierarchy slicing - we do not aggregate across dates
                 // Also show the dates in reverse order ie most recent date first
-                .withDimension(StoreAndFieldConstants.COB_DATE)
-                .withType(IDimension.DimensionType.TIME)
+                //                .withDimension(StoreAndFieldConstants.COB_DATE)
+                //                .withType(IDimension.DimensionType.TIME)
                 .withHierarchy(StoreAndFieldConstants.COB_DATE)
                 .withHierarchyProperty(AUTO_CONTRIBUTE_UNKNOWN_MEMBER_PROPERTY, AUTO_CONTRIBUTE_UNKNOWN_MEMBER_NEVER)
                 .slicing()

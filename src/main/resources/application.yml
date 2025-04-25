@@ -132,3 +132,9 @@ content-service:
         dataSource:
           url: "jdbc:h2:mem:content_service;DB_CLOSE_DELAY=-1;IGNORECASE=TRUE"
         poolName: ContentServer-ConnectionPool
+cube-query-service:
+  default-cube: "Cube"
+  cube-defaults:
+    Cube:
+      date-filter-levels: CobDate
+      default-dimension: "Trade Attributes"

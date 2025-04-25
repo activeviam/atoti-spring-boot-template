@@ -27,9 +27,10 @@ public class CobDatesProperties {
     }
 
     public ICondition inMemoryDatesFilterCondition() {
-        return lastDateInMemory()
-                .map(lastDate -> FactFilterConditions.gteq(COB_DATE, lastDate))
-                .orElse(null);
+        return null;
+        //        lastDateInMemory()
+        //                .map(lastDate -> FactFilterConditions.gteq(COB_DATE, lastDate))
+        //                .orElse(null);
     }
 
     public ICondition directQueryDatesFilterCondition() {
