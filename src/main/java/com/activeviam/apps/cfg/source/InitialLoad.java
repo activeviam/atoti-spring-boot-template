@@ -6,7 +6,7 @@
  */
 package com.activeviam.apps.cfg.source;
 
-import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -29,7 +29,7 @@ public class InitialLoad {
     private final ApplicationWithDatastore applicationWithDatastore;
     private final CobDatesProperties cobDatesProperties;
 
-    @EventListener(value = ApplicationReadyEvent.class)
+    @EventListener(value = ApplicationStartedEvent.class)
     void onApplicationReady() {
         log.info("ApplicationReadyEvent triggered");
         initialInMemoryLoad();

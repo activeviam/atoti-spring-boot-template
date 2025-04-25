@@ -7,7 +7,9 @@
 package com.activeviam.apps.cfg.database.datastore.datamodel;
 
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTIES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TEST_DECIMAL;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
@@ -60,6 +62,16 @@ public class StoreDefinitionsConfig {
     }
 
     @Bean
+    public IStoreDescription createCounterpartyStoreDescription() {
+        return StoreDescription.builder()
+                .withStoreName(COUNTERPARTIES_STORE_NAME)
+                .withField(COUNTERPARTY_ID, STRING)
+                .asKeyField()
+                .withField(COUNTERPARTY_NAME, STRING)
+                .build();
+    }
+
+    @Bean
     public IReferenceDescription tradeToAttributedReference() {
         return ReferenceDescription.builder()
                 .fromStore(TRADES_STORE_NAME)
@@ -67,6 +79,16 @@ public class StoreDefinitionsConfig {
                 .withName(referenceName(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME))
                 .withMapping(COB_DATE, COB_DATE)
                 .withMapping(TRADE_ID, TRADE_ID)
+                .build();
+    }
+
+    @Bean
+    public IReferenceDescription tradeAttributesToCounterpartyReference() {
+        return ReferenceDescription.builder()
+                .fromStore(TRADE_ATTRIBUTES_STORE_NAME)
+                .toStore(COUNTERPARTIES_STORE_NAME)
+                .withName(referenceName(TRADE_ATTRIBUTES_STORE_NAME, COUNTERPARTIES_STORE_NAME))
+                .withMapping(COUNTERPARTY_ID, COUNTERPARTY_ID)
                 .build();
     }
 }

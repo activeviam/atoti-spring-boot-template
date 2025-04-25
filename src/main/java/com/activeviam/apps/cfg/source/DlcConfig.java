@@ -6,6 +6,7 @@
  */
 package com.activeviam.apps.cfg.source;
 
+import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.COUNTERPARTIES_SQL_TOPIC;
 import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.DREMIO_TOPICS;
 import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.TRADES_SQL_TOPIC;
 import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.TRADE_ATTRIBUTES_SQL_TOPIC;
@@ -23,6 +24,7 @@ public class DlcConfig {
 
     @Bean
     AliasesDescription aliases() {
-        return new AliasesDescription(Map.of(DREMIO_TOPICS, Set.of(TRADES_SQL_TOPIC, TRADE_ATTRIBUTES_SQL_TOPIC)));
+        return new AliasesDescription(
+                Map.of(DREMIO_TOPICS, Set.of(TRADES_SQL_TOPIC, TRADE_ATTRIBUTES_SQL_TOPIC, COUNTERPARTIES_SQL_TOPIC)));
     }
 }

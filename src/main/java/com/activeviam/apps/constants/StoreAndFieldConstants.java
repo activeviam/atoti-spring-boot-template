@@ -16,6 +16,8 @@ public class StoreAndFieldConstants {
 
     public static final String TRADE_ATTRIBUTES_STORE_NAME = "TradeAttributes";
 
+    public static final String COUNTERPARTIES_STORE_NAME = "Counterparties";
+
     /********************* Stores fields ***********************/
     public static final String COB_DATE = "CobDate";
 
@@ -26,4 +28,5 @@ public class StoreAndFieldConstants {
 
     public static final String TRADE_DATE = "TradeDate";
     public static final String COUNTERPARTY_ID = "CounterpartyID";
+    public static final String COUNTERPARTY_NAME = "CounterpartyName";
 }
