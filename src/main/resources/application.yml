@@ -81,6 +81,7 @@ security:
 # You can execute JwtUtil to generate new keys.
 atoti:
   server:
+    # Enable Dr.Pivot
     endpoint:
       diagnostics:
         enabled: true
