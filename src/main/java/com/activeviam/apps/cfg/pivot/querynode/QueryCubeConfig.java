@@ -37,7 +37,6 @@ public class QueryCubeConfig {
                 .withApplication(APPLICATION_NAME)
                 .withDistributingLevels(LevelIdentifier.simple(COB_DATE))
                 .end()
-
                 // Shared context values
                 // Query maximum execution time (before timeout cancellation): 30s
                 .withSharedContextValue(QueriesTimeLimit.of(30, TimeUnit.SECONDS))
