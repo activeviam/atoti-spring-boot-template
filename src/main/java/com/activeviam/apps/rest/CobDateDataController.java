@@ -83,9 +83,11 @@ public class CobDateDataController {
         var result = dataLoadControllerService
                 .execute(DlcLoadRequest.builder()
                         .topicOverrides(Set.of(
-                                overrideCounterpartiesTopic(),
+                                //overrideCounterpartiesTopic(),
                                 overrideTradeTopic(cobDate),
-                                overrideTradeAttributesTopic(cobDate)))
+
+                              overrideTradeAttributesTopic(cobDate)
+                        ))
                         .build())
                 .toDto();
         DatabasePrinter.printTableSizes(datastore.getMasterHead());

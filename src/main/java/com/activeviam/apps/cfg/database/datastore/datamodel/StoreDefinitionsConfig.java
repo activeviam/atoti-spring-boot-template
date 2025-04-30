@@ -19,6 +19,7 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
 import static com.activeviam.database.api.types.ILiteralType.DOUBLE;
 import static com.activeviam.database.api.types.ILiteralType.INT;
 import static com.activeviam.database.api.types.ILiteralType.LOCAL_DATE;
+import static com.activeviam.database.api.types.ILiteralType.LONG;
 import static com.activeviam.database.api.types.ILiteralType.STRING;
 
 import org.springframework.context.annotation.Bean;
@@ -40,7 +41,7 @@ public class StoreDefinitionsConfig {
                 .withStoreName(TRADES_STORE_NAME)
                 .withField(COB_DATE, LOCAL_DATE)
                 .asKeyField()
-                .withField(TRADE_ID, STRING)
+                .withField(TRADE_ID, INT)
                 .asKeyField()
                 .withField(TEST_DECIMAL, INT)
                 .asKeyField()
@@ -54,8 +55,9 @@ public class StoreDefinitionsConfig {
                 .withStoreName(TRADE_ATTRIBUTES_STORE_NAME)
                 .withField(COB_DATE, LOCAL_DATE)
                 .asKeyField()
-                .withField(TRADE_ID, STRING)
+                .withField(TRADE_ID+"Int", INT)
                 .asKeyField()
+                .withField(TRADE_ID, LONG)
                 .withField(TRADE_DATE, LOCAL_DATE)
                 .withField(COUNTERPARTY_ID, STRING)
                 .build();
@@ -78,7 +80,7 @@ public class StoreDefinitionsConfig {
                 .toStore(TRADE_ATTRIBUTES_STORE_NAME)
                 .withName(referenceName(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME))
                 .withMapping(COB_DATE, COB_DATE)
-                .withMapping(TRADE_ID, TRADE_ID)
+                .withMapping(TRADE_ID, TRADE_ID+"Int")
                 .build();
     }
 

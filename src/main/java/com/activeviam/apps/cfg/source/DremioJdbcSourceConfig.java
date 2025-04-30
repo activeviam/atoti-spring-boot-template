@@ -12,11 +12,10 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.TEST_DECIMAL;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_DATE;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import org.springframework.context.annotation.Bean;
@@ -30,9 +29,7 @@ import com.activeviam.io.dlc.impl.description.topic.UnloadTopicDescription;
 import com.activeviam.io.dlc.impl.description.topic.channel.ChannelDescription;
 import com.activeviam.io.dlc.impl.description.topic.channel.column.calc.CustomFieldDescription;
 import com.activeviam.io.dlc.impl.utils.NamedEntityResolverService;
-import com.activeviam.source.common.api.IColumnCalculator;
 import com.activeviam.source.jdbc.api.calculator.LocalDateJdbcColumnCalculator;
-import com.activeviam.source.jdbc.api.impl.ResultSetRow;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +48,9 @@ public class DremioJdbcSourceConfig {
 
     public static final String COB_DATE_SQL_PARSER = "CobDateSqlParser";
     public static final String TEST_DECIMAL_SQL_PARSER = "TestDecimalSqlParser";
+    public static final String TRADE_ID_INT_DECIMAL_SQL_PARSER = "TradeIdIntDecimalSqlParser";
+    public static final String TRADE_ID_LONG_DECIMAL_SQL_PARSER = "TradeIdLongDecimalSqlParser";
+    public static final String TRADE_ID_LONG_TO_INT_SQL_PARSER = "TradeIdLongtoIntDecimalSqlParser";
 
     public static final String TRADES_SQL_QUERY =
             """
@@ -80,19 +80,27 @@ public class DremioJdbcSourceConfig {
 
     @Bean
     CustomFieldDescription testDecimalJdbcParser() {
-        return CustomFieldDescription.of(TEST_DECIMAL_SQL_PARSER, scope -> new IColumnCalculator<ResultSetRow>() {
-            @Override
-            public String getColumnName() {
-                return TEST_DECIMAL;
-            }
-
-            @Override
-            public Object compute(IColumnCalculationContext<ResultSetRow> context) {
-                var decimal = context.getContext().getObject(TEST_DECIMAL);
-                return Objects.nonNull(decimal) ? ((BigDecimal) decimal).intValue() : null;
-            }
-        });
+        return CustomFieldDescription.of(TEST_DECIMAL_SQL_PARSER, scope -> new BigDecimalToIntColumnCalculator(TEST_DECIMAL));
     }
+
+    @Bean
+    CustomFieldDescription tradeIdIntDecimalJdbcParser() {
+        return CustomFieldDescription.of(
+                TRADE_ID_INT_DECIMAL_SQL_PARSER, scope -> new BigDecimalToIntColumnCalculator(TRADE_ID));
+    }
+
+    @Bean
+    CustomFieldDescription tradeIdLongDecimalJdbcParser() {
+        return CustomFieldDescription.of(
+                TRADE_ID_LONG_DECIMAL_SQL_PARSER, scope -> new BigDecimalToLongColumnCalculator(TRADE_ID));
+    }
+
+    @Bean
+    CustomFieldDescription tradeIdLongToIntDecimalJdbcParser() {
+        return CustomFieldDescription.of(
+                TRADE_ID_LONG_TO_INT_SQL_PARSER, scope -> new LongToIntColumnCalculator(TRADE_ID,TRADE_ID + "Int"));
+    }
+
 
     @Bean
     JdbcTopicDescription tradesJdbcTopic(NamedEntityResolverService namedEntityResolverService) {
@@ -100,7 +108,7 @@ public class DremioJdbcSourceConfig {
                 .parameterOrder(List.of(COB_DATE_SCOPE_PARAMETER))
                 .channel(ChannelDescription.builder(namedEntityResolverService.getTarget(TRADES_STORE_NAME))
                         .customFields(namedEntityResolverService.getCustomFields(
-                                Set.of(COB_DATE_SQL_PARSER, TEST_DECIMAL_SQL_PARSER)))
+                                Set.of(COB_DATE_SQL_PARSER, TRADE_ID_INT_DECIMAL_SQL_PARSER,TEST_DECIMAL_SQL_PARSER)))
                         .build())
                 .build();
     }
@@ -116,7 +124,7 @@ public class DremioJdbcSourceConfig {
     @Bean
     JdbcTopicDescription tradeAttributesJdbcTopic(NamedEntityResolverService namedEntityResolverService) {
         var customFields = new ArrayList<CustomFieldDescription>(
-                namedEntityResolverService.getCustomFields(Set.of(COB_DATE_SQL_PARSER)));
+                namedEntityResolverService.getCustomFields(Set.of(COB_DATE_SQL_PARSER, TRADE_ID_LONG_DECIMAL_SQL_PARSER, TRADE_ID_LONG_TO_INT_SQL_PARSER)));
         customFields.add(CustomFieldDescription.of(
                 "Inline custom field", scope -> new LocalDateJdbcColumnCalculator(TRADE_DATE)));
         return JdbcTopicDescription.builder(TRADE_ATTRIBUTES_SQL_TOPIC, TRADE_ATTRIBUTES_SQL_QUERY)
