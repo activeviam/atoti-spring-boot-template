@@ -13,7 +13,6 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -55,27 +54,19 @@ public class CustomUiEnvJsResourceConfig {
                         "url": baseUrl,
                         "version": atotiVersion
                     },
-                },
-            %3$s
-            };
-            """;
-    private static final String DOCTOR_PIVOT_ENV_JS =
-            """
-                "doctorPivotApi": {
-                    "url": baseUrl,
-                    "version": atotiVersion
                 }
+            };
             """;
 
     @Bean
     public AtotiUiEnvJs atotiUiEnvJs(AtotiUiProperties properties) {
         return () -> new EnvJsResource(
-                String.format(ENV_JS, AtotiUiContentServiceUtil.PATH_TO_UI_FOLDER, VERSION, StringUtils.EMPTY));
+                String.format(ENV_JS, AtotiUiContentServiceUtil.PATH_TO_UI_FOLDER, VERSION));
     }
 
     @Bean
     public AdminUiEnvJs adminUiEnvJs(AtotiAdminUiProperties properties) {
-        return () -> new EnvJsResource(String.format(ENV_JS, "/admin/ui", VERSION, DOCTOR_PIVOT_ENV_JS));
+        return () -> new EnvJsResource(String.format(ENV_JS, "/admin/ui", VERSION));
     }
 
     @EqualsAndHashCode(callSuper = true)
