@@ -55,7 +55,7 @@ public class StoreDefinitionsConfig {
                 .withStoreName(TRADE_ATTRIBUTES_STORE_NAME)
                 .withField(COB_DATE, LOCAL_DATE)
                 .asKeyField()
-                .withField(TRADE_ID+"Int", INT)
+                .withField(TRADE_ID + "Int", INT)
                 .asKeyField()
                 .withField(TRADE_ID, LONG)
                 .withField(TRADE_DATE, LOCAL_DATE)
@@ -80,7 +80,7 @@ public class StoreDefinitionsConfig {
                 .toStore(TRADE_ATTRIBUTES_STORE_NAME)
                 .withName(referenceName(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME))
                 .withMapping(COB_DATE, COB_DATE)
-                .withMapping(TRADE_ID, TRADE_ID+"Int")
+                .withMapping(TRADE_ID, TRADE_ID + "Int")
                 .build();
     }
 

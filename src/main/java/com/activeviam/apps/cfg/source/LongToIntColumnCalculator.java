@@ -4,15 +4,12 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-
 package com.activeviam.apps.cfg.source;
 
 import java.math.BigDecimal;
-import java.util.Objects;
 
 import com.activeviam.source.common.api.IColumnCalculator;
 import com.activeviam.source.jdbc.api.impl.ResultSetRow;
-import com.activeviam.source.jdbc.internal.translator.JdbcTuplizer;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,5 +29,4 @@ public class LongToIntColumnCalculator implements IColumnCalculator<ResultSetRow
         var longValue = (BigDecimal) context.getContext().getObject(longColumn);
         return longValue.intValue();
     }
-
 }

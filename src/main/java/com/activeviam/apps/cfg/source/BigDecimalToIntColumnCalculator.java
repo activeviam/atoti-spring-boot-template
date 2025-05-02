@@ -4,10 +4,7 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-
 package com.activeviam.apps.cfg.source;
-
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TEST_DECIMAL;
 
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -21,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 public class BigDecimalToIntColumnCalculator implements IColumnCalculator<ResultSetRow> {
 
     private final String column;
+
     @Override
     public String getColumnName() {
         return column;
@@ -31,5 +29,4 @@ public class BigDecimalToIntColumnCalculator implements IColumnCalculator<Result
         var decimal = context.getContext().getObject(column);
         return Objects.nonNull(decimal) ? ((BigDecimal) decimal).intValue() : null;
     }
-
 }

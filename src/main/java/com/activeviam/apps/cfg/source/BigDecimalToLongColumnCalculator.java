@@ -4,7 +4,6 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-
 package com.activeviam.apps.cfg.source;
 
 import java.math.BigDecimal;
@@ -19,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 public class BigDecimalToLongColumnCalculator implements IColumnCalculator<ResultSetRow> {
 
     private final String column;
+
     @Override
     public String getColumnName() {
         return column;
@@ -29,5 +29,4 @@ public class BigDecimalToLongColumnCalculator implements IColumnCalculator<Resul
         var decimal = context.getContext().getObject(column);
         return Objects.nonNull(decimal) ? ((BigDecimal) decimal).longValue() : null;
     }
-
 }
