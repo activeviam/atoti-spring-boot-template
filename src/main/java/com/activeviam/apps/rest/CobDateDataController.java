@@ -82,10 +82,10 @@ public class CobDateDataController {
         // parameterized queries yet (it will from v. 26)
         var result = dataLoadControllerService
                 .execute(DlcLoadRequest.builder()
+                        //.topics(COUNTERPARTIES_SQL_TOPIC)
                         .topicOverrides(Set.of(
                                 //overrideCounterpartiesTopic(),
                                 overrideTradeTopic(cobDate),
-
                               overrideTradeAttributesTopic(cobDate)
                         ))
                         .build())
