@@ -4,7 +4,7 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-package com.activeviam.apps.rest.query;
+package com.activeviam.apps.query;
 
 import static com.activeviam.activepivot.server.json.api.dataexport.IJsonOutputConfiguration.FORMAT_PROPERTY;
 
@@ -17,6 +17,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -28,6 +30,10 @@ import com.activeviam.activepivot.server.intf.api.dataexport.IDataExportService;
 import com.activeviam.activepivot.server.json.api.dataexport.JsonCsvPivotTableOutputConfiguration;
 import com.activeviam.activepivot.server.json.api.dataexport.JsonDataExportOrder;
 import com.activeviam.activepivot.server.json.api.query.JsonMdxQuery;
+import com.activeviam.apps.query.condition.LogicalCondition;
+import com.activeviam.apps.query.condition.QueryConditionVisitor;
+import com.activeviam.apps.query.grammar.QueryConditionLexer;
+import com.activeviam.apps.query.grammar.QueryConditionParser;
 
 @Service
 public class CubeQueryService {
@@ -59,6 +65,15 @@ public class CubeQueryService {
                             .map(levelConverter::stringToLevelIdentifier)
                             .collect(Collectors.toSet()));
         });
+    }
+
+    public static LogicalCondition parseQueryFilter(String query) {
+        var lexer = new QueryConditionLexer(CharStreams.fromString(query));
+        var tokens = new CommonTokenStream(lexer);
+        var parser = new QueryConditionParser(tokens);
+        var context = parser.input();
+        var visitor = new QueryConditionVisitor();
+        return visitor.visitInput(context);
     }
 
     public StreamingResponseBody runQuery(String cube, CubeQueryDTO dto) {
@@ -150,33 +165,34 @@ public class CubeQueryService {
             query.append(System.lineSeparator());
         }
 
+        var filterMdx = parseFilterAndGetMdx(cubeQuery.getFilter(), cube);
         // Filters
-        var filters = cubeQuery.getFilters().stream()
-                .filter(filter -> isNotDateFilter(filter, cube))
-                .toList();
-        var dateFilters = cubeQuery.getFilters().stream()
-                .filter(filter -> isDateFilter(filter, cube))
-                .toList();
-        if (!ObjectUtils.isEmpty(filters)) {
-            // Top count
-            if (!ObjectUtils.isEmpty(cubeQuery.getTopCounts()) && !ObjectUtils.isEmpty(levels)) {
-                query.append(topCountToMdx(cubeQuery.getTopCounts()));
-                query.append(System.lineSeparator());
-            }
-            // Other filters
-            filters.forEach(filter -> {
-                query.append(filterToMdx(filter));
-                query.append(System.lineSeparator());
-            });
-            // From Cube
-            query.append(fromCubeWithDateFilterMdx(cube, dateFilters));
-            query.append(System.lineSeparator());
-            // FIXME: where do wen open this?
-            query.append(")");
-        } else {
-            // FROM CUBE
-            query.append(fromCubeWithDateFilterMdx(cube, dateFilters));
-        }
+        //        var filters = cubeQuery.getFilters().stream()
+        //                .filter(filter -> isNotDateFilter(filter, cube))
+        //                .toList();
+        //        var dateFilters = cubeQuery.getFilters().stream()
+        //                .filter(filter -> isDateFilter(filter, cube))
+        //                .toList();
+        //        if (!ObjectUtils.isEmpty(filters)) {
+        //            // Top count
+        //            if (!ObjectUtils.isEmpty(cubeQuery.getTopCounts()) && !ObjectUtils.isEmpty(levels)) {
+        //                query.append(topCountToMdx(cubeQuery.getTopCounts()));
+        //                query.append(System.lineSeparator());
+        //            }
+        //            // Other filters
+        //            filters.forEach(filter -> {
+        //                query.append(filterToMdx(filter));
+        //                query.append(System.lineSeparator());
+        //            });
+        //            // From Cube
+        //            query.append(fromCubeWithDateFilterMdx(cube, dateFilters));
+        //            query.append(System.lineSeparator());
+        //            // FIXME: where do wen open this?
+        //            query.append(")");
+        //        } else {
+        //            // FROM CUBE
+        //            query.append(fromCubeWithDateFilterMdx(cube, dateFilters));
+        //        }
         return query.toString();
     }
 
@@ -312,6 +328,18 @@ public class CubeQueryService {
                 topRank.level().getHierarchyName());
     }
 
+    //    private static String topRankOthersCalculatedMeasureMdx(CubeQuery.TopRank topRank) {
+    //        return String.format(
+    //                "Member %s AS "Others" Order([%s].[%s].[%s].members,[Measures].[%s],BDESC) Member
+    // [Measures].[top_rank] AS Rank([%s].[%s].CurrentMember, OrderedL1)",
+    //                topRank.level().getDimensionName(),
+    //                topRank.level().getHierarchyName(),
+    //                topRank.level().getLevelName(),
+    //                topRank.metric(),
+    //                topRank.level().getDimensionName(),
+    //                topRank.level().getHierarchyName());
+    //    }
+
     private static String partitioningCalculatedMeasureMdx(CubeQuery.Partitioning partitioning) {
         return String.format(
                 "Member [Measures].[%s] AS ([%s].[%s].CurrentMember.Parent, [Measures].[%s])",
@@ -327,5 +355,10 @@ public class CubeQueryService {
 
     private boolean isNotDateFilter(CubeQuery.Filter filter, String cube) {
         return !isDateFilter(filter, cube);
+    }
+
+    private String parseFilterAndGetMdx(String filter, String cube) {
+        var condition = parseQueryFilter(filter);
+        return "";
     }
 }

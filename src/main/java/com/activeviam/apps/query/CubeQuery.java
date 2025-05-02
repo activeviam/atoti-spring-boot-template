@@ -4,7 +4,7 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-package com.activeviam.apps.rest.query;
+package com.activeviam.apps.query;
 
 import java.util.List;
 import java.util.Objects;
@@ -20,7 +20,7 @@ import lombok.Data;
 public class CubeQuery {
     private final List<Metric> metrics;
     private final List<LevelIdentifier> levels;
-    private final List<Filter> filters;
+    private final String filter;
     private final CubeQuery.TopCount topCounts;
     private final List<CubeQuery.Sort> sortBy;
     private final CubeQuery.TopRank topRank;
@@ -92,9 +92,7 @@ public class CubeQuery {
                 dto.getLevels().stream()
                         .map(levelsConverter::stringToLevelIdentifier)
                         .toList(),
-                dto.getFilters().entrySet().stream()
-                        .map(entry -> Filter.fromDTO(entry.getKey(), entry.getValue(), levelsConverter))
-                        .toList(),
+                dto.getFilter(),
                 TopCount.fromDTO(dto.getTopCounts(), levelsConverter),
                 dto.getSortBy().stream()
                         .map(s -> Sort.fromDTO(s, levelsConverter))

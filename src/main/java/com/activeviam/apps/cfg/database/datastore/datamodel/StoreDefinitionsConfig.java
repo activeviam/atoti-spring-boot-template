@@ -9,13 +9,11 @@ package com.activeviam.apps.cfg.database.datastore.datamodel;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TEST_DECIMAL;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
 import static com.activeviam.database.api.types.ILiteralType.DOUBLE;
-import static com.activeviam.database.api.types.ILiteralType.INT;
 import static com.activeviam.database.api.types.ILiteralType.LOCAL_DATE;
 import static com.activeviam.database.api.types.ILiteralType.STRING;
 
@@ -39,8 +37,6 @@ public class StoreDefinitionsConfig {
                 .withField(COB_DATE, LOCAL_DATE)
                 .asKeyField()
                 .withField(TRADE_ID, STRING)
-                .asKeyField()
-                .withField(TEST_DECIMAL, INT)
                 .asKeyField()
                 .withField(NOTIONAL, DOUBLE)
                 .build();
