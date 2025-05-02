@@ -83,6 +83,7 @@ security:
 # You can execute JwtUtil to generate new keys.
 atoti:
   server:
+    # Enable Dr.Pivot
     endpoint:
       diagnostics:
         enabled: true
@@ -132,3 +133,8 @@ content-service:
         dataSource:
           url: "jdbc:h2:mem:content_service;DB_CLOSE_DELAY=-1;IGNORECASE=TRUE"
         poolName: ContentServer-ConnectionPool
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui
+    doc-expansion: none

@@ -6,14 +6,16 @@
  */
 package com.activeviam.apps.cfg.ui;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.lang.NonNull;
 
 import com.activeviam.springboot.atoti.admin.ui.starter.api.AtotiAdminUiProperties;
@@ -22,41 +24,44 @@ import com.activeviam.tech.contentserver.spring.api.config.AdminUiEnvJs;
 import com.activeviam.tech.contentserver.spring.api.config.AtotiUiContentServiceUtil;
 import com.activeviam.tech.contentserver.spring.api.config.AtotiUiEnvJs;
 
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Configuration
 @NoArgsConstructor
 public class CustomUiEnvJsResourceConfig {
-    private static final String VERSION = "6.1.6";
+    private static final String VERSION = "6.1.7";
     // Here we are using the same env.js content for both, however in case of remote CS we would have a different
     // content.
     private static final String ENV_JS =
             """
             var baseUrl = window.location.href.split('%1$s')[0];
+            var atotiVersion = "%2$s"
 
             window.env = {
                 "jwtServer": {
                     "url": baseUrl,
-                    "version": "%2$s"
+                    "version": atotiVersion
                 },
                 "contentServer": {
                     "url": baseUrl,
-                    "version": "%2$s"
+                    "version": atotiVersion
                 },
                 // WARNING: Changing the keys of atotiServers will break previously saved widgets and dashboards.
                 // If you must do it, then you also need to update each one's serverKey attribute on your content server.
                 "atotiServers": {
-                    "atoti-spring-boot": {
+                    "FRTB": {
                         "url": baseUrl,
-                        "version": "%2$s",
+                        "version": atotiVersion
                     },
-                },
+                }
             };
             """;
 
     @Bean
     public AtotiUiEnvJs atotiUiEnvJs(AtotiUiProperties properties) {
-        return () -> new EnvJsResource(String.format(ENV_JS, AtotiUiContentServiceUtil.PATH_TO_UI_FOLDER, VERSION));
+        return () -> new EnvJsResource(
+                String.format(ENV_JS, AtotiUiContentServiceUtil.PATH_TO_UI_FOLDER, VERSION));
     }
 
     @Bean
@@ -64,9 +69,13 @@ public class CustomUiEnvJsResourceConfig {
         return () -> new EnvJsResource(String.format(ENV_JS, "/admin/ui", VERSION));
     }
 
-    private static class EnvJsResource extends ByteArrayResource {
+    @EqualsAndHashCode(callSuper = true)
+    private static class EnvJsResource extends ClassPathResource {
+        private final String content;
+
         public EnvJsResource(@NonNull String content) {
-            super(content.getBytes(StandardCharsets.UTF_8));
+            super("classpath:/generated/env/");
+            this.content = content;
         }
 
         @NonNull
@@ -79,6 +88,22 @@ public class CustomUiEnvJsResourceConfig {
         @Override
         public URL getURL() throws IOException {
             return URI.create("file://" + getFilename()).toURL();
+        }
+
+        @Override
+        public boolean isReadable() {
+            return true;
+        }
+
+        @Override
+        public long contentLength() {
+            return content.length();
+        }
+
+        @NonNull
+        @Override
+        public InputStream getInputStream() {
+            return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         }
 
         @Override
