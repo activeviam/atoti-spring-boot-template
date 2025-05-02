@@ -6,7 +6,7 @@
  */
 package com.activeviam.apps.cfg.source;
 
-import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
+import static com.activeviam.apps.constants.FieldConstants.AS_OF_DATE;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -19,7 +19,7 @@ import com.activeviam.tech.core.api.filtering.ICondition;
 import lombok.Data;
 
 @Data
-public class CobDatesProperties {
+public class AsOfDateProperties {
     private Set<LocalDate> inMemoryDates = new HashSet<>();
 
     public Optional<LocalDate> lastDateInMemory() {
@@ -28,13 +28,13 @@ public class CobDatesProperties {
 
     public ICondition inMemoryDatesFilterCondition() {
         return lastDateInMemory()
-                .map(lastDate -> FactFilterConditions.gteq(COB_DATE, lastDate))
+                .map(lastDate -> FactFilterConditions.gteq(AS_OF_DATE, lastDate))
                 .orElse(null);
     }
 
     public ICondition directQueryDatesFilterCondition() {
         return lastDateInMemory()
-                .map(lastDate -> FactFilterConditions.lt(COB_DATE, lastDate))
+                .map(lastDate -> FactFilterConditions.lt(AS_OF_DATE, lastDate))
                 .orElse(null);
     }
 }

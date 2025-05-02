@@ -7,7 +7,7 @@
 package com.activeviam.apps.cfg.database;
 
 import static com.activeviam.apps.constants.PropertyConstants.DATABASE_TYPE_DATASTORE;
-import static com.activeviam.apps.constants.PropertyConstants.DATABASE_TYPE_DREMIO;
+import static com.activeviam.apps.constants.PropertyConstants.DATABASE_TYPE_MSSQL;
 
 import java.util.Objects;
 
@@ -17,11 +17,20 @@ import lombok.Data;
 public class DatabaseProperties {
     private String type;
 
+    private InMemoryStoresProperties inMemoryStores = new InMemoryStoresProperties();
+
     public boolean isDatastoreType() {
         return Objects.isNull(type) || DATABASE_TYPE_DATASTORE.equals(type);
     }
 
-    public boolean isDremioType() {
-        return Objects.nonNull(type) && DATABASE_TYPE_DREMIO.equals(type);
+    public boolean isMSSQLType() {
+        return Objects.nonNull(type) && DATABASE_TYPE_MSSQL.equals(type);
+    }
+
+    @Data
+    public static class InMemoryStoresProperties {
+        private boolean partitionAsOfDate = true;
+
+        private int vectorSize = 3;
     }
 }

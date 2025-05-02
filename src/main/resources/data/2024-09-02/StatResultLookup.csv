@@ -1,0 +1,4 @@
+StatName,DrilldownName,Valspec,StatField,StatIndex
+NBC,,1Y VS,ResultValuesSum,0
+NLC,,1Y VS,ResultValuesSum,1
+PV(1Y VS),,1Y VS,ResultValuesSum,2

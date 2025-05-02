@@ -7,7 +7,7 @@
 package com.activeviam.apps.annotations;
 
 import static com.activeviam.apps.constants.PropertyConstants.DATABASE_PROPERTIES_PREFIX;
-import static com.activeviam.apps.constants.PropertyConstants.DATABASE_TYPE_DREMIO;
+import static com.activeviam.apps.constants.PropertyConstants.DATABASE_TYPE_MSSQL;
 import static com.activeviam.apps.constants.PropertyConstants.TYPE_PROPERTY;
 
 import java.lang.annotation.Documented;
@@ -21,5 +21,5 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER, ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@ConditionalOnProperty(prefix = DATABASE_PROPERTIES_PREFIX, name = TYPE_PROPERTY, havingValue = DATABASE_TYPE_DREMIO)
+@ConditionalOnProperty(prefix = DATABASE_PROPERTIES_PREFIX, name = TYPE_PROPERTY, havingValue = DATABASE_TYPE_MSSQL)
 public @interface ConditionalOnApplicationWithDirectQuery {}

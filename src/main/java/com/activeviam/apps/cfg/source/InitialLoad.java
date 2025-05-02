@@ -14,7 +14,7 @@ import com.activeviam.activepivot.core.datastore.api.builder.ApplicationWithData
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.dist.impl.api.cube.IMultiVersionDataActivePivot;
 import com.activeviam.apps.annotations.ConditionalOnApplicationWithDatastore;
-import com.activeviam.apps.rest.CobDateDataController;
+import com.activeviam.apps.rest.AsOfDateDataController;
 import com.activeviam.database.api.DatabasePrinter;
 
 import lombok.RequiredArgsConstructor;
@@ -25,9 +25,9 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 public class InitialLoad {
-    private final CobDateDataController cobDateDataController;
+    private final AsOfDateDataController asOfDateDataController;
     private final ApplicationWithDatastore applicationWithDatastore;
-    private final CobDatesProperties cobDatesProperties;
+    private final AsOfDateProperties asOfDateProperties;
 
     @EventListener(value = ApplicationStartedEvent.class)
     void onApplicationReady() {
@@ -38,8 +38,8 @@ public class InitialLoad {
     private void initialInMemoryLoad() {
         log.info("Initial data load started...");
         try {
-            for (var cobDate : cobDatesProperties.getInMemoryDates()) {
-                cobDateDataController.loadCobDate(cobDate);
+            for (var asOfDate : asOfDateProperties.getInMemoryDates()) {
+                asOfDateDataController.loadCobDate(asOfDate);
             }
             log.info("Initial data load completed");
             DatabasePrinter.printTableSizes(

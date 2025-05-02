@@ -7,6 +7,9 @@ otel:
     exporter: none
 database:
   type: dremio
+  in-memory-stores:
+    partition-as-of-date: true
+    vector-size: 3
   dremio:
     connection-string: "jdbc:arrow-flight-sql://localhost:32010/?useEncryption=false"
     jdbc-properties:

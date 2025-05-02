@@ -7,8 +7,8 @@
 package com.activeviam.apps.cfg.pivot;
 
 import static com.activeviam.apps.constants.CubeConstants.CUBE_NAME;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
+import static com.activeviam.apps.constants.FieldConstants.NOTIONAL;
+import static com.activeviam.apps.constants.FieldConstants.TRADES_STORE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;

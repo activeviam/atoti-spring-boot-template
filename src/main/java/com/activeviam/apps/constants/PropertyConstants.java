@@ -12,12 +12,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PropertyConstants {
     public static final String DATABASE_PROPERTIES_PREFIX = "database";
-    public static final String COB_DATES_PROPERTIES_PREFIX = "cob-dates";
+    public static final String AS_OF_DATES_PROPERTIES_PREFIX = "as-of-date";
 
     public static final String TYPE_PROPERTY = "type";
 
     public static final String DATABASE_TYPE_DATASTORE = "datastore";
-    public static final String DATABASE_TYPE_DREMIO = "dremio";
+    public static final String DATABASE_TYPE_MSSQL = "mssql";
 
     public static final String DISTRIBUTION_PROPERTIES_PREFIX = "distribution";
     public static final String DISTRIBUTION_TYPE_DATA = "data";

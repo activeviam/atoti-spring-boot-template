@@ -6,38 +6,22 @@
  */
 package com.activeviam.apps.cfg.pivot.datanode;
 
-import static com.activeviam.activepivot.core.intf.api.description.IAxisHierarchyDescription.AUTO_CONTRIBUTE_UNKNOWN_MEMBER_NEVER;
-import static com.activeviam.activepivot.core.intf.api.description.IAxisHierarchyDescription.AUTO_CONTRIBUTE_UNKNOWN_MEMBER_PROPERTY;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_DATE;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
-
-import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IDimension;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.ILevelInfo;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstanceDescription;
 import com.activeviam.activepivot.core.intf.api.description.builder.ICanBuildCubeDescription;
 import com.activeviam.activepivot.core.intf.api.description.builder.dimension.ICanStartBuildingDimensions;
-import com.activeviam.apps.constants.StoreAndFieldConstants;
+import com.activeviam.apps.constants.FieldConstants;
 import com.activeviam.tech.core.api.ordering.IComparator;
 
 public class Dimensions implements ICanStartBuildingDimensions.DimensionsAdder {
 
-    public static final String TRADE_ATTRIBUTES_DIMENSION = "Trade Attributes";
+    public static final String HOLDING_DETAILS_DIMENSION = "Holding details";
 
     @Override
     public ICanBuildCubeDescription<IActivePivotInstanceDescription> apply(ICanStartBuildingDimensions builder) {
-        return builder.withDimension(TRADE_ATTRIBUTES_DIMENSION)
-                .withSingleLevelHierarchies(TRADE_ID, COUNTERPARTY_ID)
-                .withSingleLevelHierarchy(TRADE_DATE)
-                .withType(ILevelInfo.LevelType.TIME)
-                // Make the AsOfDate hierarchy slicing - we do not aggregate across dates
-                // Also show the dates in reverse order ie most recent date first
-                .withDimension(StoreAndFieldConstants.COB_DATE)
-                .withType(IDimension.DimensionType.TIME)
-                .withHierarchy(StoreAndFieldConstants.COB_DATE)
-                .withHierarchyProperty(AUTO_CONTRIBUTE_UNKNOWN_MEMBER_PROPERTY, AUTO_CONTRIBUTE_UNKNOWN_MEMBER_NEVER)
-                .slicing()
-                .withLevelOfSameName()
+        return builder.withDimension(HOLDING_DETAILS_DIMENSION)
+                .withSingleLevelHierarchies(FieldConstants.HOLDING_ID)
+                .withSingleLevelHierarchy(FieldConstants.AS_OF_DATE)
                 .withType(ILevelInfo.LevelType.TIME)
                 .withComparator(IComparator.DESCENDING_NATURAL_ORDER_PLUGIN_KEY);
     }

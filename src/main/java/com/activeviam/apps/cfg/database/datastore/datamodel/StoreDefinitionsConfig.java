@@ -6,91 +6,232 @@
  */
 package com.activeviam.apps.cfg.database.datastore.datamodel;
 
-import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTIES_STORE_NAME;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_NAME;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TEST_DECIMAL;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_DATE;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
-import static com.activeviam.database.api.types.ILiteralType.DOUBLE;
-import static com.activeviam.database.api.types.ILiteralType.INT;
-import static com.activeviam.database.api.types.ILiteralType.LOCAL_DATE;
-import static com.activeviam.database.api.types.ILiteralType.LONG;
-import static com.activeviam.database.api.types.ILiteralType.STRING;
-
 import org.springframework.context.annotation.Bean;
 
+import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
+import com.activeviam.apps.cfg.database.DatabaseProperties;
+import com.activeviam.apps.constants.DatastoreConstants;
 import com.activeviam.database.datastore.api.description.IReferenceDescription;
 import com.activeviam.database.datastore.api.description.IStoreDescription;
-import com.activeviam.database.datastore.api.description.impl.ReferenceDescription;
-import com.activeviam.database.datastore.api.description.impl.StoreDescription;
 
-public class StoreDefinitionsConfig {
+import lombok.RequiredArgsConstructor;
 
-    public static String referenceName(String from, String to) {
-        return String.format("%s_to_%s", from, to);
+@RequiredArgsConstructor
+public class StoreDefinitionsConfig implements AggUpStoreFactory {
+
+    private final DatabaseProperties databaseProperties;
+
+    @Override
+    @Bean
+    public IStoreDescription asOfDateStore() {
+        return DatastoreConstants.AsOfDateStore.storeDescription();
     }
 
+    @Override
     @Bean
-    public IStoreDescription createTradesStoreDescription() {
-        return StoreDescription.builder()
-                .withStoreName(TRADES_STORE_NAME)
-                .withField(COB_DATE, LOCAL_DATE)
-                .asKeyField()
-                .withField(TRADE_ID, INT)
-                .asKeyField()
-                .withField(TEST_DECIMAL, INT)
-                .asKeyField()
-                .withField(NOTIONAL, DOUBLE)
+    public IStoreDescription holdingStore() {
+        return DatastoreConstants.HoldingStore.storeDescription(databaseProperties.getInMemoryStores());
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription holdingDetailStore() {
+
+        return DatastoreConstants.HoldingDetailStore.storeDescription(databaseProperties.getInMemoryStores());
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription scaledStatResultStore() {
+
+        return DatastoreConstants.ScaledStatResultStore.storeDescription(databaseProperties.getInMemoryStores());
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription securityStore() {
+        return DatastoreConstants.SecurityStore.storeDescription(databaseProperties.getInMemoryStores());
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription positionDetailStore() {
+        return DatastoreConstants.PositionDetailStore.storeDescription();
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription statResultLookupStore() {
+        return DatastoreConstants.StatResultLookupStore.storeDescription();
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription statResultsStore() {
+        return DatastoreConstants.StatResultsStore.storeDescription(databaseProperties.getInMemoryStores());
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription simReturnsStore() {
+        return DatastoreConstants.SimReturnsStore.storeDescription(databaseProperties.getInMemoryStores());
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription historicalSimReturnDatesStore() {
+        return DatastoreConstants.HistoricalSimReturnDatesStore.storeDescription(
+                databaseProperties.getInMemoryStores());
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription fxResultsStore() {
+        return DatastoreConstants.FxResultsStore.storeDescription(databaseProperties.getInMemoryStores());
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription fxEquivalentsStore() {
+        return DatastoreConstants.FxEquivalentsStore.storeDescription(databaseProperties.getInMemoryStores());
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription fxEquivalentsLookupStore() {
+        return DatastoreConstants.FxEquivalentsLookupStore.storeDescription();
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription statisticBaseCurrencyStore() {
+        return DatastoreConstants.StatisticBaseCurrencyStore.storeDescription();
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription engineDimensionStore() {
+        return DatastoreConstants.EngineDimensionStore.storeDescription();
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription currenciesStore() {
+        return DatastoreConstants.CurrencyStore.storeDescription();
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription dimensionLevelAttributeStore() {
+        return DatastoreConstants.DimensionLevelAttributeStore.storeDescription();
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription fundLookThroughSecurityStore() {
+        return DatastoreConstants.FundLookThroughSecurityStore.storeDescription();
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription equityLookThroughSecurityStore() {
+        return DatastoreConstants.EquityLookThroughSecurityStore.storeDescription();
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription equityFuturesLookThroughSecurityStore() {
+        return DatastoreConstants.EquityFuturesLookThroughSecurityStore.storeDescription();
+    }
+
+    @Override
+    @Bean
+    public IStoreDescription statFxAttributesStore() {
+        return DatastoreConstants.StatFxAttributesStore.storeDescription();
+    }
+
+    @Override
+    @Bean
+    public IReferenceDescription holdingToHoldingDetailsReference() {
+        return StartBuilding.reference()
+                .fromStore(DatastoreConstants.HoldingStore.STORE_NAME)
+                .toStore(DatastoreConstants.HoldingDetailStore.STORE_NAME)
+                .withName(DatastoreConstants.References.HOLDING_TO_HOLDINGDETAIL)
+                .withMapping(
+                        DatastoreConstants.HoldingStore.Fields.BASE_HOLDING_ID,
+                        DatastoreConstants.HoldingDetailStore.Fields.BASE_HOLDING_ID)
+                .withMapping(
+                        DatastoreConstants.HoldingStore.Fields.PARTITION_KEY,
+                        DatastoreConstants.HoldingDetailStore.Fields.PARTITION_KEY)
+                .withMapping(
+                        DatastoreConstants.HoldingStore.Fields.AS_OF_DATE,
+                        DatastoreConstants.HoldingDetailStore.Fields.AS_OF_DATE)
                 .build();
     }
 
+    @Override
     @Bean
-    public IStoreDescription createTradeAttributesStoreDescription() {
-        return StoreDescription.builder()
-                .withStoreName(TRADE_ATTRIBUTES_STORE_NAME)
-                .withField(COB_DATE, LOCAL_DATE)
-                .asKeyField()
-                .withField(TRADE_ID + "Int", INT)
-                .asKeyField()
-                .withField(TRADE_ID, LONG)
-                .withField(TRADE_DATE, LOCAL_DATE)
-                .withField(COUNTERPARTY_ID, STRING)
+    public IReferenceDescription holdingToScaledStatResultReference() {
+        return StartBuilding.reference()
+                .fromStore(DatastoreConstants.HoldingStore.STORE_NAME)
+                .toStore(DatastoreConstants.ScaledStatResultStore.STORE_NAME)
+                .withName(DatastoreConstants.References.HOLDING_TO_SCALEDSTATRESULT)
+                .withMapping(
+                        DatastoreConstants.HoldingStore.Fields.HOLDING_ID,
+                        DatastoreConstants.ScaledStatResultStore.Fields.HOLDING_ID)
+                .withMapping(
+                        DatastoreConstants.HoldingStore.Fields.PARTITION_KEY,
+                        DatastoreConstants.ScaledStatResultStore.Fields.PARTITION_KEY)
+                .withMapping(
+                        DatastoreConstants.HoldingStore.Fields.AS_OF_DATE,
+                        DatastoreConstants.ScaledStatResultStore.Fields.AS_OF_DATE)
                 .build();
     }
 
+    @Override
     @Bean
-    public IStoreDescription createCounterpartyStoreDescription() {
-        return StoreDescription.builder()
-                .withStoreName(COUNTERPARTIES_STORE_NAME)
-                .withField(COUNTERPARTY_ID, STRING)
-                .asKeyField()
-                .withField(COUNTERPARTY_NAME, STRING)
+    public IReferenceDescription holdingDetailToSecurityReference() {
+        return StartBuilding.reference()
+                .fromStore(DatastoreConstants.HoldingDetailStore.STORE_NAME)
+                .toStore(DatastoreConstants.SecurityStore.STORE_NAME)
+                .withName(DatastoreConstants.References.HOLDINGDETAIL_TO_SECURITY)
+                .withMapping(
+                        DatastoreConstants.HoldingDetailStore.Fields.SECURITY,
+                        DatastoreConstants.SecurityStore.Fields.SECURITY_NAME)
+                .withMapping(
+                        DatastoreConstants.HoldingDetailStore.Fields.PARTITION_KEY,
+                        DatastoreConstants.SecurityStore.Fields.PARTITION_KEY)
+                .withMapping(
+                        DatastoreConstants.HoldingDetailStore.Fields.AS_OF_DATE,
+                        DatastoreConstants.SecurityStore.Fields.AS_OF_DATE)
+                .dontIndexOwner()
                 .build();
     }
 
+    @Override
     @Bean
-    public IReferenceDescription tradeToAttributedReference() {
-        return ReferenceDescription.builder()
-                .fromStore(TRADES_STORE_NAME)
-                .toStore(TRADE_ATTRIBUTES_STORE_NAME)
-                .withName(referenceName(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME))
-                .withMapping(COB_DATE, COB_DATE)
-                .withMapping(TRADE_ID, TRADE_ID + "Int")
+    public IReferenceDescription holdingDetailToPositionDetailReference() {
+        return StartBuilding.reference()
+                .fromStore(DatastoreConstants.HoldingDetailStore.STORE_NAME)
+                .toStore(DatastoreConstants.PositionDetailStore.STORE_NAME)
+                .withName(DatastoreConstants.References.HOLDINGDETAIL_TO_POSITIONDETAIL)
+                .withMapping(
+                        DatastoreConstants.HoldingDetailStore.Fields.SECURITY,
+                        DatastoreConstants.PositionDetailStore.Fields.SECURITY_NAME)
+                .dontIndexOwner()
                 .build();
     }
 
+    @Override
     @Bean
-    public IReferenceDescription tradeAttributesToCounterpartyReference() {
-        return ReferenceDescription.builder()
-                .fromStore(TRADE_ATTRIBUTES_STORE_NAME)
-                .toStore(COUNTERPARTIES_STORE_NAME)
-                .withName(referenceName(TRADE_ATTRIBUTES_STORE_NAME, COUNTERPARTIES_STORE_NAME))
-                .withMapping(COUNTERPARTY_ID, COUNTERPARTY_ID)
+    public IReferenceDescription holdingToAsOfDateReference() {
+        return StartBuilding.reference()
+                .fromStore(DatastoreConstants.HoldingStore.STORE_NAME)
+                .toStore(DatastoreConstants.AsOfDateStore.STORE_NAME)
+                .withName(DatastoreConstants.References.HOLDING_TO_ASOFDATE)
+                .withMapping(
+                        DatastoreConstants.HoldingStore.Fields.AS_OF_DATE,
+                        DatastoreConstants.AsOfDateStore.Fields.AS_OF_DATE)
                 .build();
     }
 }

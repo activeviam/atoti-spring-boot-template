@@ -10,8 +10,7 @@ import org.springframework.context.annotation.Bean;
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.intf.api.description.ISelectionDescription;
-import com.activeviam.activepivot.core.intf.api.description.builder.ISelectionDescriptionBuilder;
-import com.activeviam.apps.constants.StoreAndFieldConstants;
+import com.activeviam.apps.constants.DatastoreConstants;
 import com.activeviam.database.api.schema.IDatabaseSchema;
 
 import lombok.RequiredArgsConstructor;
@@ -28,11 +27,42 @@ public class DatabaseSelectionConfig {
     @Bean
     public ISelectionDescription datastoreSelectionDescription() {
         return StartBuilding.selection(databaseSchema)
-                .fromBaseStore(StoreAndFieldConstants.TRADES_STORE_NAME)
-                //                .withAllFields()
-                //                .usingReference(referenceName(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME))
-                //                .withFields(COUNTERPARTY_ID)
-                .withAllReachableFields(ISelectionDescriptionBuilder.FieldsCollisionHandler.CLOSEST)
+                // Holding store
+                .fromBaseStore(DatastoreConstants.HoldingStore.STORE_NAME)
+                .withAllFields()
+                // As Of Date store
+                .usingReference(DatastoreConstants.References.HOLDING_TO_ASOFDATE)
+                .withAllFields()
+                .except(DatastoreConstants.AsOfDateStore.Fields.AS_OF_DATE)
+                // Scaled results store
+                .usingReference(DatastoreConstants.References.HOLDING_TO_SCALEDSTATRESULT)
+                .withAllFields()
+                .except(
+                        DatastoreConstants.ScaledStatResultStore.Fields.AS_OF_DATE,
+                        DatastoreConstants.ScaledStatResultStore.Fields.PARTITION_KEY,
+                        DatastoreConstants.ScaledStatResultStore.Fields.HOLDING_ID)
+                // Holding detail
+                .usingReference(DatastoreConstants.References.HOLDING_TO_HOLDINGDETAIL)
+                .withAllFields()
+                .except(DatastoreConstants.HoldingDetailStore.Fields.AS_OF_DATE,
+                        DatastoreConstants.HoldingDetailStore.Fields.PARTITION_KEY,
+                        DatastoreConstants.HoldingDetailStore.Fields.BASE_HOLDING_ID)
+                // Security store
+                .usingReference(
+                        DatastoreConstants.References.HOLDING_TO_HOLDINGDETAIL,
+                        DatastoreConstants.References.HOLDINGDETAIL_TO_SECURITY)
+                .withAllFields()
+                .except(
+                        DatastoreConstants.SecurityStore.Fields.SECURITY_NAME,
+                        DatastoreConstants.SecurityStore.Fields.AS_OF_DATE,
+                        DatastoreConstants.SecurityStore.Fields.PARTITION_KEY,
+                        DatastoreConstants.SecurityStore.Fields.FX_HEDGING)
+                // Position detail
+                .usingReference(
+                        DatastoreConstants.References.HOLDING_TO_HOLDINGDETAIL,
+                        DatastoreConstants.References.HOLDINGDETAIL_TO_POSITIONDETAIL)
+                .withAllFields()
+                .except(DatastoreConstants.PositionDetailStore.Fields.SECURITY_NAME)
                 .build();
     }
 }

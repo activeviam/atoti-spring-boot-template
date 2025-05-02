@@ -6,9 +6,10 @@
  */
 package com.activeviam.apps.cfg.pivot.querynode;
 
+import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.HOLDING_DETAILS_DIMENSION;
 import static com.activeviam.apps.constants.CubeConstants.APPLICATION_NAME;
 import static com.activeviam.apps.constants.CubeConstants.CUBE_NAME;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
+import static com.activeviam.apps.constants.FieldConstants.AS_OF_DATE;
 
 import java.util.concurrent.TimeUnit;
 
@@ -35,7 +36,7 @@ public class QueryCubeConfig {
                 .withProtocolPath(distributionProperties.getProtocolPath())
                 .end()
                 .withApplication(APPLICATION_NAME)
-                .withDistributingLevels(LevelIdentifier.simple(COB_DATE))
+                .withDistributingLevels(new LevelIdentifier(HOLDING_DETAILS_DIMENSION, AS_OF_DATE, AS_OF_DATE))
                 .end()
                 // Shared context values
                 // Query maximum execution time (before timeout cancellation): 30s

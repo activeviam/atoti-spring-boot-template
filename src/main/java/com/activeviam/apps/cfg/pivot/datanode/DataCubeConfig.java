@@ -22,7 +22,7 @@ import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstance
 import com.activeviam.activepivot.core.intf.api.description.IMessengerDefinition;
 import com.activeviam.apps.cfg.database.DatabaseProperties;
 import com.activeviam.apps.cfg.pivot.distribution.DistributionProperties;
-import com.activeviam.apps.cfg.source.CobDatesProperties;
+import com.activeviam.apps.cfg.source.AsOfDateProperties;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,11 +37,11 @@ public class DataCubeConfig {
             Dimensions dimensions,
             Measures calculations,
             DatabaseProperties databaseProperties,
-            CobDatesProperties cobDatesProperties,
+            AsOfDateProperties asOfDateProperties,
             @Autowired(required = false) DistributionProperties distributionProperties) {
         var cobDatesFilterCondition = databaseProperties.isDatastoreType()
-                ? cobDatesProperties.inMemoryDatesFilterCondition()
-                : cobDatesProperties.directQueryDatesFilterCondition();
+                ? asOfDateProperties.inMemoryDatesFilterCondition()
+                : asOfDateProperties.directQueryDatesFilterCondition();
         log.info("Applying cobDate filter condition to data node: {}", cobDatesFilterCondition);
         var builder =
                 StartBuilding.cube(CUBE_NAME).withCalculations(calculations).withDimensions(dimensions);

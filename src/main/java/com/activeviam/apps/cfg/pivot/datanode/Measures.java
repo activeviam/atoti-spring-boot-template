@@ -6,11 +6,9 @@
  */
 package com.activeviam.apps.cfg.pivot.datanode;
 
-import static com.activeviam.apps.constants.CubeConstants.DOUBLE_FORMATTER;
 import static com.activeviam.apps.constants.CubeConstants.INT_FORMATTER;
 import static com.activeviam.apps.constants.CubeConstants.NATIVE_MEASURES;
 import static com.activeviam.apps.constants.CubeConstants.TIMESTAMP_FORMATTER;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +28,6 @@ public class Measures implements Consumer<ICopperContext> {
                 .withAlias("Update.Timestamp")
                 .withinFolder(NATIVE_MEASURES)
                 .withFormatter(TIMESTAMP_FORMATTER));
-        copperMeasures.add(Copper.sum(NOTIONAL).as(NOTIONAL + ".Sum").withFormatter(DOUBLE_FORMATTER));
-        copperMeasures.add(Copper.avg(NOTIONAL).as(NOTIONAL + ".Mean").withFormatter(DOUBLE_FORMATTER));
     }
 
     @Override

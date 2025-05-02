@@ -15,7 +15,7 @@ import com.activeviam.apps.cfg.database.directquery.datamodel.TableDefinitionsCo
         value = {
             DatabaseSelectionConfig.class,
             DirectQuerySchemaConfig.class,
-            DremioDirectQueryConnectorConfiguration.class,
+            MSSQLDirectQueryConnectorConfiguration.class,
             TableDefinitionsConfig.class
         })
 public class DirectQueryConfig {}

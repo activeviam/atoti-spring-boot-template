@@ -7,16 +7,18 @@ otel:
     exporter: none
 server:
   port: 9091
-database.type: datastore
+database:
+  type: datastore
+  in-memory-stores:
+    partition-as-of-date: true
+    vector-size: 3
 dlc:
-  jdbc:
-    sources:
-      local-dremio:
-        driver-class: org.apache.arrow.driver.jdbc.ArrowFlightJdbcDriver
-        url: "jdbc:arrow-flight-sql://localhost:32010/?useEncryption=false&schema=nessie"
-        username: "admin"
-        password: "admin12345"
-        accepts-topic-overrides: true
-cob-dates:
-  in-memory-dates:
-    - 2025-03-03
+  csv:
+    local:
+      sources:
+        Test:
+          root-base-dir: ./src/main/resources/data/#{AS_OF_DATE}
+
+as-of-date:
+#  in-memory-dates:
+#    - 2024-09-02
