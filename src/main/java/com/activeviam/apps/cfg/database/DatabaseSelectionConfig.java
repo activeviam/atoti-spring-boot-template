@@ -44,7 +44,8 @@ public class DatabaseSelectionConfig {
                 // Holding detail
                 .usingReference(DatastoreConstants.References.HOLDING_TO_HOLDINGDETAIL)
                 .withAllFields()
-                .except(DatastoreConstants.HoldingDetailStore.Fields.AS_OF_DATE,
+                .except(
+                        DatastoreConstants.HoldingDetailStore.Fields.AS_OF_DATE,
                         DatastoreConstants.HoldingDetailStore.Fields.PARTITION_KEY,
                         DatastoreConstants.HoldingDetailStore.Fields.BASE_HOLDING_ID)
                 // Security store
