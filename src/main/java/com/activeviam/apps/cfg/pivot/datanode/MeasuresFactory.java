@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 public class MeasuresFactory {
 
     public static CopperMeasure scaledVector(CopperMeasure scalingFactorMeasure, CopperMeasure vectorMeasure) {
-      return   Copper.combine(scalingFactorMeasure, vectorMeasure)
+        return Copper.combine(scalingFactorMeasure, vectorMeasure)
                 .map(
                         (reader, writer) -> {
                             if (reader.isNull(0)

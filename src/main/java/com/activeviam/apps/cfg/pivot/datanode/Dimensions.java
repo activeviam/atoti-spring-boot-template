@@ -23,7 +23,7 @@ public class Dimensions implements ICanStartBuildingDimensions.DimensionsAdder {
     public static final LevelIdentifier SECURITY_LEVEL =
             LevelIdentifier.simple(DatastoreConstants.SecurityStore.Fields.SECURITY_NAME);
     public static final LevelIdentifier PORTFOLIO_LEVEL =
-            new LevelIdentifier(HOLDING_DETAILS_DIMENSION,FieldConstants.PORTFOLIO,FieldConstants.PORTFOLIO);
+            new LevelIdentifier(HOLDING_DETAILS_DIMENSION, FieldConstants.PORTFOLIO, FieldConstants.PORTFOLIO);
 
     @Override
     public ICanBuildCubeDescription<IActivePivotInstanceDescription> apply(ICanStartBuildingDimensions builder) {
