@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CsvTopicsConfig {
 
-    public static final String HOLDING_FILE_PATTERN = "glob:**/Holding.csv";
+    public static final String HOLDING_FILE_PATTERN = "glob:Holding.csv";
 
     @Bean
     CsvTopicDescription holdingTopic() {
@@ -30,7 +30,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String HOLDING_DETAIL_FILE_PATTERN = "glob:**/HoldingDetail.csv";
+    public static final String HOLDING_DETAIL_FILE_PATTERN = "glob:HoldingDetail.csv";
 
     @Bean
     CsvTopicDescription holdingDetailTopic() {
@@ -39,7 +39,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String AS_OF_DATE_FILE_PATTERN = "glob:**/AsOfDate.csv";
+    public static final String AS_OF_DATE_FILE_PATTERN = "glob:AsOfDate.csv";
 
     @Bean
     CsvTopicDescription asOfDateTopic() {
@@ -47,7 +47,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String SCALED_STAT_RESULT_FILE_PATTERN = "glob:**/ScaledStatResult.csv";
+    public static final String SCALED_STAT_RESULT_FILE_PATTERN = "glob:ScaledStatResult.csv";
 
     @Bean
     CsvTopicDescription scaledStatResultTopic() {
@@ -56,7 +56,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String SECURITY_FILE_PATTERN = "glob:**/Security.csv";
+    public static final String SECURITY_FILE_PATTERN = "glob:Security.csv";
 
     @Bean
     CsvTopicDescription securityTopic() {
@@ -64,7 +64,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String SIM_RETURNS_FILE_PATTERN = "glob:**/SimReturns.csv";
+    public static final String SIM_RETURNS_FILE_PATTERN = "glob:SimReturns.csv";
 
     @Bean
     CsvTopicDescription simReturnsTopic() {
@@ -72,7 +72,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String HISTORICAL_SIM_RETURNS_FILE_PATTERN = "glob:**/HistoricalSimReturns.csv";
+    public static final String HISTORICAL_SIM_RETURNS_FILE_PATTERN = "glob:HistoricalSimReturns.csv";
 
     @Bean
     CsvTopicDescription historicalSimReturnsTopic() {
@@ -82,7 +82,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String STAT_RESULTS_FILE_PATTERN = "glob:**/StatResults.csv";
+    public static final String STAT_RESULTS_FILE_PATTERN = "glob:StatResults.csv";
 
     @Bean
     CsvTopicDescription statResultsTopic() {
@@ -90,7 +90,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String STAT_RESULT_LOOKUP_FILE_PATTERN = "glob:**/StatResultLookup.csv";
+    public static final String STAT_RESULT_LOOKUP_FILE_PATTERN = "glob:StatResultLookup.csv";
 
     @Bean
     CsvTopicDescription statResultLookupTopic() {
@@ -99,7 +99,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String POSITION_DELTA_FILE_PATTERN = "glob:**/PositionDelta.csv";
+    public static final String POSITION_DELTA_FILE_PATTERN = "glob:PositionDelta.csv";
 
     @Bean
     CsvTopicDescription positionDeltaTopic() {
@@ -108,7 +108,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String FX_RESULTS_FILE_PATTERN = "glob:**/FxResults.csv";
+    public static final String FX_RESULTS_FILE_PATTERN = "glob:FxResults.csv";
 
     @Bean
     CsvTopicDescription fxResultsTopic() {
@@ -116,7 +116,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String FX_EQUIVALENTS_FILE_PATTERN = "glob:**/FxEquivalents.csv";
+    public static final String FX_EQUIVALENTS_FILE_PATTERN = "glob:FxEquivalents.csv";
 
     @Bean
     CsvTopicDescription fxEquivalentsTopic() {
@@ -125,7 +125,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String FX_EQUIVALENTS_LOOKUP_FILE_PATTERN = "glob:**/FxEquivalentsLookup.csv";
+    public static final String FX_EQUIVALENTS_LOOKUP_FILE_PATTERN = "glob:FxEquivalentsLookup.csv";
 
     @Bean
     CsvTopicDescription fxEquivalentsLookupTopic() {
@@ -134,7 +134,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String STATISTIC_BASE_CURRENCY_FILE_PATTERN = "glob:**/StatisticBaseCurrency.csv";
+    public static final String STATISTIC_BASE_CURRENCY_FILE_PATTERN = "glob:StatisticBaseCurrency.csv";
 
     @Bean
     CsvTopicDescription statisticBaseCurrencyTopic() {
@@ -143,7 +143,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String ENGINE_DIMENSION_FILE_PATTERN = "glob:**/EngineDimension.csv";
+    public static final String ENGINE_DIMENSION_FILE_PATTERN = "glob:EngineDimension.csv";
 
     @Bean
     CsvTopicDescription engineDimensionTopic() {
@@ -152,7 +152,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String CURRENCIES_FILE_PATTERN = "glob:**/Currencies.csv";
+    public static final String CURRENCIES_FILE_PATTERN = "glob:Currencies.csv";
 
     @Bean
     CsvTopicDescription currenciesTopic() {
@@ -160,7 +160,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String STAT_FX_ATTRIBUTES_FILE_PATTERN = "glob:**/StatFxAttributes.csv";
+    public static final String STAT_FX_ATTRIBUTES_FILE_PATTERN = "glob:StatFxAttributes.csv";
 
     @Bean
     CsvTopicDescription statFxAttributesTopic() {
@@ -169,7 +169,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String DIMENSION_LEVEL_ATTRIBUTE_FILE_PATTERN = "glob:**/DimensionLevelAttribute.csv";
+    public static final String DIMENSION_LEVEL_ATTRIBUTE_FILE_PATTERN = "glob:DimensionLevelAttribute.csv";
 
     @Bean
     CsvTopicDescription dimensionLevelAttributeTopic() {
@@ -179,7 +179,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String FUND_LOOK_THROUGH_SECURITY_FILE_PATTERN = "glob:**/FundLookThroughSecurity.csv";
+    public static final String FUND_LOOK_THROUGH_SECURITY_FILE_PATTERN = "glob:FundLookThroughSecurity.csv";
 
     @Bean
     CsvTopicDescription fundLookThroughSecurityTopic() {
@@ -189,7 +189,7 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String EQUITY_LOOK_THROUGH_SECURITY_FILE_PATTERN = "glob:**/EquityLookThroughSecurity.csv";
+    public static final String EQUITY_LOOK_THROUGH_SECURITY_FILE_PATTERN = "glob:EquityLookThroughSecurity.csv";
 
     @Bean
     CsvTopicDescription equityLookThroughSecurityTopic() {
@@ -200,7 +200,7 @@ public class CsvTopicsConfig {
     }
 
     public static final String EQUITY_FUTURES_LOOK_THROUGH_SECURITY_FILE_PATTERN =
-            "glob:**/EquityFuturesLookThroughSecurity.csv";
+            "glob:EquityFuturesLookThroughSecurity.csv";
 
     @Bean
     CsvTopicDescription equityFuturesLookThroughSecurityTopic() {

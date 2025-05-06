@@ -51,7 +51,7 @@ public class AsOfDateDataController {
     }
 
     @PostMapping({"/{asOfDate}"})
-    public DlcLoadResponseDTO loadCobDate(@PathVariable @DateTimeFormat(pattern = DATE_FORMAT) LocalDate asOfDate) {
+    public DlcLoadResponseDTO loadAsOfDate(@PathVariable @DateTimeFormat(pattern = DATE_FORMAT) LocalDate asOfDate) {
         var result = dataLoadControllerService
                 .execute(DlcLoadRequest.builder()
                         .topics(DlcConfig.ALL_IN_MEMORY_TOPICS)

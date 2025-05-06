@@ -9,7 +9,6 @@ package com.activeviam.apps.cfg.pivot.datanode;
 import static com.activeviam.apps.constants.CubeConstants.APPLICATION_NAME;
 import static com.activeviam.apps.constants.CubeConstants.CUBE_NAME;
 
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +19,7 @@ import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.impl.api.contextvalues.QueriesTimeLimit;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstanceDescription;
 import com.activeviam.activepivot.core.intf.api.description.IMessengerDefinition;
-import com.activeviam.apps.cfg.database.DatabaseProperties;
 import com.activeviam.apps.cfg.pivot.distribution.DistributionProperties;
-import com.activeviam.apps.cfg.source.AsOfDateProperties;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,19 +33,11 @@ public class DataCubeConfig {
     public IActivePivotInstanceDescription activePivotInstanceDescription(
             Dimensions dimensions,
             Measures calculations,
-            DatabaseProperties databaseProperties,
-            AsOfDateProperties asOfDateProperties,
             @Autowired(required = false) DistributionProperties distributionProperties) {
-        var cobDatesFilterCondition = databaseProperties.isDatastoreType()
-                ? asOfDateProperties.inMemoryDatesFilterCondition()
-                : asOfDateProperties.directQueryDatesFilterCondition();
-        log.info("Applying cobDate filter condition to data node: {}", cobDatesFilterCondition);
-        var builder =
-                StartBuilding.cube(CUBE_NAME).withCalculations(calculations).withDimensions(dimensions);
-        if (Objects.nonNull(cobDatesFilterCondition)) {
-            builder = builder.withFactFilter(cobDatesFilterCondition);
-        }
-        builder = builder.withAggregateProvider()
+        var builder = StartBuilding.cube(CUBE_NAME)
+                .withCalculations(calculations)
+                .withDimensions(dimensions)
+                .withAggregateProvider()
                 .jit()
                 // Shared context values
                 // Query maximum execution time (before timeout cancellation): 30s

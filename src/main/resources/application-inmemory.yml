@@ -20,5 +20,5 @@ dlc:
           root-base-dir: ./src/main/resources/data/#{AS_OF_DATE}
 
 as-of-date:
-#  in-memory-dates:
-#    - 2024-09-02
+  in-memory-dates:
+    - 2024-09-02

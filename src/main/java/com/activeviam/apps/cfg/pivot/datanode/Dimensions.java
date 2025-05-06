@@ -20,8 +20,10 @@ public class Dimensions implements ICanStartBuildingDimensions.DimensionsAdder {
     public static final String HOLDING_DETAILS_DIMENSION = "Holding details";
     public static final String SECURITY_DIMENSION = "Security details";
 
-    public static final LevelIdentifier SECURITY_LEVEL =
-            LevelIdentifier.simple(DatastoreConstants.SecurityStore.Fields.SECURITY_NAME);
+    public static final LevelIdentifier SECURITY_LEVEL = new LevelIdentifier(
+            SECURITY_DIMENSION,
+            DatastoreConstants.HoldingDetailStore.Fields.SECURITY,
+            DatastoreConstants.HoldingDetailStore.Fields.SECURITY);
     public static final LevelIdentifier PORTFOLIO_LEVEL =
             new LevelIdentifier(HOLDING_DETAILS_DIMENSION, FieldConstants.PORTFOLIO, FieldConstants.PORTFOLIO);
 
@@ -34,6 +36,6 @@ public class Dimensions implements ICanStartBuildingDimensions.DimensionsAdder {
                 .withComparator(IComparator.DESCENDING_NATURAL_ORDER_PLUGIN_KEY)
                 .withSingleLevelHierarchy(FieldConstants.PORTFOLIO)
                 .withDimension(SECURITY_DIMENSION)
-                .withSingleLevelHierarchy(DatastoreConstants.SecurityStore.Fields.SECURITY_NAME);
+                .withSingleLevelHierarchy(DatastoreConstants.HoldingDetailStore.Fields.SECURITY);
     }
 }

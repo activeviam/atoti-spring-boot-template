@@ -98,6 +98,13 @@ file.<br>
 It is also recommended that you change the JWT key pair in `application.yml` by running the class `JwtUtil` and
 generating a new key pair.
 
+## Spring profiles
+
+- inmemory: Uses DATASTORE as database to create a data cube
+- directquery: Uses MSSQL as database to create a data cube
+- datanode: adds Distribution configuration to a data cube (to be used in combination with inmemory or directquery profile)
+- querynode: runs the application as a distribution query node
+
 ## ❤️ Using OpenTelemetry
 
 Check [this section for OpenTelemetry](./otel/doc/STACK.md).

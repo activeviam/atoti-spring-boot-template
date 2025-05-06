@@ -39,7 +39,7 @@ public class InitialLoad {
         log.info("Initial data load started...");
         try {
             for (var asOfDate : asOfDateProperties.getInMemoryDates()) {
-                asOfDateDataController.loadCobDate(asOfDate);
+                asOfDateDataController.loadAsOfDate(asOfDate);
             }
             log.info("Initial data load completed");
             DatabasePrinter.printTableSizes(

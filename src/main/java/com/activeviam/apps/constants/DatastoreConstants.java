@@ -10,8 +10,6 @@ import static com.activeviam.database.api.types.ILiteralType.BOOLEAN;
 import static com.activeviam.database.api.types.ILiteralType.DOUBLE;
 import static com.activeviam.database.api.types.ILiteralType.INT;
 import static com.activeviam.database.api.types.ILiteralType.LOCAL_DATE;
-import static com.activeviam.database.api.types.ILiteralType.LOCAL_DATE_TIME;
-import static com.activeviam.database.api.types.ILiteralType.OBJECT;
 import static com.activeviam.database.api.types.ILiteralType.STRING;
 
 import java.util.Set;
@@ -79,8 +77,10 @@ public final class DatastoreConstants {
                     .asKeyField()
                     .withField(DatastoreConstants.HoldingStore.Fields.HOLDING_ID, STRING)
                     .asKeyField()
-                    .withNullableField(DatastoreConstants.HoldingStore.Fields.HOLDING_UNIQUE_NAME, OBJECT)
-                    .withNullableField(DatastoreConstants.HoldingStore.Fields.BASE_HOLDING_UNIQUE_NAME, OBJECT)
+                    .withNullableField(
+                            DatastoreConstants.HoldingStore.Fields.HOLDING_UNIQUE_NAME, STRING) // FIXME: OBJECT
+                    .withNullableField(
+                            DatastoreConstants.HoldingStore.Fields.BASE_HOLDING_UNIQUE_NAME, STRING) // FIXME: OBJECT
                     .withField(DatastoreConstants.HoldingStore.Fields.BASE_HOLDING_ID, STRING)
                     .withField(DatastoreConstants.HoldingStore.Fields.AMOUNT, DOUBLE)
                     .withField(DatastoreConstants.HoldingStore.Fields.IS_RELATIVE, BOOLEAN)
@@ -103,8 +103,8 @@ public final class DatastoreConstants {
                     .withField(DatastoreConstants.HoldingStore.Fields.LOOKTHROUGH_PORTFOLIO, STRING)
                     .withField(DatastoreConstants.HoldingStore.Fields.LOOKTHROUGH_LOAD_STATUS, STRING)
                     .withField(DatastoreConstants.HoldingStore.Fields.LOOKTHROUGH_LOAD_MESSAGE, STRING)
-                    .withField(DatastoreConstants.HoldingStore.Fields.PROCESS_DATE, STRING)
-                    .withNullableField(DatastoreConstants.HoldingStore.Fields.HOLDING_UPDATE_TIMESTAMP, LOCAL_DATE_TIME)
+                    .withField(DatastoreConstants.HoldingStore.Fields.PROCESS_DATE, LOCAL_DATE)
+                    .withNullableField(DatastoreConstants.HoldingStore.Fields.HOLDING_UPDATE_TIMESTAMP, STRING)
                     .withField(DatastoreConstants.HoldingStore.Fields.HOLDING_SOURCE, STRING)
                     .withField(DatastoreConstants.HoldingStore.Fields.HOLDING_PATH, STRING)
                     .withField(
@@ -475,11 +475,15 @@ public final class DatastoreConstants {
                     .withStoreName(DatastoreConstants.DimensionLevelAttributeStore.STORE_NAME)
                     .withField(DatastoreConstants.DimensionLevelAttributeStore.Fields.AS_OF_DATE, LOCAL_DATE)
                     .asKeyField()
-                    .withField(DatastoreConstants.DimensionLevelAttributeStore.Fields.LEVEL_MEMBERS, OBJECT)
+                    .withField(
+                            DatastoreConstants.DimensionLevelAttributeStore.Fields.LEVEL_MEMBERS,
+                            STRING) // FIXME: OBJECT
                     .asKeyField()
                     .withField(DatastoreConstants.DimensionLevelAttributeStore.Fields.MEASURE_NAME, STRING)
                     .asKeyField()
-                    .withField(DatastoreConstants.DimensionLevelAttributeStore.Fields.MEASURE_VALUE, OBJECT)
+                    .withField(
+                            DatastoreConstants.DimensionLevelAttributeStore.Fields.MEASURE_VALUE,
+                            STRING) // FIXME: OBJECT
                     .build();
         }
 
@@ -522,10 +526,8 @@ public final class DatastoreConstants {
                     .withVectorBlockSize(inMemoryStoresProperties.getVectorSize())
                     .withVectorField(DatastoreConstants.ScaledStatResultStore.Fields.RESULT_VALUES_PASSTHROUGH, DOUBLE)
                     .withVectorBlockSize(inMemoryStoresProperties.getVectorSize())
-
-                    // AGGSVC_SIMRETURNS(1Y VS)_MONTECARLO ?
-                    // .withField()
-
+                    .withVectorField("AGGSVC_SIMRETURNS(1Y VS)_MONTECARLO", DOUBLE)
+                    .withVectorBlockSize(inMemoryStoresProperties.getVectorSize())
                     .withIndexOn(DatastoreConstants.ScaledStatResultStore.Fields.AS_OF_DATE)
                     .withValuePartitioningOn(DatastoreConstants.ScaledStatResultStore.Fields.PARTITION_KEY);
 
@@ -584,7 +586,9 @@ public final class DatastoreConstants {
                     .withField(DatastoreConstants.SecurityStore.Fields.ENRICHMENT_INPUT_ID_TYPE, STRING)
                     .withField(DatastoreConstants.SecurityStore.Fields.ENRICHMENT_MESSAGE, STRING)
                     .withField(DatastoreConstants.SecurityStore.Fields.RMG_SECURITY_IS_PROXIED, BOOLEAN)
-                    .withField(DatastoreConstants.SecurityStore.Fields.SECURITY_UPDATE_TIMESTAMP, LOCAL_DATE_TIME)
+                    .withField(
+                            DatastoreConstants.SecurityStore.Fields.SECURITY_UPDATE_TIMESTAMP,
+                            STRING) // FIXME: DATE_TIME?
                     .withField(DatastoreConstants.SecurityStore.Fields.ENRICHED_RML, STRING)
                     .withField(DatastoreConstants.SecurityStore.Fields.IS_FX_MODEL, BOOLEAN)
                     .withIndexOn(DatastoreConstants.SecurityStore.Fields.AS_OF_DATE)
@@ -1000,7 +1004,7 @@ public final class DatastoreConstants {
                     .withStoreName(DatastoreConstants.StatResultLookupStore.STORE_NAME)
                     .withField(DatastoreConstants.StatResultLookupStore.Fields.STAT_NAME, STRING)
                     .asKeyField()
-                    .withNullableField(DatastoreConstants.StatResultLookupStore.Fields.DRILLDOWN_NAME, OBJECT)
+                    .withNullableField(DatastoreConstants.StatResultLookupStore.Fields.DRILLDOWN_NAME, STRING)
                     .asKeyField()
                     .withField(DatastoreConstants.StatResultLookupStore.Fields.VALSPEC, STRING)
                     .withField(DatastoreConstants.StatResultLookupStore.Fields.STAT_FIELD, STRING)
@@ -1150,7 +1154,8 @@ public final class DatastoreConstants {
                     .withNullableField(
                             DatastoreConstants.FundLookThroughSecurityStore.Fields.NO_FURTHER_LOOK_THROUGH, BOOLEAN)
                     .withNullableField(
-                            DatastoreConstants.FundLookThroughSecurityStore.Fields.MODEL_LIST_SECURITIES, OBJECT)
+                            DatastoreConstants.FundLookThroughSecurityStore.Fields.MODEL_LIST_SECURITIES,
+                            STRING) // FIXME: OBJECT
                     .build();
         }
 
@@ -1291,10 +1296,10 @@ public final class DatastoreConstants {
                     .withNullableField(
                             DatastoreConstants.EquityFuturesLookThroughSecurityStore.Fields
                                     .HOLDING_EQUITY_FUTURE_SECURITY_MAP,
-                            OBJECT)
+                            STRING) // FIXME: OBJECT
                     .withNullableField(
                             DatastoreConstants.EquityFuturesLookThroughSecurityStore.Fields.HOLDING_SCALING_FACTOR_MAP,
-                            OBJECT)
+                            STRING) // FIXME: OBJECT
                     .build();
         }
 

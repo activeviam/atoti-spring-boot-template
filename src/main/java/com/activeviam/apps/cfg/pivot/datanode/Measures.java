@@ -21,6 +21,7 @@ import com.activeviam.activepivot.core.intf.api.copper.CopperLevel;
 import com.activeviam.activepivot.core.intf.api.copper.ICopperContext;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
 import com.activeviam.apps.constants.DatastoreConstants;
+import com.activeviam.database.api.types.ILiteralType;
 
 public class Measures implements Consumer<ICopperContext> {
     private final List<CopperMeasure> copperMeasures = new ArrayList<>();
@@ -33,13 +34,18 @@ public class Measures implements Consumer<ICopperContext> {
                         .withinFolder(NATIVE_MEASURES)
                         .withFormatter(TIMESTAMP_FORMATTER));
         var values = Copper.sum(DatastoreConstants.ScaledStatResultStore.Fields.RESULT_VALUES_SUM)
+                .per(identifierToLevel(SECURITY_LEVEL))
+                .doNotAggregateAbove()
                 .as("Result Values");
         var amount = Copper.sum(DatastoreConstants.HoldingStore.Fields.AMOUNT)
                 .per(identifierToLevel(SECURITY_LEVEL))
                 .doNotAggregateAbove()
                 .as("Amount");
         addMeasures(values, amount);
-        addMeasures(MeasuresFactory.scaledVector(values, amount).as("Scaled Vector"));
+        addMeasures(scaleVector(amount, values)
+                .per(identifierToLevel(SECURITY_LEVEL))
+                .sum()
+                .as("Scaled Vector"));
     }
 
     private void addMeasures(CopperMeasure... measure) {
@@ -53,5 +59,24 @@ public class Measures implements Consumer<ICopperContext> {
 
     public static CopperLevel identifierToLevel(LevelIdentifier identifier) {
         return Copper.level(identifier.getDimensionName(), identifier.getHierarchyName(), identifier.getLevelName());
+    }
+
+    public static CopperMeasure scaleVector(CopperMeasure scalingFactorMeasure, CopperMeasure vectorMeasure) {
+        return Copper.combine(scalingFactorMeasure, vectorMeasure)
+                .map(
+                        (reader, writer) -> {
+                            if (reader.isNull(0)
+                                    || reader.isNull(1)
+                                    || reader.readVector(1).size() == 0) {
+                                writer.writeNull();
+                            } else {
+                                var scalingFactor = reader.readDouble(0);
+                                var vector = reader.readVector(1);
+                                var scaledVector = vector.cloneOnHeap();
+                                scaledVector.scale(scalingFactor);
+                                writer.write(scaledVector);
+                            }
+                        },
+                        ILiteralType.DOUBLE_ARRAY);
     }
 }
