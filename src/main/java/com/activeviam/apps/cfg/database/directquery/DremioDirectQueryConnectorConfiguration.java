@@ -8,12 +8,18 @@ package com.activeviam.apps.cfg.database.directquery;
 
 import static com.activeviam.apps.constants.PropertyConstants.DATABASE_PROPERTIES_PREFIX;
 
+import java.time.Duration;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
 import com.activeviam.database.jdbc.api.GenericJdbcDatabaseSettings;
 import com.activeviam.database.jdbc.api.SqlDialect;
 import com.activeviam.database.jdbc.dialect.dremio.internal.DremioSqlDialect;
+import com.activeviam.database.jdbc.internal.GenericJdbcConfiguration;
+import com.activeviam.database.jdbc.internal.GenericJdbcSqlDialect;
+import com.activeviam.database.sql.api.query.CommentGenerator;
+import com.activeviam.database.sql.internal.jdbc.connection.IJdbcConfiguration;
 import com.activeviam.directquery.api.DirectQueryConnector;
 import com.activeviam.directquery.jdbc.api.GenericJdbcClientSettings;
 import com.activeviam.directquery.jdbc.api.GenericJdbcConnectorMetaFactory;
@@ -40,5 +46,14 @@ public class DremioDirectQueryConnectorConfiguration {
                 .createConnector(GenericJdbcClientSettings.builder()
                         .properties(jdbcProperties.toProperties())
                         .build());
+    }
+
+    @Bean
+    IJdbcConfiguration jdbcConfiguration(SqlDialect sqlDialect, DremioConfigurationProperties jdbcProperties) {
+        return new GenericJdbcConfiguration(
+                new GenericJdbcSqlDialect(sqlDialect),
+                jdbcProperties.toProperties(),
+                Duration.ofSeconds(30),
+                CommentGenerator.NOOP);
     }
 }

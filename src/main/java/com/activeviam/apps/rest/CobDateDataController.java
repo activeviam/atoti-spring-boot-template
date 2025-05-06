@@ -54,8 +54,6 @@ public class CobDateDataController {
 
     private final IDatastore datastore;
 
-    private final JdbcTopicDescription counterpartiesJdbcTopic;
-
     private static String injectCobDate(String query, LocalDate cobDate) {
         return query.replace("?", "'" + cobDate.format(DATE_FORMATTER) + "'");
     }

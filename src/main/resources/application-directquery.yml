@@ -12,6 +12,6 @@ database:
     jdbc-properties:
       user: admin
       password: admin12345
-    schema: nessie
+#    schema: nessie
 server:
   port: 9092
