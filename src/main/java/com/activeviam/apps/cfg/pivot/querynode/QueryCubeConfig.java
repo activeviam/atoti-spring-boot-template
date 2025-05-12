@@ -18,6 +18,7 @@ import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.impl.api.contextvalues.QueriesTimeLimit;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
 import com.activeviam.activepivot.core.intf.api.description.IDistributedActivePivotInstanceDescription;
+import com.activeviam.activepivot.core.intf.api.description.IQueryClusterDefinition;
 import com.activeviam.apps.cfg.pivot.distribution.DistributionProperties;
 
 public class QueryCubeConfig {
@@ -36,6 +37,9 @@ public class QueryCubeConfig {
                 .end()
                 .withApplication(APPLICATION_NAME)
                 .withDistributingLevels(LevelIdentifier.simple(COB_DATE))
+                .withProperty(
+                        IQueryClusterDefinition.HORIZONTAL_DATA_DUPLICATION_PROPERTY,
+                        Boolean.toString(true)) // enable data node duplication
                 .end()
                 // Shared context values
                 // Query maximum execution time (before timeout cancellation): 30s
