@@ -9,7 +9,7 @@ package com.activeviam.apps.cfg.database.directquery.datamodel;
 import java.util.Set;
 
 import com.activeviam.apps.cfg.database.DatabaseProperties;
-import com.activeviam.apps.cfg.database.directquery.MSSQLConfigurationProperties;
+import com.activeviam.apps.cfg.database.directquery.ClickHouseConfigurationProperties;
 import com.activeviam.apps.constants.DatastoreConstants;
 import com.activeviam.database.api.schema.ITableJoin;
 import com.activeviam.database.datastore.api.description.IStoreDescription;
@@ -22,21 +22,20 @@ import com.activeviam.directquery.api.schema.TableDescription;
 public class TableDefinitionsConfig implements AggUpTableFactory {
     private final IDirectQueryTableDiscoverer directQueryTableDiscoverer;
 
-    private final MSSQLConfigurationProperties mssqlConfigurationProperties;
+    private final ClickHouseConfigurationProperties clickHouseConfigurationProperties;
 
     private final DatabaseProperties databaseProperties;
 
     private SqlTableId sqlTableId(String tableName) {
-        return new SqlTableId(
-                mssqlConfigurationProperties.getDatabase(), mssqlConfigurationProperties.getSchema(), tableName);
+        return new SqlTableId(clickHouseConfigurationProperties.getDatabase(), null, tableName);
     }
 
     public TableDefinitionsConfig(
             DirectQueryConnector<?> directQueryConnector,
-            MSSQLConfigurationProperties mssqlConfigurationProperties,
+            ClickHouseConfigurationProperties clickHouseConfigurationProperties,
             DatabaseProperties databaseProperties) {
         directQueryTableDiscoverer = directQueryConnector.getDiscoverer();
-        this.mssqlConfigurationProperties = mssqlConfigurationProperties;
+        this.clickHouseConfigurationProperties = clickHouseConfigurationProperties;
         this.databaseProperties = databaseProperties;
     }
 

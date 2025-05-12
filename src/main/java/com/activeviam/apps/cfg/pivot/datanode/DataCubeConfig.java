@@ -8,6 +8,7 @@ package com.activeviam.apps.cfg.pivot.datanode;
 
 import static com.activeviam.apps.constants.CubeConstants.APPLICATION_NAME;
 import static com.activeviam.apps.constants.CubeConstants.CUBE_NAME;
+import static com.activeviam.apps.constants.PropertyConstants.DATABASE_TYPE_DATASTORE;
 
 import java.util.concurrent.TimeUnit;
 
@@ -18,7 +19,9 @@ import org.springframework.context.annotation.Import;
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.impl.api.contextvalues.QueriesTimeLimit;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstanceDescription;
+import com.activeviam.activepivot.core.intf.api.description.IDataClusterDefinition;
 import com.activeviam.activepivot.core.intf.api.description.IMessengerDefinition;
+import com.activeviam.apps.cfg.database.DatabaseProperties;
 import com.activeviam.apps.cfg.pivot.distribution.DistributionProperties;
 
 import lombok.RequiredArgsConstructor;
@@ -33,7 +36,8 @@ public class DataCubeConfig {
     public IActivePivotInstanceDescription activePivotInstanceDescription(
             Dimensions dimensions,
             Measures calculations,
-            @Autowired(required = false) DistributionProperties distributionProperties) {
+            @Autowired(required = false) DistributionProperties distributionProperties,
+            DatabaseProperties databaseProperties) {
         var builder = StartBuilding.cube(CUBE_NAME)
                 .withCalculations(calculations)
                 .withDimensions(dimensions)
@@ -50,6 +54,8 @@ public class DataCubeConfig {
                 .end();
 
         if (distributionProperties != null) {
+            // In memory data nodes have the highest priority
+            var overlapPriority = databaseProperties.getType().equals(DATABASE_TYPE_DATASTORE) ? 0 : Integer.MAX_VALUE;
             return builder.asDataCube()
                     .withClusterDefinition()
                     .withClusterId(distributionProperties.getClusterId())
@@ -63,6 +69,7 @@ public class DataCubeConfig {
                     .withApplicationId(APPLICATION_NAME)
                     .withAllHierarchies()
                     .withAllMeasures()
+                    .withProperty(IDataClusterDefinition.DATA_NODE_PRIORITY, String.valueOf(overlapPriority))
                     .end()
                     .build();
         } else {

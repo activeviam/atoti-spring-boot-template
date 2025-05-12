@@ -69,7 +69,7 @@
     </dependency>
     <dependency>
       <groupId>com.activeviam.directquery</groupId>
-      <artifactId>api-mssql</artifactId>
+      <artifactId>api-clickhouse</artifactId>
       <version>${atoti-server.version}</version>
     </dependency>
 
