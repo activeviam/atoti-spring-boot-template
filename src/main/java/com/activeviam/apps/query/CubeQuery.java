@@ -27,7 +27,6 @@ public class CubeQuery {
     private final List<CubeQuery.Partitioning> partitionedBy;
 
     public record Metric(String metric, String parameter) {
-        @JsonIgnore
         public String getMetricName() {
             return ObjectUtils.isEmpty(parameter) ? metric : metric + "_" + parameter;
         }

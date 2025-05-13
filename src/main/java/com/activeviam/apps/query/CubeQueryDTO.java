@@ -7,9 +7,7 @@
 package com.activeviam.apps.query;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import lombok.Data;
 
@@ -17,7 +15,6 @@ import lombok.Data;
 public class CubeQueryDTO {
     private final List<MetricDTO> metrics = new ArrayList<>();
     private final List<String> levels = new ArrayList<>();
-    private final Map<String, List<String>> filters = new HashMap<>();
     private final String filter;
     private final TopCountDTO topCounts;
     private final List<SortDTO> sortBy = new ArrayList<>();
