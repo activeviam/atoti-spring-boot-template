@@ -40,3 +40,5 @@ tempo-data/
 /.nb-gradle/
 /build/
 data.zip
+
+/deployment
