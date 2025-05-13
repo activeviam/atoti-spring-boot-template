@@ -7,6 +7,8 @@
 package com.activeviam.apps.rest;
 
 import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.COB_DATE_SCOPE_PARAMETER;
+import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.COUNTERPARTIES_SQL_QUERY;
+import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.COUNTERPARTIES_SQL_TOPIC;
 import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.DREMIO_UNLOAD_TOPIC;
 import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.TRADES_SQL_QUERY;
 import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.TRADES_SQL_TOPIC;
@@ -27,7 +29,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.activeviam.database.api.DatabasePrinter;
 import com.activeviam.database.datastore.api.IDatastore;
-import com.activeviam.io.dlc.api.description.source.DlcSourceType;
 import com.activeviam.io.dlc.impl.DataLoadControllerService;
 import com.activeviam.io.dlc.impl.description.topic.JdbcTopicDescription;
 import com.activeviam.io.dlc.impl.operations.request.DlcLoadRequest;
@@ -68,14 +69,21 @@ public class CobDateDataController {
                 .build();
     }
 
+    private static JdbcTopicDescription overrideCounterpartiesTopic() {
+        return JdbcTopicDescription.builder(COUNTERPARTIES_SQL_TOPIC, COUNTERPARTIES_SQL_QUERY)
+                .build();
+    }
+
     @PostMapping({"/{cobDate}"})
     public DlcLoadResponseDTO loadCobDate(@PathVariable @DateTimeFormat(pattern = DATE_FORMAT) LocalDate cobDate) {
         // Workaround: we need to override the parameterized topics because Dremio does not support
         // parameterized queries yet (it will from v. 26)
         var result = dataLoadControllerService
                 .execute(DlcLoadRequest.builder()
-                        .topicOverrides(Set.of(overrideTradeTopic(cobDate), overrideTradeAttributesTopic(cobDate)))
-                        .sourceType(DlcSourceType.JDBC_SOURCE)
+                        // .topics(COUNTERPARTIES_SQL_TOPIC)
+                        .topicOverrides(Set.of(
+                                // overrideCounterpartiesTopic(),
+                                overrideTradeTopic(cobDate), overrideTradeAttributesTopic(cobDate)))
                         .build())
                 .toDto();
         DatabasePrinter.printTableSizes(datastore.getMasterHead());

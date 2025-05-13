@@ -7,7 +7,9 @@
 package com.activeviam.apps.cfg.database.datastore.datamodel;
 
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTIES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
@@ -15,6 +17,7 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
 import static com.activeviam.database.api.types.ILiteralType.DOUBLE;
 import static com.activeviam.database.api.types.ILiteralType.LOCAL_DATE;
+import static com.activeviam.database.api.types.ILiteralType.LONG;
 import static com.activeviam.database.api.types.ILiteralType.STRING;
 
 import org.springframework.context.annotation.Bean;
@@ -36,7 +39,7 @@ public class StoreDefinitionsConfig {
                 .withStoreName(TRADES_STORE_NAME)
                 .withField(COB_DATE, LOCAL_DATE)
                 .asKeyField()
-                .withField(TRADE_ID, STRING)
+                .withField(TRADE_ID, INT)
                 .asKeyField()
                 .withField(NOTIONAL, DOUBLE)
                 .build();
@@ -48,10 +51,21 @@ public class StoreDefinitionsConfig {
                 .withStoreName(TRADE_ATTRIBUTES_STORE_NAME)
                 .withField(COB_DATE, LOCAL_DATE)
                 .asKeyField()
-                .withField(TRADE_ID, STRING)
+                .withField(TRADE_ID + "Int", INT)
                 .asKeyField()
+                .withField(TRADE_ID, LONG)
                 .withField(TRADE_DATE, LOCAL_DATE)
                 .withField(COUNTERPARTY_ID, STRING)
+                .build();
+    }
+
+    @Bean
+    public IStoreDescription createCounterpartyStoreDescription() {
+        return StoreDescription.builder()
+                .withStoreName(COUNTERPARTIES_STORE_NAME)
+                .withField(COUNTERPARTY_ID, STRING)
+                .asKeyField()
+                .withField(COUNTERPARTY_NAME, STRING)
                 .build();
     }
 
@@ -62,7 +76,17 @@ public class StoreDefinitionsConfig {
                 .toStore(TRADE_ATTRIBUTES_STORE_NAME)
                 .withName(referenceName(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME))
                 .withMapping(COB_DATE, COB_DATE)
-                .withMapping(TRADE_ID, TRADE_ID)
+                .withMapping(TRADE_ID, TRADE_ID + "Int")
+                .build();
+    }
+
+    @Bean
+    public IReferenceDescription tradeAttributesToCounterpartyReference() {
+        return ReferenceDescription.builder()
+                .fromStore(TRADE_ATTRIBUTES_STORE_NAME)
+                .toStore(COUNTERPARTIES_STORE_NAME)
+                .withName(referenceName(TRADE_ATTRIBUTES_STORE_NAME, COUNTERPARTIES_STORE_NAME))
+                .withMapping(COUNTERPARTY_ID, COUNTERPARTY_ID)
                 .build();
     }
 }

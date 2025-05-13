@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.intf.api.description.ISelectionDescription;
+import com.activeviam.activepivot.core.intf.api.description.builder.ISelectionDescriptionBuilder;
 import com.activeviam.apps.constants.StoreAndFieldConstants;
 import com.activeviam.database.api.schema.IDatabaseSchema;
 
@@ -31,7 +32,7 @@ public class DatabaseSelectionConfig {
                 //                .withAllFields()
                 //                .usingReference(referenceName(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME))
                 //                .withFields(COUNTERPARTY_ID)
-                .withAllReachableFields()
+                .withAllReachableFields(ISelectionDescriptionBuilder.FieldsCollisionHandler.CLOSEST)
                 .build();
     }
 }

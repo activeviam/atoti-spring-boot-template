@@ -19,5 +19,4 @@ dlc:
         accepts-topic-overrides: true
 cob-dates:
   in-memory-dates:
-    - 2025-01-02
-    - 2025-01-01
+    - 2025-03-03

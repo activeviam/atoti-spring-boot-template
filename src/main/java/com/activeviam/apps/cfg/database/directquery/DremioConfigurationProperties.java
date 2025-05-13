@@ -9,6 +9,8 @@ package com.activeviam.apps.cfg.database.directquery;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.util.ObjectUtils;
+
 import com.activeviam.database.jdbc.api.GenericJdbcProperties;
 
 import lombok.Data;
@@ -25,7 +27,7 @@ public class DremioConfigurationProperties {
         if (database != null) {
             builder = builder.additionalOption("database", database);
         }
-        if (schema != null) {
+        if (!ObjectUtils.isEmpty(schema)) {
             builder = builder.additionalOption("schema", schema);
         }
         return builder.additionalOptions(jdbcProperties).build();

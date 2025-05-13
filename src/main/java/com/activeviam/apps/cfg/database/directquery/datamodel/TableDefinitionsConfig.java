@@ -19,35 +19,52 @@ import org.springframework.context.annotation.Bean;
 import com.activeviam.apps.cfg.database.directquery.DremioConfigurationProperties;
 import com.activeviam.database.api.schema.ITableJoin;
 import com.activeviam.database.sql.api.schema.SqlTableId;
+import com.activeviam.database.sql.internal.jdbc.JdbcDiscoverer;
+import com.activeviam.database.sql.internal.jdbc.connection.IJdbcConfiguration;
 import com.activeviam.directquery.api.DirectQueryConnector;
 import com.activeviam.directquery.api.discoverer.IDirectQueryTableDiscoverer;
 import com.activeviam.directquery.api.schema.JoinDescription;
 import com.activeviam.directquery.api.schema.TableDescription;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class TableDefinitionsConfig {
     private final IDirectQueryTableDiscoverer directQueryTableDiscoverer;
 
     private final DremioConfigurationProperties dremioConfigurationProperties;
 
-    private SqlTableId sqlTableId(String tableName) {
-        return new SqlTableId(
-                dremioConfigurationProperties.getDatabase(), dremioConfigurationProperties.getSchema(), tableName);
+    private static final String SCHEMA = "nessie";
+
+    private SqlTableId sqlTableId(String schema, String tableName) {
+        return new SqlTableId(dremioConfigurationProperties.getDatabase(), schema, tableName);
     }
 
     public TableDefinitionsConfig(
-            DirectQueryConnector<?> directQueryConnector, DremioConfigurationProperties dremioConfigurationProperties) {
+            DirectQueryConnector<?> directQueryConnector,
+            DremioConfigurationProperties dremioConfigurationProperties,
+            IJdbcConfiguration jdbcConfiguration) {
+        JdbcDiscoverer.listTables(jdbcConfiguration).forEach((catalog, schemas) -> {
+            log.info("Catalog: {}", catalog);
+            schemas.forEach((schema, tables) -> {
+                log.info("\tSchema: {}", schema);
+                tables.forEach(table -> {
+                    log.info("\t\tTable: {}", table.getTableName());
+                });
+            });
+        });
         directQueryTableDiscoverer = directQueryConnector.getDiscoverer();
         this.dremioConfigurationProperties = dremioConfigurationProperties;
     }
 
     @Bean
     TableDescription tradesTableDescription() {
-        return directQueryTableDiscoverer.discoverTable(sqlTableId(TRADES_STORE_NAME));
+        return directQueryTableDiscoverer.discoverTable(sqlTableId(SCHEMA, TRADES_STORE_NAME));
     }
 
     @Bean
     TableDescription tradeAttributesTableDescription() {
-        return directQueryTableDiscoverer.discoverTable(sqlTableId(TRADE_ATTRIBUTES_STORE_NAME));
+        return directQueryTableDiscoverer.discoverTable(sqlTableId(SCHEMA, TRADE_ATTRIBUTES_STORE_NAME));
     }
 
     @Bean
