@@ -40,6 +40,11 @@ management:
       probability: 1
 
 otel:
+  sdk:
+    disabled: true
+  exporter:
+    otlp:
+      endpoint: http://localhost:4318
   metric:
     export:
       interval: 1s

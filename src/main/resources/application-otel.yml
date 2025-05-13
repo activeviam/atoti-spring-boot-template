@@ -1,0 +1,4 @@
+# Activate OpenTelemetry
+otel:
+  sdk:
+    disabled: false

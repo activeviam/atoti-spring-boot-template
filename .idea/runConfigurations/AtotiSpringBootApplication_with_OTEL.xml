@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="AtotiSpringBootApplication with OTEL" type="Application" factoryName="Application">
+    <envs>
+      <env name="CSV_DATA_BASE_DIR" value="./src/main/resources/data" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="com.activeviam.apps.AtotiSpringBootApplication" />
+    <module name="atoti-spring-boot-template" />
+    <shortenClasspath name="ARGS_FILE" />
+    <option name="VM_PARAMETERS" value="--add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED -Dspring.profiles.active=otel" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
