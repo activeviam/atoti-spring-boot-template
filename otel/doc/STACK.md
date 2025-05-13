@@ -46,7 +46,6 @@ Those environment variables can be used as JVM args too in case you start the ap
 -Dotel.traces.sampler=always_on
 -Dotel.metric.export.interval=1000
 -Dotel.resource.attributes=service.name=atoti-spring-boot,service.version=1.0
--javaagent:./otel/otel-agent/opentelemetry-javaagent-2.14.0.jar
 ```
 
 #### Using the Spring Boot application.yaml
@@ -81,6 +80,23 @@ The net result is the ability to gather telemetry data from a Java application w
 ```
 
 This agent provides a standardized approach to instrumenting the Spring Boot application.<br>
+Check also https://opentelemetry.io/docs/zero-code/java/agent/
+
+/!\ Beware that using the Java Agent is not the recommended approach.
+Atoti already does some manual instrumentation of OpenTelemetry, so it creates some conflicts when the Java Agent brings
+its out-of-the-box instrumentation.
+If you really need to use the Agent, please add the following bean in your `@SpringBootApplication` class in order to
+avoid a mismatch in the
+OpenTelemetry SDK configuration:
+
+```java
+
+@Bean
+@Order(Integer.MIN_VALUE)
+OpenTelemetry openTelemetry() {
+    return GlobalOpenTelemetry.get();
+}
+```
 
 ## Collector
 

@@ -49,6 +49,15 @@ otel:
     attributes:
       '[service.name]': ${spring.application.name}
       '[service.version]': 1.0
+  instrumentation:
+    logback-appender:
+      experimental:
+        capture-marker-attribute: true
+        capture-key-value-pair-attributes: true
+        capture-code-attributes: true
+        capture-logger-context-attributes: true
+        capture-mdc-attributes: "*"
+      experimental-log-attributes: true
 
 dlc:
   csv:

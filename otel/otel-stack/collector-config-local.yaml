@@ -28,24 +28,24 @@ exporters:
     endpoint: collector:6666
 
   debug: # the logging exporter logs all messages, useful for troubleshooting, change it to "normal" once issues fixed
-    verbosity: detailed  
+    verbosity: detailed
 
 # service
 service:
   pipelines:
     traces:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp]
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ otlp ]
     metrics:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [prometheus]
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ prometheus ]
     logs:
-      receivers: [otlp]
-      exporters: [otlphttp]
+      receivers: [ otlp ]
+      exporters: [ otlphttp ]
 
-# the collector itself can be configured , see https://opentelemetry.io/docs/collector/configuration/    
+  # the collector itself can be configured , see https://opentelemetry.io/docs/collector/configuration/
   telemetry:
     logs:
       level: info
