@@ -17,7 +17,7 @@ public class PropertyConstants {
     public static final String TYPE_PROPERTY = "type";
 
     public static final String DATABASE_TYPE_DATASTORE = "datastore";
-    public static final String DATABASE_TYPE_MSSQL = "mssql";
+    public static final String DATABASE_TYPE_CLICKHOUSE = "clickhouse";
 
     public static final String DISTRIBUTION_PROPERTIES_PREFIX = "distribution";
     public static final String DISTRIBUTION_TYPE_DATA = "data";

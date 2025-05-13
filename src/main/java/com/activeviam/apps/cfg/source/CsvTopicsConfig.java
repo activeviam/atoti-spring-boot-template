@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.activeviam.apps.annotations.ConditionalOnApplicationWithDatastore;
-import com.activeviam.apps.constants.DatastoreConstants;
+import com.activeviam.apps.cfg.database.datastore.DatastoreConstants;
 import com.activeviam.io.dlc.impl.description.topic.CsvTopicDescription;
 
 import lombok.RequiredArgsConstructor;

@@ -20,7 +20,7 @@ import com.activeviam.activepivot.copper.api.CopperMeasure;
 import com.activeviam.activepivot.core.intf.api.copper.CopperLevel;
 import com.activeviam.activepivot.core.intf.api.copper.ICopperContext;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
-import com.activeviam.apps.constants.DatastoreConstants;
+import com.activeviam.apps.cfg.database.datastore.DatastoreConstants;
 import com.activeviam.database.api.types.ILiteralType;
 
 public class Measures implements Consumer<ICopperContext> {
@@ -42,10 +42,12 @@ public class Measures implements Consumer<ICopperContext> {
                 .doNotAggregateAbove()
                 .as("Amount");
         addMeasures(values, amount);
-        addMeasures(scaleVector(amount, values)
+        var scaledVector = scaleVector(amount, values)
                 .per(identifierToLevel(SECURITY_LEVEL))
                 .sum()
-                .as("Scaled Vector"));
+                .as("Scaled Vector");
+        addMeasures(scaledVector);
+        addMeasures(valueAtRisk(scaledVector, Copper.constant(95.0)).as("VaR 95"));
     }
 
     private void addMeasures(CopperMeasure... measure) {
@@ -78,5 +80,22 @@ public class Measures implements Consumer<ICopperContext> {
                             }
                         },
                         ILiteralType.DOUBLE_ARRAY);
+    }
+
+    public static CopperMeasure valueAtRisk(CopperMeasure vectorMeasure, CopperMeasure confidenceLevelMeasure) {
+        return Copper.combine(vectorMeasure, confidenceLevelMeasure)
+                .map(
+                        (r, w) -> {
+                            if (r.isNull(0)) {
+                                w.writeNull();
+                            } else {
+                                var vector = r.readVector(0);
+                                var confidenceLevel = r.readDouble(1);
+                                var quantile = 1.0 - (confidenceLevel / 100.0);
+                                var rank = (int) Math.ceil(vector.size() * quantile);
+                                w.writeDouble(vector.bottomK(rank).nextDouble());
+                            }
+                        },
+                        ILiteralType.DOUBLE);
     }
 }

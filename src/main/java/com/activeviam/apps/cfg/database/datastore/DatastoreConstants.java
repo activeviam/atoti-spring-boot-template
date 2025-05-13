@@ -4,7 +4,7 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-package com.activeviam.apps.constants;
+package com.activeviam.apps.cfg.database.datastore;
 
 import static com.activeviam.database.api.types.ILiteralType.BOOLEAN;
 import static com.activeviam.database.api.types.ILiteralType.DOUBLE;
@@ -17,6 +17,7 @@ import java.util.Set;
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IAxisMember;
 import com.activeviam.apps.cfg.database.DatabaseProperties;
+import com.activeviam.apps.constants.FieldConstants;
 import com.activeviam.database.api.schema.FieldPath;
 import com.activeviam.database.datastore.api.description.IStoreDescription;
 
@@ -589,7 +590,7 @@ public final class DatastoreConstants {
                     .withField(
                             DatastoreConstants.SecurityStore.Fields.SECURITY_UPDATE_TIMESTAMP,
                             STRING) // FIXME: DATE_TIME?
-                    .withField(DatastoreConstants.SecurityStore.Fields.ENRICHED_RML, STRING)
+                    //  .withField(DatastoreConstants.SecurityStore.Fields.ENRICHED_RML, STRING)
                     .withField(DatastoreConstants.SecurityStore.Fields.IS_FX_MODEL, BOOLEAN)
                     .withIndexOn(DatastoreConstants.SecurityStore.Fields.AS_OF_DATE)
                     .updateOnlyIfDifferent()

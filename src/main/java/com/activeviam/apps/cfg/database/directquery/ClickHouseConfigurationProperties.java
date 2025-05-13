@@ -19,7 +19,7 @@ public class ClickHouseConfigurationProperties {
     private String host;
     private int port;
     private String database;
-    private ClickHouseProtocol protocol;
+    private ClickHouseProtocol protocol = ClickHouseProtocol.HTTP;
 
     public ClickhouseClientSettings toClientSettings() {
         var properties = ClickhouseProperties.builder()

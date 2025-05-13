@@ -16,7 +16,7 @@ public class FieldConstants {
     public static final String AS_OF_DATE = "AsOfDate";
 
     public static final String PORTFOLIO = "Portfolio";
-    public static final String HOLDING_ID = "HoldingID";
+    public static final String HOLDING_ID = "HoldingId";
     public static final String HOLDING_UNIQUE_NAME = "HoldingUniqueName";
     public static final String BASE_HOLDING_UNIQUE_NAME = "BaseHoldingUniqueName";
     public static final String AMOUNT = "Amount";

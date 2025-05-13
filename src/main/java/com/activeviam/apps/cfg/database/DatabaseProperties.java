@@ -6,8 +6,8 @@
  */
 package com.activeviam.apps.cfg.database;
 
+import static com.activeviam.apps.constants.PropertyConstants.DATABASE_TYPE_CLICKHOUSE;
 import static com.activeviam.apps.constants.PropertyConstants.DATABASE_TYPE_DATASTORE;
-import static com.activeviam.apps.constants.PropertyConstants.DATABASE_TYPE_MSSQL;
 
 import java.util.Objects;
 
@@ -24,7 +24,7 @@ public class DatabaseProperties {
     }
 
     public boolean isMSSQLType() {
-        return Objects.nonNull(type) && DATABASE_TYPE_MSSQL.equals(type);
+        return Objects.nonNull(type) && DATABASE_TYPE_CLICKHOUSE.equals(type);
     }
 
     @Data

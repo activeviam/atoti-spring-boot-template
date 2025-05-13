@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Bean;
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.intf.api.description.ISelectionDescription;
-import com.activeviam.apps.constants.DatastoreConstants;
+import com.activeviam.apps.cfg.database.datastore.DatastoreConstants;
 import com.activeviam.database.api.schema.IDatabaseSchema;
 
 import lombok.RequiredArgsConstructor;

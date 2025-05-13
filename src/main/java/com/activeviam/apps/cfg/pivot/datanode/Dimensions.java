@@ -11,7 +11,7 @@ import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstanceDescription;
 import com.activeviam.activepivot.core.intf.api.description.builder.ICanBuildCubeDescription;
 import com.activeviam.activepivot.core.intf.api.description.builder.dimension.ICanStartBuildingDimensions;
-import com.activeviam.apps.constants.DatastoreConstants;
+import com.activeviam.apps.cfg.database.datastore.DatastoreConstants;
 import com.activeviam.apps.constants.FieldConstants;
 import com.activeviam.tech.core.api.ordering.IComparator;
 

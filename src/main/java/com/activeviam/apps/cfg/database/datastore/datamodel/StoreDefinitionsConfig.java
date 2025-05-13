@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Bean;
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.apps.cfg.database.DatabaseProperties;
-import com.activeviam.apps.constants.DatastoreConstants;
+import com.activeviam.apps.cfg.database.datastore.DatastoreConstants;
 import com.activeviam.database.datastore.api.description.IReferenceDescription;
 import com.activeviam.database.datastore.api.description.IStoreDescription;
 

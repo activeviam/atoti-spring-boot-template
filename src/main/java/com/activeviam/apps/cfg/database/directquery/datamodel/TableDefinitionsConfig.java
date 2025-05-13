@@ -8,16 +8,18 @@ package com.activeviam.apps.cfg.database.directquery.datamodel;
 
 import java.util.Set;
 
+import org.springframework.context.annotation.Bean;
+
 import com.activeviam.apps.cfg.database.DatabaseProperties;
+import com.activeviam.apps.cfg.database.datastore.DatastoreConstants;
 import com.activeviam.apps.cfg.database.directquery.ClickHouseConfigurationProperties;
-import com.activeviam.apps.constants.DatastoreConstants;
 import com.activeviam.database.api.schema.ITableJoin;
 import com.activeviam.database.datastore.api.description.IStoreDescription;
-import com.activeviam.database.sql.api.schema.SqlTableId;
 import com.activeviam.directquery.api.DirectQueryConnector;
 import com.activeviam.directquery.api.discoverer.IDirectQueryTableDiscoverer;
 import com.activeviam.directquery.api.schema.JoinDescription;
 import com.activeviam.directquery.api.schema.TableDescription;
+import com.activeviam.directquery.clickhouse.api.ClickhouseTableId;
 
 public class TableDefinitionsConfig implements AggUpTableFactory {
     private final IDirectQueryTableDiscoverer directQueryTableDiscoverer;
@@ -26,8 +28,8 @@ public class TableDefinitionsConfig implements AggUpTableFactory {
 
     private final DatabaseProperties databaseProperties;
 
-    private SqlTableId sqlTableId(String tableName) {
-        return new SqlTableId(clickHouseConfigurationProperties.getDatabase(), null, tableName);
+    private ClickhouseTableId tableId(String tableName) {
+        return new ClickhouseTableId(clickHouseConfigurationProperties.getDatabase(), tableName);
     }
 
     public TableDefinitionsConfig(
@@ -40,34 +42,39 @@ public class TableDefinitionsConfig implements AggUpTableFactory {
     }
 
     @Override
+    @Bean
     public TableDescription asOfDateTable() {
-        return directQueryTableDiscoverer.discoverTable(sqlTableId(DatastoreConstants.AsOfDateStore.STORE_NAME));
+        return directQueryTableDiscoverer.discoverTable(tableId(DatastoreConstants.AsOfDateStore.STORE_NAME));
     }
 
     @Override
+    @Bean
     public TableDescription holdingTable() {
-        return directQueryTableDiscoverer.discoverTable(sqlTableId(DatastoreConstants.HoldingStore.STORE_NAME));
+        return directQueryTableDiscoverer.discoverTable(tableId(DatastoreConstants.HoldingStore.STORE_NAME));
     }
 
     @Override
+    @Bean
     public TableDescription holdingDetailTable() {
-        return directQueryTableDiscoverer.discoverTable(sqlTableId(DatastoreConstants.HoldingDetailStore.STORE_NAME));
+        return directQueryTableDiscoverer.discoverTable(tableId(DatastoreConstants.HoldingDetailStore.STORE_NAME));
     }
 
     @Override
+    @Bean
     public TableDescription scaledStatResultTable() {
-        return directQueryTableDiscoverer.discoverTable(
-                sqlTableId(DatastoreConstants.ScaledStatResultStore.STORE_NAME));
+        return directQueryTableDiscoverer.discoverTable(tableId(DatastoreConstants.ScaledStatResultStore.STORE_NAME));
     }
 
     @Override
+    @Bean
     public TableDescription securityTable() {
-        return directQueryTableDiscoverer.discoverTable(sqlTableId(DatastoreConstants.SecurityStore.STORE_NAME));
+        return directQueryTableDiscoverer.discoverTable(tableId(DatastoreConstants.SecurityStore.STORE_NAME));
     }
 
     @Override
+    @Bean
     public TableDescription positionDetailTable() {
-        return directQueryTableDiscoverer.discoverTable(sqlTableId(DatastoreConstants.PositionDetailStore.STORE_NAME));
+        return directQueryTableDiscoverer.discoverTable(tableId(DatastoreConstants.PositionDetailStore.STORE_NAME));
     }
 
     @Override
@@ -147,6 +154,7 @@ public class TableDefinitionsConfig implements AggUpTableFactory {
     }
 
     @Override
+    @Bean
     public JoinDescription holdingToHoldingDetailsJoin() {
         return JoinDescription.builder()
                 .sourceTableName(DatastoreConstants.HoldingStore.STORE_NAME)
@@ -167,6 +175,7 @@ public class TableDefinitionsConfig implements AggUpTableFactory {
     }
 
     @Override
+    @Bean
     public JoinDescription holdingToScaledStatResultJoin() {
         return JoinDescription.builder()
                 .sourceTableName(DatastoreConstants.HoldingStore.STORE_NAME)
@@ -187,6 +196,7 @@ public class TableDefinitionsConfig implements AggUpTableFactory {
     }
 
     @Override
+    @Bean
     public JoinDescription holdingDetailToSecurityJoin() {
         return JoinDescription.builder()
                 .sourceTableName(DatastoreConstants.HoldingDetailStore.STORE_NAME)
@@ -207,6 +217,7 @@ public class TableDefinitionsConfig implements AggUpTableFactory {
     }
 
     @Override
+    @Bean
     public JoinDescription holdingDetailToPositionDetailJoin() {
         return JoinDescription.builder()
                 .sourceTableName(DatastoreConstants.HoldingDetailStore.STORE_NAME)
@@ -219,6 +230,7 @@ public class TableDefinitionsConfig implements AggUpTableFactory {
     }
 
     @Override
+    @Bean
     public JoinDescription holdingToAsOfDateJoin() {
         return JoinDescription.builder()
                 .sourceTableName(DatastoreConstants.HoldingStore.STORE_NAME)
