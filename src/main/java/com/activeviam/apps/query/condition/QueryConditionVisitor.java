@@ -61,8 +61,7 @@ public class QueryConditionVisitor extends QueryConditionBaseVisitor<LogicalCond
         return visit(ctx.query());
     }
 
-    private LogicalCondition parseCriteria(
-            String operator, QueryConditionParser.ValueContext ctx, String field) {
+    private LogicalCondition parseCriteria(String operator, QueryConditionParser.ValueContext ctx, String field) {
         if (ctx.BOOL() != null) {
             var value = Boolean.parseBoolean(ctx.getText());
             return operator.equals(EQ)
@@ -71,7 +70,7 @@ public class QueryConditionVisitor extends QueryConditionBaseVisitor<LogicalCond
         } else if (ctx.STRING() != null) {
             var value = ctx.getText().replace("'", "");
             return operator.equals(EQ)
-                    ? new EqualsCondition<String>(field,value )
+                    ? new EqualsCondition<String>(field, value)
                     : new NotEqualsCondition<String>(field, value);
         } else if (ctx.NUMBER() != null) {
             var value = Double.parseDouble(ctx.getText());
