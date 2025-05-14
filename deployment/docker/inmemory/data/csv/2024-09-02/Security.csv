@@ -1,64 +1,4 @@
 pricedSecurityName,PartitionKey,AsOfDate,FxHedgingPercent,EnrichmentStatus,InputModel,OutputModel,EnrichmentInputId,EnrichmentInputIdType,EnrichmentMessages,RMG_SecurityIsProxied,SecurityUpdateTimestamp,IsFxModel
-ccy://RMG/SUS1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""SUS1""",false,2024-11-20T10:55:10.533748500,false
-ccy://RMG/ZMW,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,,false,2024-11-20T10:55:10.533748500,false
-ccy://RMG/BOCARS,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCARS""",false,2024-11-20T10:55:10.533748500,false
-ccy://RMG/DKK4,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""DKK4""",false,2024-11-20T10:55:10.533748500,false
-ccy://RMG/AUD4,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""AUD4""",false,2024-11-20T10:55:10.533748500,false
-ccy://RMG/AUD_SL,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""AUD_SL""",false,2024-11-20T10:55:10.533748500,false
-ccy://RMG/SAVE1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""SAVE1""",false,2024-11-20T10:55:10.533748500,false
-ccy://RMG/KRW,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,,false,2024-11-20T10:55:10.533748500,false
-ccy://RMG/DOT1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""DOT1""",false,2024-11-20T10:55:10.533748500,false
-ccy://RMG/AK13,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""AK13""",false,2024-11-20T10:55:10.533748500,false
-ccy://RMG/BOCAU2,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCAU2""",false,2024-11-20T10:55:10.533748500,false
-ccy://RMG/BOCNTD,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCNTD""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/XUSUSD,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,"Holding ""ccy://RMG/XUSUSD"", has filled time series for valuation spec with statistics start date 20230903, statistics end date 20240902, and pricing date 20240902.  Filled time series descriptions:  Time series ""XUSUSD"" is backfilled or forward filled; earliest time series observation date is 20200918; latest time series observation date is 20221124; time series is flat filled; DATA ON THE PRICING DATE HAS BEEN FILLED FOR THIS TIME SERIES.",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/BOCSIT,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCSIT""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/DKK_SL,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""DKK_SL""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/BOCPYG,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCPYG""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/CAD2,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""CAD2""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/XSAUSD,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,"Holding ""ccy://RMG/XSAUSD"", has filled time series for valuation spec with statistics start date 20230903, statistics end date 20240902, and pricing date 20240902.  Filled time series descriptions:  Time series ""XSAUSD"" is backfilled or forward filled; earliest time series observation date is 20200410; latest time series observation date is 20221124; time series is flat filled; DATA ON THE PRICING DATE HAS BEEN FILLED FOR THIS TIME SERIES.",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/PGK_TCXF,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""PGK_TCXF""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/INR9,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,"Holding ""ccy://RMG/INR9"", has filled time series for valuation spec with statistics start date 20230903, statistics end date 20240902, and pricing date 20240902.  Filled time series descriptions:  Time series ""INR9"" is backfilled or forward filled; earliest time series observation date is 20180530; latest time series observation date is 20180531; time series is flat filled; DATA ON THE PRICING DATE HAS BEEN FILLED FOR THIS TIME SERIES.",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/ZMK_SL,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""ZMK_SL""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/GBP5,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""GBP5""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/EOS1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""EOS1""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/BOCBA1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCBA1""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/UF1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""UF1""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/BOCTW1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCTW1""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/QR_CNY,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""QR_CNY""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/BOCMKD,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCMKD""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/WST,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,,false,2024-11-20T10:55:10.539884,false
-ccy://RMG/UAH_TCXF,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""UAH_TCXF""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/AK6,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""AK6""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/EGP2,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""EGP2""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/UDIUSD,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""UDIUSD""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/COPT,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""COPT""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/JPYC,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""JPYC""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/BOCCAD,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCCAD""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/MRU,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,,false,2024-11-20T10:55:10.539884,false
-ccy://RMG/DEM,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,,false,2024-11-20T10:55:10.539884,false
-ccy://RMG/BOCYER,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCYER""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/BOCEGP,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCEGP""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/MMK3,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""MMK3""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/ADXY,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""ADXY""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/PLN_LCH,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""PLN_LCH""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/SEK5,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""SEK5""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/CNH5,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""CNH5""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/BOCTND,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCTND""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/BOCID1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCID1""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/BRL,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,,false,2024-11-20T10:55:10.539884,false
-ccy://RMG/GTQ_TCXF,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""GTQ_TCXF""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/BCC_PLN1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BCC_PLN1""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/BZD,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,,false,2024-11-20T10:55:10.539884,false
-ccy://RMG/AUAN1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""AUAN1""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/EURUSD,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""EURUSD""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/NZDT,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""NZDT""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/BOCEUB,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCEUB""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/BCC_MUR1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BCC_MUR1""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/BCC_CNY1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BCC_CNY1""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/XLM1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""XLM1""",false,2024-11-20T10:55:10.539884,false
-ccy://RMG/NPR_TCXF,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""NPR_TCXF""",false,2024-11-20T10:55:10.539884,false
-(102457:2583)-328,16,2024-09-02,NaN,Error,equityModel,equityModel,N/A,N/A,"Unknown equity time series named ""845467109""",false,2024-11-20T10:55:23.209277,false
 ccy://RMG/CNY_TCXF,10,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""CNY_TCXF""",false,2024-11-20T10:55:10.533748500,false
 ccy://RMG/CAD,10,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,,false,2024-11-20T10:55:10.533748500,false
 ccy://RMG/AK19,10,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""AK19""",false,2024-11-20T10:55:10.533748500,false
@@ -1190,3 +1130,63 @@ ccy://RMG/BOCAI1,3,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unperm
 (102457:2583)-303,3,2024-09-02,NaN,Success,equityModel,equityModel,N/A,N/A,,false,2024-11-20T10:55:23.209277,false
 (102457:2583)-295,3,2024-09-02,NaN,Error,equityModel,equityModel,N/A,N/A,"Unknown equity time series named ""212015101""",false,2024-11-20T10:55:23.209277,false
 (102457:2583)-321,3,2024-09-02,NaN,Success,equityModel,equityModel,N/A,N/A,,false,2024-11-20T10:55:23.209277,false
+ccy://RMG/SUS1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""SUS1""",false,2024-11-20T10:55:10.533748500,false
+ccy://RMG/ZMW,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,,false,2024-11-20T10:55:10.533748500,false
+ccy://RMG/BOCARS,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCARS""",false,2024-11-20T10:55:10.533748500,false
+ccy://RMG/DKK4,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""DKK4""",false,2024-11-20T10:55:10.533748500,false
+ccy://RMG/AUD4,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""AUD4""",false,2024-11-20T10:55:10.533748500,false
+ccy://RMG/AUD_SL,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""AUD_SL""",false,2024-11-20T10:55:10.533748500,false
+ccy://RMG/SAVE1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""SAVE1""",false,2024-11-20T10:55:10.533748500,false
+ccy://RMG/KRW,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,,false,2024-11-20T10:55:10.533748500,false
+ccy://RMG/DOT1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""DOT1""",false,2024-11-20T10:55:10.533748500,false
+ccy://RMG/AK13,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""AK13""",false,2024-11-20T10:55:10.533748500,false
+ccy://RMG/BOCAU2,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCAU2""",false,2024-11-20T10:55:10.533748500,false
+ccy://RMG/BOCNTD,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCNTD""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/XUSUSD,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,"Holding ""ccy://RMG/XUSUSD"", has filled time series for valuation spec with statistics start date 20230903, statistics end date 20240902, and pricing date 20240902.  Filled time series descriptions:  Time series ""XUSUSD"" is backfilled or forward filled; earliest time series observation date is 20200918; latest time series observation date is 20221124; time series is flat filled; DATA ON THE PRICING DATE HAS BEEN FILLED FOR THIS TIME SERIES.",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/BOCSIT,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCSIT""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/DKK_SL,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""DKK_SL""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/BOCPYG,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCPYG""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/CAD2,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""CAD2""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/XSAUSD,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,"Holding ""ccy://RMG/XSAUSD"", has filled time series for valuation spec with statistics start date 20230903, statistics end date 20240902, and pricing date 20240902.  Filled time series descriptions:  Time series ""XSAUSD"" is backfilled or forward filled; earliest time series observation date is 20200410; latest time series observation date is 20221124; time series is flat filled; DATA ON THE PRICING DATE HAS BEEN FILLED FOR THIS TIME SERIES.",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/PGK_TCXF,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""PGK_TCXF""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/INR9,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,"Holding ""ccy://RMG/INR9"", has filled time series for valuation spec with statistics start date 20230903, statistics end date 20240902, and pricing date 20240902.  Filled time series descriptions:  Time series ""INR9"" is backfilled or forward filled; earliest time series observation date is 20180530; latest time series observation date is 20180531; time series is flat filled; DATA ON THE PRICING DATE HAS BEEN FILLED FOR THIS TIME SERIES.",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/ZMK_SL,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""ZMK_SL""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/GBP5,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""GBP5""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/EOS1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""EOS1""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/BOCBA1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCBA1""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/UF1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""UF1""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/BOCTW1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCTW1""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/QR_CNY,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""QR_CNY""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/BOCMKD,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCMKD""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/WST,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,,false,2024-11-20T10:55:10.539884,false
+ccy://RMG/UAH_TCXF,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""UAH_TCXF""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/AK6,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""AK6""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/EGP2,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""EGP2""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/UDIUSD,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""UDIUSD""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/COPT,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""COPT""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/JPYC,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""JPYC""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/BOCCAD,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCCAD""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/MRU,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,,false,2024-11-20T10:55:10.539884,false
+ccy://RMG/DEM,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,,false,2024-11-20T10:55:10.539884,false
+ccy://RMG/BOCYER,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCYER""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/BOCEGP,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCEGP""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/MMK3,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""MMK3""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/ADXY,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""ADXY""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/PLN_LCH,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""PLN_LCH""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/SEK5,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""SEK5""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/CNH5,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""CNH5""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/BOCTND,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCTND""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/BOCID1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCID1""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/BRL,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,,false,2024-11-20T10:55:10.539884,false
+ccy://RMG/GTQ_TCXF,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""GTQ_TCXF""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/BCC_PLN1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BCC_PLN1""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/BZD,16,2024-09-02,NaN,Success,cashModel,cashModel,N/A,N/A,,false,2024-11-20T10:55:10.539884,false
+ccy://RMG/AUAN1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""AUAN1""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/EURUSD,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""EURUSD""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/NZDT,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""NZDT""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/BOCEUB,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BOCEUB""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/BCC_MUR1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BCC_MUR1""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/BCC_CNY1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""BCC_CNY1""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/XLM1,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""XLM1""",false,2024-11-20T10:55:10.539884,false
+ccy://RMG/NPR_TCXF,16,2024-09-02,NaN,Error,cashModel,cashModel,N/A,N/A,"Used unpermissioned time series of type Currency named ""NPR_TCXF""",false,2024-11-20T10:55:10.539884,false
+(102457:2583)-328,16,2024-09-02,NaN,Error,equityModel,equityModel,N/A,N/A,"Unknown equity time series named ""845467109""",false,2024-11-20T10:55:23.209277,false

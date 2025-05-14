@@ -524,11 +524,11 @@ public final class DatastoreConstants {
                     .asKeyField()
                     // FIXED VALUES FOR POC: what is the vector size?
                     .withVectorField(DatastoreConstants.ScaledStatResultStore.Fields.RESULT_VALUES_SUM, DOUBLE)
-                    .withVectorBlockSize(inMemoryStoresProperties.getVectorSize())
+                    .withVectorBlockSize(inMemoryStoresProperties.getStatsVectorSize())
                     .withVectorField(DatastoreConstants.ScaledStatResultStore.Fields.RESULT_VALUES_PASSTHROUGH, DOUBLE)
-                    .withVectorBlockSize(inMemoryStoresProperties.getVectorSize())
+                    .withVectorBlockSize(inMemoryStoresProperties.getStatsVectorSize())
                     .withVectorField("AGGSVC_SIMRETURNS(1Y VS)_MONTECARLO", DOUBLE)
-                    .withVectorBlockSize(inMemoryStoresProperties.getVectorSize())
+                    .withVectorBlockSize(inMemoryStoresProperties.getStatsVectorSize())
                     .withIndexOn(DatastoreConstants.ScaledStatResultStore.Fields.AS_OF_DATE)
                     .withValuePartitioningOn(DatastoreConstants.ScaledStatResultStore.Fields.PARTITION_KEY);
 
@@ -722,9 +722,9 @@ public final class DatastoreConstants {
 
                     // FIXED FIELDS FOR POC
                     .withVectorField(DatastoreConstants.StatResultsStore.Fields.RESULT_VALUES_SUM, DOUBLE)
-                    .withVectorBlockSize(inMemoryStore.getVectorSize())
+                    .withVectorBlockSize(inMemoryStore.getStatsVectorSize())
                     .withVectorField(DatastoreConstants.StatResultsStore.Fields.RESULT_VALUES_PASSTHROUGH, DOUBLE)
-                    .withVectorBlockSize(inMemoryStore.getVectorSize())
+                    .withVectorBlockSize(inMemoryStore.getStatsVectorSize())
                     .updateOnlyIfDifferent()
 
                     // hash partitioning will create 1 partition per core for even distribution
@@ -785,7 +785,7 @@ public final class DatastoreConstants {
 
                     // FIXED FIELDS FOR POC
                     .withVectorField(DatastoreConstants.SecurityStore.Fields.VECTOR, DOUBLE)
-                    .withVectorBlockSize(inMemoryStore.getVectorSize())
+                    .withVectorBlockSize(inMemoryStore.getSimVectorSize())
                     .withIndexOn(DatastoreConstants.SimReturnsStore.Fields.SECURITY_NAME)
                     .updateOnlyIfDifferent()
                     .withModuloPartitioning(partitionCount(), DatastoreConstants.SimReturnsStore.Fields.SECURITY_NAME);
@@ -926,7 +926,7 @@ public final class DatastoreConstants {
                     .asKeyField()
                     // FIXED FOR POC
                     .withVectorField(DatastoreConstants.FxEquivalentsStore.Fields.DELTA_EQUIVALENTS, DOUBLE)
-                    .withVectorBlockSize(inMemoryStore.getVectorSize())
+                    .withVectorBlockSize(inMemoryStore.getStatsVectorSize())
                     .withIndexOn(DatastoreConstants.FxEquivalentsStore.Fields.SECURITY_NAME)
                     .updateOnlyIfDifferent()
                     .withModuloPartitioning(

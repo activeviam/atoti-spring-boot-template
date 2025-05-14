@@ -27,6 +27,7 @@
 
     <spotless-maven-plugin.version>2.44.4</spotless-maven-plugin.version>
     <palantir-java-format.version>2.63.0</palantir-java-format.version>
+    <clickhouse-jdbc.version>0.8.5</clickhouse-jdbc.version>
   </properties>
 
   <dependencyManagement>
@@ -77,6 +78,19 @@
       <groupId>com.activeviam.io</groupId>
       <artifactId>data-load-controller</artifactId>
       <version>${dlc.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.activeviam.source</groupId>
+      <artifactId>jdbc-source</artifactId>
+      <version>${atoti-server.version}</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/com.clickhouse/clickhouse-jdbc -->
+    <dependency>
+      <groupId>com.clickhouse</groupId>
+      <artifactId>clickhouse-jdbc</artifactId>
+      <version>${clickhouse-jdbc.version}</version>
     </dependency>
 
     <!-- OpenTelemetry -->

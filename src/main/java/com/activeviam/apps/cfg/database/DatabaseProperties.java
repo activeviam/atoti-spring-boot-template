@@ -31,6 +31,7 @@ public class DatabaseProperties {
     public static class InMemoryStoresProperties {
         private boolean partitionAsOfDate = true;
 
-        private int vectorSize = 3;
+        private int statsVectorSize = 3;
+        private int simVectorSize = 1000;
     }
 }

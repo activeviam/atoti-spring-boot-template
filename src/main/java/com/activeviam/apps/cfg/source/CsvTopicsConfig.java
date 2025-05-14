@@ -99,12 +99,12 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String POSITION_DELTA_FILE_PATTERN = "glob:PositionDelta.csv";
+    public static final String POSITION_DETAIL_FILE_PATTERN = "glob:PositionDetail.csv";
 
     @Bean
-    CsvTopicDescription positionDeltaTopic() {
+    CsvTopicDescription positionDetailTopic() {
         return CsvTopicDescription.builder(
-                        DatastoreConstants.PositionDetailStore.STORE_NAME, POSITION_DELTA_FILE_PATTERN)
+                        DatastoreConstants.PositionDetailStore.STORE_NAME, POSITION_DETAIL_FILE_PATTERN)
                 .build();
     }
 
@@ -152,11 +152,11 @@ public class CsvTopicsConfig {
                 .build();
     }
 
-    public static final String CURRENCIES_FILE_PATTERN = "glob:Currencies.csv";
+    public static final String CURRENCY_FILE_PATTERN = "glob:Currency.csv";
 
     @Bean
-    CsvTopicDescription currenciesTopic() {
-        return CsvTopicDescription.builder(DatastoreConstants.CurrencyStore.STORE_NAME, CURRENCIES_FILE_PATTERN)
+    CsvTopicDescription currencyTopic() {
+        return CsvTopicDescription.builder(DatastoreConstants.CurrencyStore.STORE_NAME, CURRENCY_FILE_PATTERN)
                 .build();
     }
 
