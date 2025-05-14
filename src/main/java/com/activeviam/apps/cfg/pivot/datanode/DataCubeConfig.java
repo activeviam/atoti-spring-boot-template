@@ -37,18 +37,11 @@ public class DataCubeConfig {
             Dimensions dimensions,
             Measures calculations,
             DatabaseProperties databaseProperties,
-            CobDatesProperties cobDatesProperties,
             @Autowired(required = false) DistributionProperties distributionProperties) {
+
+        var isInMemory = databaseProperties.isDatastoreType();
         var builder =
                 StartBuilding.cube(CUBE_NAME).withCalculations(calculations).withDimensions(dimensions);
-        // We use data duplication instead of filters
-        //        var cobDatesFilterCondition = databaseProperties.isDatastoreType()
-        //                ? cobDatesProperties.inMemoryDatesFilterCondition()
-        //                : cobDatesProperties.directQueryDatesFilterCondition();
-        //        log.info("Applying cobDate filter condition to data node: {}", cobDatesFilterCondition);
-        //        if (Objects.nonNull(cobDatesFilterCondition)) {
-        //            builder = builder.withFactFilter(cobDatesFilterCondition);
-        //        }
         builder = builder.withAggregateProvider()
                 .jit()
                 // Shared context values
@@ -63,7 +56,7 @@ public class DataCubeConfig {
 
         if (distributionProperties != null) {
             // In memory node has the highest priority (0)
-            var overlapPriority = databaseProperties.isDatastoreType() ? 0 : Integer.MAX_VALUE;
+            var overlapPriority = isInMemory ? 0 : Integer.MAX_VALUE;
             return builder.asDataCube()
                     .withClusterDefinition()
                     .withClusterId(distributionProperties.getClusterId())

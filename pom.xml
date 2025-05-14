@@ -84,6 +84,13 @@
       <version>16.1.0</version>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/org.jgroups.kubernetes/jgroups-kubernetes -->
+    <dependency>
+      <groupId>org.jgroups.kubernetes</groupId>
+      <artifactId>jgroups-kubernetes</artifactId>
+      <version>2.0.2.Final</version>
+    </dependency>
+
     <dependency>
       <groupId>com.activeviam.io</groupId>
       <artifactId>data-load-controller</artifactId>
