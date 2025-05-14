@@ -3,22 +3,23 @@
 ### Configuration
 
 I'm using logback for the logging, see the configuration here: `src/main/resources/logback-spring.xml`.<br>
-The logs are pushed to the collector thanks to this appender, check the details in the links section:
+The logs are pushed to the collector thanks to the `logback-appender`, check the details in the `application.yml`:
 
-```xml
-  <!-- Appender to send the logs to OpenTelemetry -->
-<appender name="OpenTelemetry"
-          class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
-  <captureExperimentalAttributes>true</captureExperimentalAttributes>
-  <captureCodeAttributes>true</captureCodeAttributes>
-  <captureMarkerAttribute>true</captureMarkerAttribute>
-  <captureMdcAttributes>*</captureMdcAttributes>
-</appender>
+```yaml
+  instrumentation:
+    logback-appender:
+      experimental:
+        capture-marker-attribute: true
+        capture-key-value-pair-attributes: true
+        capture-code-attributes: true
+        capture-logger-context-attributes: true
+        capture-mdc-attributes: "*"
+      experimental-log-attributes: true
 ```
 
 ### How to observe
 
-I export the logs from the collector to Loki, this is how we can query them, make sure you select the right `job`, this
+I export the logs from the collector to Loki, this is how we can query them, make sure you select the right `service_name`, this
 is the `service.name` we used in the `application.yml`:
 
 ```yaml
