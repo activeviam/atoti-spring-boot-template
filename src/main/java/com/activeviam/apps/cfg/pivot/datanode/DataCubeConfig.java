@@ -56,7 +56,7 @@ public class DataCubeConfig {
 
         if (distributionProperties != null) {
             // In memory node has the highest priority (0)
-            var overlapPriority = isInMemory ? 0 : Integer.MAX_VALUE;
+            var overlapPriority = isInMemory ? 1 : Integer.MAX_VALUE;
             return builder.asDataCube()
                     .withClusterDefinition()
                     .withClusterId(distributionProperties.getClusterId())

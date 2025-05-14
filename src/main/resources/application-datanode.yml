@@ -1,7 +1,7 @@
 distribution:
   type: data
   cluster-id: atoti-cluster
-  protocol-path: jgroups-protocols/protocol-tcp-gossip.xml
+  protocol-path: jgroups-protocols/protocol-tcp-file-ping.xml
 cob-dates:
   in-memory-dates:
     - 2025-03-03
