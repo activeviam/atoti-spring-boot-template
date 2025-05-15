@@ -23,6 +23,8 @@ import com.activeviam.apps.cfg.pivot.distribution.DistributionProperties;
 
 public class QueryCubeConfig {
 
+    public static final LevelIdentifier DISTRIBUTING_LEVEL = LevelIdentifier.simple(COB_DATE);
+
     @Bean
     public IDistributedActivePivotInstanceDescription activePivotInstanceDescription(
             DistributionProperties distributionProperties) {
@@ -36,7 +38,7 @@ public class QueryCubeConfig {
                 .withProtocolPath(distributionProperties.getProtocolPath())
                 .end()
                 .withApplication(APPLICATION_NAME)
-                .withDistributingLevels(LevelIdentifier.simple(COB_DATE))
+                .withDistributingLevels(DISTRIBUTING_LEVEL)
                 .withProperty(
                         IQueryClusterDefinition.HORIZONTAL_DATA_DUPLICATION_PROPERTY,
                         Boolean.toString(true)) // enable data node duplication

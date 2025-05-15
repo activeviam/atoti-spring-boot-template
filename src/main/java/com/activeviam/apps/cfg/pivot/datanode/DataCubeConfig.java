@@ -6,12 +6,16 @@
  */
 package com.activeviam.apps.cfg.pivot.datanode;
 
+import static com.activeviam.apps.cfg.pivot.querynode.QueryCubeConfig.DISTRIBUTING_LEVEL;
 import static com.activeviam.apps.constants.CubeConstants.APPLICATION_NAME;
 import static com.activeviam.apps.constants.CubeConstants.CUBE_NAME;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
@@ -32,21 +36,35 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DataCubeConfig {
 
+    public static String DATASTORE_NODE_IDENTIFIER = "datastoreDataNode";
+    public static String DIRECT_QUERY_NODE_IDENTIFIER = "directQueryDataNode";
+
     @Bean
     public IActivePivotInstanceDescription activePivotInstanceDescription(
             Dimensions dimensions,
             Measures calculations,
             DatabaseProperties databaseProperties,
-            @Autowired(required = false) DistributionProperties distributionProperties) {
+            CobDatesProperties cobDatesProperties,
+            @Autowired(required = false) DistributionProperties distributionProperties,
+            @Value("${server.port}") int serverPort) {
 
         var isInMemory = databaseProperties.isDatastoreType();
         var builder =
                 StartBuilding.cube(CUBE_NAME).withCalculations(calculations).withDimensions(dimensions);
-        builder = builder.withAggregateProvider()
-                .jit()
-                // Shared context values
-                // Query maximum execution time (before timeout cancellation): 30s
-                .withSharedContextValue(QueriesTimeLimit.of(30, TimeUnit.SECONDS))
+
+        if (isInMemory) {
+            builder = builder.withAggregateProvider().leaf();
+        } else {
+            builder = builder.withAggregateProvider()
+                    .jit()
+                    .withPartialProvider()
+                    .leaf()
+                    .includingOnlyLevels(DISTRIBUTING_LEVEL)
+                    .filteredOn(Map.of(DISTRIBUTING_LEVEL, List.of(cobDatesProperties.computeEndOfMonthDates())));
+        }
+        // Shared context values
+        // Query maximum execution time (before timeout cancellation): 30s
+        builder = builder.withSharedContextValue(QueriesTimeLimit.of(30, TimeUnit.SECONDS))
                 .withSharedMdxContext()
                 .aggressiveFormulaEvaluation(true)
                 .end()
@@ -67,6 +85,9 @@ public class DataCubeConfig {
                     .end()
                     .withProtocolPath(distributionProperties.getProtocolPath())
                     .end()
+                    .withCubeIdentifierInCluster(isInMemory ? DATASTORE_NODE_IDENTIFIER : DIRECT_QUERY_NODE_IDENTIFIER)
+                    .withPort(serverPort)
+                    .withAddress("localhost")
                     .withApplicationId(APPLICATION_NAME)
                     .withAllHierarchies()
                     .withAllMeasures()
