@@ -6,6 +6,10 @@
  */
 package com.activeviam.apps.cfg.database.directquery.datamodel;
 
+import static com.activeviam.apps.constants.FieldConstants.AS_OF_DATE;
+import static com.activeviam.apps.constants.FieldConstants.HOLDING_ID;
+import static com.activeviam.apps.constants.FieldConstants.PORTFOLIO;
+
 import java.util.Set;
 
 import org.springframework.context.annotation.Bean;
@@ -22,6 +26,13 @@ import com.activeviam.directquery.api.schema.TableDescription;
 import com.activeviam.directquery.clickhouse.api.ClickhouseTableId;
 
 public class TableDefinitionsConfig implements AggUpTableFactory {
+
+    public static final String SCALED_VECTORS_TABLE = "ScaledVectorsView";
+
+    public static final String SCALED_VECTORS_TO_HOLDING = "ScaledVectorsToHolding";
+
+    public static final String MTM_VECTOR = "MtMVector";
+
     private final IDirectQueryTableDiscoverer directQueryTableDiscoverer;
 
     private final ClickHouseConfigurationProperties clickHouseConfigurationProperties;
@@ -39,6 +50,11 @@ public class TableDefinitionsConfig implements AggUpTableFactory {
         directQueryTableDiscoverer = directQueryConnector.getDiscoverer();
         this.clickHouseConfigurationProperties = clickHouseConfigurationProperties;
         this.databaseProperties = databaseProperties;
+    }
+
+    @Bean
+    public TableDescription scaledVectorsTable() {
+        return directQueryTableDiscoverer.discoverTable(tableId(SCALED_VECTORS_TABLE));
     }
 
     @Override
@@ -151,6 +167,19 @@ public class TableDefinitionsConfig implements AggUpTableFactory {
     @Override
     public IStoreDescription equityFuturesLookThroughSecurityStore() {
         return DatastoreConstants.EquityFuturesLookThroughSecurityStore.storeDescription();
+    }
+
+    @Bean
+    public JoinDescription scaledVectorsToHoldingJoin() {
+        return JoinDescription.builder()
+                .sourceTableName(SCALED_VECTORS_TABLE)
+                .targetTableName(DatastoreConstants.HoldingStore.STORE_NAME)
+                .name(SCALED_VECTORS_TO_HOLDING)
+                .fieldMappings(Set.of(
+                        new ITableJoin.FieldMapping(HOLDING_ID, DatastoreConstants.HoldingStore.Fields.HOLDING_ID),
+                        new ITableJoin.FieldMapping(AS_OF_DATE, DatastoreConstants.HoldingStore.Fields.AS_OF_DATE),
+                        new ITableJoin.FieldMapping(PORTFOLIO, DatastoreConstants.HoldingStore.Fields.PORTFOLIO)))
+                .build();
     }
 
     @Override

@@ -35,6 +35,8 @@ public final class DatastoreConstants {
     public static final String SECURITY_NAME = "SecurityName";
     public static final String STAT_NAME = "StatName";
 
+    public static final String NO_MASK = "NoMask";
+
     public static final Set<String> STORES_WITH_AS_OF_DATE = Set.of(
             HoldingStore.STORE_NAME,
             HoldingDetailStore.STORE_NAME,
@@ -776,7 +778,7 @@ public final class DatastoreConstants {
                     .withStoreName(DatastoreConstants.SimReturnsStore.STORE_NAME)
                     .withField(DatastoreConstants.SimReturnsStore.Fields.SECURITY_NAME, STRING)
                     .asKeyField()
-                    .withNullableField(DatastoreConstants.SimReturnsStore.Fields.ENGINE_MASK, STRING)
+                    .withField(DatastoreConstants.SimReturnsStore.Fields.ENGINE_MASK, STRING, NO_MASK)
                     .asKeyField()
                     .withField(DatastoreConstants.SimReturnsStore.Fields.STAT_NAME, STRING)
                     .asKeyField()

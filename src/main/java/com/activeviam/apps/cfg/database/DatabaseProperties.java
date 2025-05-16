@@ -23,6 +23,10 @@ public class DatabaseProperties {
         return Objects.isNull(type) || DATABASE_TYPE_DATASTORE.equals(type);
     }
 
+    public boolean isDirectQueryType() {
+        return !isDatastoreType();
+    }
+
     public boolean isMSSQLType() {
         return Objects.nonNull(type) && DATABASE_TYPE_CLICKHOUSE.equals(type);
     }

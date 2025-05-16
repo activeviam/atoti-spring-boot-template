@@ -49,8 +49,7 @@ public class DlcConfig {
                         DatastoreConstants.DimensionLevelAttributeStore.STORE_NAME,
                         DatastoreConstants.FundLookThroughSecurityStore.STORE_NAME,
                         DatastoreConstants.EquityLookThroughSecurityStore.STORE_NAME,
-                        DatastoreConstants.EquityFuturesLookThroughSecurityStore.STORE_NAME
-                        ),
+                        DatastoreConstants.EquityFuturesLookThroughSecurityStore.STORE_NAME),
                 DQ_IN_MEMORY_TOPICS,
                 Set.of(
                         DatastoreConstants.SimReturnsStore.STORE_NAME,

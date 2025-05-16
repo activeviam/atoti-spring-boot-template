@@ -11,7 +11,6 @@ database:
   type: datastore
   in-memory-stores:
     partition-as-of-date: true
-    vector-size: 3
 dlc:
   csv:
     local:

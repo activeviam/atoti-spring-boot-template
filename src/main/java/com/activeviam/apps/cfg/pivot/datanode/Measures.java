@@ -6,13 +6,18 @@
  */
 package com.activeviam.apps.cfg.pivot.datanode;
 
+import static com.activeviam.apps.cfg.database.directquery.datamodel.TableDefinitionsConfig.MTM_VECTOR;
+import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.AS_OF_DATE_LEVEL;
+import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.ENGINE_MASK_LEVEL;
 import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.SECURITY_LEVEL;
+import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.STAT_NAME_LEVEL;
 import static com.activeviam.apps.constants.CubeConstants.INT_FORMATTER;
 import static com.activeviam.apps.constants.CubeConstants.NATIVE_MEASURES;
 import static com.activeviam.apps.constants.CubeConstants.TIMESTAMP_FORMATTER;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import com.activeviam.activepivot.copper.api.Copper;
@@ -20,13 +25,16 @@ import com.activeviam.activepivot.copper.api.CopperMeasure;
 import com.activeviam.activepivot.core.intf.api.copper.CopperLevel;
 import com.activeviam.activepivot.core.intf.api.copper.ICopperContext;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
+import com.activeviam.apps.cfg.database.DatabaseProperties;
 import com.activeviam.apps.cfg.database.datastore.DatastoreConstants;
 import com.activeviam.database.api.types.ILiteralType;
 
 public class Measures implements Consumer<ICopperContext> {
     private final List<CopperMeasure> copperMeasures = new ArrayList<>();
 
-    public Measures() {
+    public static final String LOOKUP_MTM = "LOOKUP_MTM";
+
+    public Measures(DatabaseProperties databaseProperties) {
         addMeasures(
                 Copper.count().withAlias("Count").withFormatter(INT_FORMATTER).withinFolder(NATIVE_MEASURES),
                 Copper.timestamp()
@@ -42,12 +50,9 @@ public class Measures implements Consumer<ICopperContext> {
                 .doNotAggregateAbove()
                 .as("Amount");
         addMeasures(values, amount);
-        var scaledVector = scaleVector(amount, values)
-                .per(identifierToLevel(SECURITY_LEVEL))
-                .sum()
-                .as("Scaled Vector");
-        addMeasures(scaledVector);
-        addMeasures(valueAtRisk(scaledVector, Copper.constant(95.0)).as("VaR 95"));
+        var scaledMtM = (databaseProperties.isDirectQueryType() ? preCalculatedScaledMtM() : lookupScaledMtM(amount))
+                .as("Scaled MtM");
+        addMeasures(scaledMtM, valueAtRisk(scaledMtM, Copper.constant(95.0)).as("VaR 95"));
     }
 
     private void addMeasures(CopperMeasure... measure) {
@@ -63,8 +68,49 @@ public class Measures implements Consumer<ICopperContext> {
         return Copper.level(identifier.getDimensionName(), identifier.getHierarchyName(), identifier.getLevelName());
     }
 
-    public static CopperMeasure scaleVector(CopperMeasure scalingFactorMeasure, CopperMeasure vectorMeasure) {
-        return Copper.combine(scalingFactorMeasure, vectorMeasure)
+    public static CopperMeasure preCalculatedScaledMtM() {
+        return Copper.sum(MTM_VECTOR);
+    }
+
+    public static CopperMeasure scaledMtM(
+            CopperMeasure amountMeasure, CopperMeasure vectorMeasure, boolean isPrecalculated) {
+        return Copper.combine(amountMeasure, vectorMeasure)
+                .map(
+                        (reader, writer) -> {
+                            if (reader.isNull(0)
+                                    || reader.isNull(1)
+                                    || reader.readVector(1).size() == 0) {
+                                writer.writeNull();
+                            } else {
+                                var scalingFactor = reader.readDouble(0);
+                                var vector = reader.readVector(1);
+                                if (isPrecalculated) {
+                                    writer.write(vector);
+                                } else {
+                                    var scaledVector = vector.cloneOnHeap();
+                                    scaledVector.scale(scalingFactor);
+                                    writer.write(scaledVector);
+                                }
+                            }
+                        },
+                        ILiteralType.DOUBLE_ARRAY)
+                .per(Copper.level(SECURITY_LEVEL))
+                .sum();
+    }
+
+    public static CopperMeasure lookupScaledMtM(CopperMeasure scalingFactorMeasure) {
+        var lookupMtM = Copper.storeLookup(DatastoreConstants.SimReturnsStore.STORE_NAME)
+                .withMapping(
+                        Map.of(DatastoreConstants.SimReturnsStore.Fields.AS_OF_DATE,
+                        Copper.member(Copper.level(AS_OF_DATE_LEVEL)),
+                        DatastoreConstants.SimReturnsStore.Fields.SECURITY_NAME,
+                        Copper.member(Copper.level(SECURITY_LEVEL)),
+                        DatastoreConstants.SimReturnsStore.Fields.STAT_NAME,
+                        Copper.member(Copper.level(STAT_NAME_LEVEL)),
+                        DatastoreConstants.SimReturnsStore.Fields.ENGINE_MASK,
+                        Copper.member(Copper.level(ENGINE_MASK_LEVEL))))
+                .valueOf(DatastoreConstants.SimReturnsStore.Fields.VECTOR);
+        return Copper.combine(scalingFactorMeasure, lookupMtM)
                 .map(
                         (reader, writer) -> {
                             if (reader.isNull(0)
@@ -79,7 +125,13 @@ public class Measures implements Consumer<ICopperContext> {
                                 writer.write(scaledVector);
                             }
                         },
-                        ILiteralType.DOUBLE_ARRAY);
+                        ILiteralType.DOUBLE_ARRAY)
+                .per(
+                        Copper.level(SECURITY_LEVEL),
+                        Copper.level(STAT_NAME_LEVEL),
+                        Copper.level(ENGINE_MASK_LEVEL),
+                        Copper.level(AS_OF_DATE_LEVEL))
+                .sum();
     }
 
     public static CopperMeasure valueAtRisk(CopperMeasure vectorMeasure, CopperMeasure confidenceLevelMeasure) {

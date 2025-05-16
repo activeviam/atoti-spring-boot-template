@@ -4,5 +4,4 @@ distribution:
   protocol-path: jgroups-protocols/protocol-tcp-gossip.xml
 as-of-date:
   in-memory-dates:
-    - 2025-03-03
-    - 2025-03-02
+    - 2024-09-02

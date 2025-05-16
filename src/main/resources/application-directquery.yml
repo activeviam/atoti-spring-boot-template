@@ -9,7 +9,6 @@ database:
   type: clickhouse
   in-memory-stores:
     partition-as-of-date: true
-    vector-size: 3
   clickhouse:
     host: localhost
     port: 8123

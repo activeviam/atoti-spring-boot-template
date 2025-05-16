@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.impl.api.contextvalues.QueriesTimeLimit;
@@ -27,10 +26,19 @@ import com.activeviam.apps.cfg.pivot.distribution.DistributionProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Import({Measures.class, Dimensions.class})
 @RequiredArgsConstructor
 @Slf4j
 public class DataCubeConfig {
+
+    @Bean
+    public Measures measures(DatabaseProperties databaseProperties) {
+        return new Measures(databaseProperties);
+    }
+
+    @Bean
+    public Dimensions dimensions(DatabaseProperties databaseProperties) {
+        return new Dimensions(databaseProperties);
+    }
 
     @Bean
     public IActivePivotInstanceDescription activePivotInstanceDescription(
@@ -55,7 +63,7 @@ public class DataCubeConfig {
 
         if (distributionProperties != null) {
             // In memory data nodes have the highest priority
-            var overlapPriority = databaseProperties.getType().equals(DATABASE_TYPE_DATASTORE) ? 0 : Integer.MAX_VALUE;
+            var overlapPriority = databaseProperties.getType().equals(DATABASE_TYPE_DATASTORE) ? 1 : Integer.MAX_VALUE;
             return builder.asDataCube()
                     .withClusterDefinition()
                     .withClusterId(distributionProperties.getClusterId())
