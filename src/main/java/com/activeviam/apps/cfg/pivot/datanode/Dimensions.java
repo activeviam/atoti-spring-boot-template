@@ -65,19 +65,8 @@ public class Dimensions implements ICanStartBuildingDimensions.DimensionsAdder {
                     .slicing()
                     .withLevelOfSameName();
         } else {
-            // With in memory, stat name is in an isolated store
-            return partialBuilder
-                    .withDimension(STATS_DIMENSION)
-                    .withHierarchy(DatastoreConstants.STAT_NAME)
-                    .slicing()
-                    .fromStore(DatastoreConstants.SimReturnsStore.STORE_NAME)
-                    .withLevel(DatastoreConstants.SimReturnsStore.Fields.STAT_NAME)
-                    .withFieldName(DatastoreConstants.SimReturnsStore.Fields.STAT_NAME)
-                    .withHierarchy(DatastoreConstants.SimReturnsStore.Fields.ENGINE_MASK)
-                    .slicing()
-                    .fromStore(DatastoreConstants.SimReturnsStore.STORE_NAME)
-                    .withLevel(DatastoreConstants.SimReturnsStore.Fields.ENGINE_MASK)
-                    .withFieldName(DatastoreConstants.SimReturnsStore.Fields.ENGINE_MASK);
+            // With in memory, stat name is in an isolated store, we use copper join
+            return partialBuilder;
         }
     }
 }
