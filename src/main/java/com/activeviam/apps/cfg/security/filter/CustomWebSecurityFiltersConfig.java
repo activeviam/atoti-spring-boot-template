@@ -7,6 +7,7 @@
 package com.activeviam.apps.cfg.security.filter;
 
 import static com.activeviam.apps.constants.SecurityConstants.ROLE_TECH;
+import static com.activeviam.springboot.atoti.server.starter.api.AtotiSecurityProperties.ROLE_ADMIN;
 import static com.activeviam.springboot.atoti.server.starter.api.AtotiSecurityProperties.ROLE_USER;
 import static com.activeviam.web.core.api.IUrlBuilder.url;
 
@@ -69,7 +70,7 @@ public class CustomWebSecurityFiltersConfig {
                         StringUtils.defaultIfBlank(
                                 swaggerUiConfigProperties.getPath(), Constants.DEFAULT_SWAGGER_UI_PATH),
                         Constants.SWAGGER_UI_PREFIX + Constants.ALL_PATTERN)
-                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> auth.anyRequest().hasAnyAuthority(ROLE_ADMIN))
                 .build();
     }
 

@@ -10,6 +10,7 @@ import static com.activeviam.apps.rest.EndpointConstants.CUSTOM_REST_PATH;
 
 import java.time.LocalDate;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.activeviam.apps.annotations.ConditionalOnQueryNode;
 import com.activeviam.apps.cfg.pivot.querynode.RolloverService;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -39,6 +41,11 @@ public class CobDateRolloverController {
     @PostMapping("/{rolloverDate}")
     public String rollOver(@PathVariable LocalDate rolloverDate) {
         rolloverService.rolloverDates(rolloverDate);
+        return "ok";
+    }
+
+    @GetMapping
+    public String load() {
         return "ok";
     }
 }
