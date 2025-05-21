@@ -10,7 +10,6 @@ import static com.activeviam.springboot.atoti.server.starter.api.AtotiSecurityPr
 import static com.activeviam.springboot.atoti.server.starter.api.AtotiSecurityProperties.ROLE_USER;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
 import com.activeviam.web.spring.api.security.IAtotiServerFilters;
@@ -19,16 +18,20 @@ import com.activeviam.web.spring.api.security.dsl.AtotiServerMachineDsl;
 import com.activeviam.web.spring.api.security.dsl.HumanToMachineSecurityDsl;
 import com.activeviam.web.spring.api.security.dsl.MachineToMachineSecurityDsl;
 
-@Configuration
+// @Configuration
 public class NoAuthDslConfiguration {
+
+    private static void authenticateAnonymous(HttpSecurity http) throws Exception {
+        http.anonymous(httpSecurityAnonymousConfigurer ->
+                httpSecurityAnonymousConfigurer.principal("admin").authorities(ROLE_USER, ROLE_ADMIN));
+    }
 
     @Bean
     public MachineToMachineSecurityDsl noAuthMachineToMachineSecurityDsl(IAtotiServerFilters filters) {
         return new AtotiServerMachineDsl(filters) {
             @Override
             protected void configureAuthentication(HttpSecurity http) throws Exception {
-                // do nothing
-                http.anonymous(httpSecurityAnonymousConfigurer -> httpSecurityAnonymousConfigurer.principal("anonymous").authorities(ROLE_USER,ROLE_ADMIN));
+                authenticateAnonymous(http);
             }
         };
     }
@@ -39,7 +42,7 @@ public class NoAuthDslConfiguration {
             @Override
             protected void configureLoginAccess(HttpSecurity http) throws Exception {
                 // do nothing
-                http.anonymous(httpSecurityAnonymousConfigurer -> httpSecurityAnonymousConfigurer.principal("anonymous").authorities(ROLE_USER,ROLE_ADMIN));
+                authenticateAnonymous(http);
             }
         };
     }

@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.activeviam.apps.annotations.ConditionalOnQueryNode;
 import com.activeviam.apps.cfg.pivot.querynode.RolloverService;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RestController
