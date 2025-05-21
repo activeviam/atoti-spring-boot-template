@@ -7,7 +7,9 @@
 package com.activeviam.apps.query;
 
 import static com.activeviam.activepivot.server.json.api.dataexport.IJsonOutputConfiguration.FORMAT_PROPERTY;
+import static com.activeviam.apps.query.conditions.FilterExpressionConditionVisitor.parseFilterExpression;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,12 +19,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import com.activeviam.activepivot.core.impl.api.contextvalues.subcube.CubeFilter;
+import com.activeviam.activepivot.core.intf.api.contextvalues.subcube.ICubeFilter;
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.HierarchyIdentifier;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
@@ -30,14 +32,13 @@ import com.activeviam.activepivot.server.intf.api.dataexport.IDataExportService;
 import com.activeviam.activepivot.server.json.api.dataexport.JsonCsvPivotTableOutputConfiguration;
 import com.activeviam.activepivot.server.json.api.dataexport.JsonDataExportOrder;
 import com.activeviam.activepivot.server.json.api.query.JsonMdxQuery;
-import com.activeviam.apps.query.condition.LogicalCondition;
-import com.activeviam.apps.query.condition.QueryConditionVisitor;
-import com.activeviam.apps.query.grammar.QueryConditionLexer;
-import com.activeviam.apps.query.grammar.QueryConditionParser;
+import com.activeviam.apps.query.conditions.AndCondition;
+import com.activeviam.apps.query.conditions.OrCondition;
 
 @Service
 public class CubeQueryService {
 
+    private final IActivePivotManager activePivotManager;
     private final Map<String, Set<HierarchyIdentifier>> slicingHierarchiesByCube = new HashMap<>();
     private final IDataExportService dataExportService;
     private final Map<String, Set<LevelIdentifier>> dateLevelsForFiltering = new HashMap<>();
@@ -48,14 +49,7 @@ public class CubeQueryService {
             IActivePivotManager activePivotManager,
             CubeQueryProperties cubeQueryProperties) {
         this.dataExportService = dataExportService;
-        activePivotManager.getActivePivots().forEach((cube, pivot) -> {
-            var slicing = pivot.getDescription().getAxisDimensions().getValues().stream()
-                    .flatMap(dimension -> dimension.getHierarchies().stream())
-                    .filter(hierarchy -> !hierarchy.isAllMembersEnabled())
-                    .map(hierarchy -> HierarchyIdentifier.simple(hierarchy.getName()))
-                    .collect(Collectors.toSet());
-            slicingHierarchiesByCube.put(cube, slicing);
-        });
+        this.activePivotManager = activePivotManager;
         cubeQueryProperties.getCubeDefaults().forEach((cube, defaults) -> {
             var levelConverter = new SingleDimensionLevelsConverter(defaults.getDefaultDimension());
             levelsConverters.put(cube, levelConverter);
@@ -65,15 +59,6 @@ public class CubeQueryService {
                             .map(levelConverter::stringToLevelIdentifier)
                             .collect(Collectors.toSet()));
         });
-    }
-
-    public static LogicalCondition parseQueryFilter(String query) {
-        var lexer = new QueryConditionLexer(CharStreams.fromString(query));
-        var tokens = new CommonTokenStream(lexer);
-        var parser = new QueryConditionParser(tokens);
-        var context = parser.input();
-        var visitor = new QueryConditionVisitor();
-        return visitor.visitInput(context);
     }
 
     public StreamingResponseBody runQuery(String cube, CubeQueryDTO dto) {
@@ -165,47 +150,96 @@ public class CubeQueryService {
             query.append(System.lineSeparator());
         }
 
-        var filterMdx = parseFilterAndGetMdx(cubeQuery.getFilter(), cube);
         // Filters
-        //        var filters = cubeQuery.getFilters().stream()
-        //                .filter(filter -> isNotDateFilter(filter, cube))
-        //                .toList();
-        //        var dateFilters = cubeQuery.getFilters().stream()
-        //                .filter(filter -> isDateFilter(filter, cube))
-        //                .toList();
-        //        if (!ObjectUtils.isEmpty(filters)) {
-        //            // Top count
-        //            if (!ObjectUtils.isEmpty(cubeQuery.getTopCounts()) && !ObjectUtils.isEmpty(levels)) {
-        //                query.append(topCountToMdx(cubeQuery.getTopCounts()));
-        //                query.append(System.lineSeparator());
-        //            }
-        //            // Other filters
-        //            filters.forEach(filter -> {
-        //                query.append(filterToMdx(filter));
-        //                query.append(System.lineSeparator());
-        //            });
-        //            // From Cube
-        //            query.append(fromCubeWithDateFilterMdx(cube, dateFilters));
-        //            query.append(System.lineSeparator());
-        //            // FIXME: where do wen open this?
-        //            query.append(")");
-        //        } else {
-        //            // FROM CUBE
-        //            query.append(fromCubeWithDateFilterMdx(cube, dateFilters));
-        //        }
+        var allFilters = cubeQuery.getFilters();
+        var otherFilters = cubeQuery.getFilters().stream()
+                .filter(filter -> isNotDateFilter(filter, cube))
+                .toList();
+        var dateFilters = cubeQuery.getFilters().stream()
+                .filter(filter -> isDateFilter(filter, cube))
+                .toList();
+        var dateLevels = cubeQuery.getLevels().stream()
+                .filter(l -> dateLevelsForFiltering.get(cube).contains(l))
+                .toList();
+
+        if (!ObjectUtils.isEmpty(otherFilters)) {
+            // Top count
+            if (!ObjectUtils.isEmpty(cubeQuery.getTopCounts()) && !ObjectUtils.isEmpty(levels)) {
+                query.append(topCountToMdx(cubeQuery.getTopCounts()));
+                query.append(System.lineSeparator());
+            }
+            // all filters are the same
+            if (!dateLevels.isEmpty()) {
+                addSubSelectFilters(query, cube, allFilters, Collections.emptyList());
+            } else {
+                // Add WHERE as of date to every sub select
+                addSubSelectFilters(query, cube, otherFilters, dateFilters);
+            }
+        } else {
+            // FROM CUBE
+            query.append(fromCubeWithDateFilterMdx(cube, dateFilters));
+        }
         return query.toString();
+    }
+
+    private static void addSubSelectFilters(
+            StringBuilder query, String cube, List<CubeQuery.Filter> allFilters, List<CubeQuery.Filter> dateFilters) {
+        allFilters.forEach(filter -> {
+            query.append(filterToMdx(filter));
+            query.append(System.lineSeparator());
+            dateFilters.stream().findFirst().ifPresent(dateFilter -> {
+                query.append(fromCube(cube));
+                query.append(System.lineSeparator());
+                query.append(whereDateFilterMdx(dateFilter));
+            });
+            query.append(System.lineSeparator());
+        });
+        // Close the subselects
+        allFilters.forEach(filter -> query.append(")"));
+    }
+
+    private static String fromCube(String cube) {
+        return String.format("FROM [%s]", cube);
+    }
+
+    private static String whereDateFilterMdx(CubeQuery.Filter filter) {
+        return String.format(
+                "WHERE [%s].[%s].[%s].[%s]",
+                filter.level().getDimensionName(),
+                filter.level().getHierarchyName(),
+                filter.level().getLevelName(),
+                filter.values().getFirst());
     }
 
     private String fromCubeWithDateFilterMdx(String cube, List<CubeQuery.Filter> dateFilters) {
         var fromCube = new StringBuilder();
-        fromCube.append(String.format("FROM [%s]", cube));
         // Date filter
-        dateFilters.stream().findFirst().ifPresent(dateFilter -> fromCube.append(dateFilterToMdx(dateFilter)));
+        dateFilters.stream()
+                .findFirst()
+                .ifPresentOrElse(
+                        dateFilter -> {
+                            fromCube.append("FROM ( SELECT ");
+                            fromCube.append(System.lineSeparator());
+                            fromCube.append(dateFilterToMdx(dateFilter));
+                            fromCube.append(fromCube(cube));
+                            fromCube.append(")");
+                        },
+                        () -> fromCube.append(fromCube(cube)));
         return fromCube.toString();
     }
 
-    private boolean isSlicingHierarchy(String cube, HierarchyIdentifier levelIdentifier) {
-        return slicingHierarchiesByCube.get(cube).contains(levelIdentifier);
+    private boolean isSlicingHierarchy(String cube, HierarchyIdentifier hierarchyIdentifier) {
+        // Cache
+        return slicingHierarchiesByCube
+                .computeIfAbsent(cube, c -> {
+                    var pivot = activePivotManager.getActivePivot(c);
+                    return pivot.getDescription().getAxisDimensions().getValues().stream()
+                            .flatMap(dimension -> dimension.getHierarchies().stream())
+                            .filter(hierarchy -> !hierarchy.isAllMembersEnabled())
+                            .map(hierarchy -> levelsConverters.get(c).stringToHierarchyIdentifier(hierarchy.getName()))
+                            .collect(Collectors.toSet());
+                })
+                .contains(hierarchyIdentifier);
     }
 
     private static Optional<CubeQuery.Sort> levelSorting(
@@ -278,7 +312,7 @@ public class CubeQueryService {
     private static String dateFilterToMdx(CubeQuery.Filter filter) {
         if (filter.values().size() == 1) {
             return String.format(
-                    " WHERE [%s].[%s].[%s].[%s]",
+                    " [%s].[%s].[%s].[%s] ON COLUMNS ",
                     filter.level().getDimensionName(),
                     filter.level().getHierarchyName(),
                     filter.level().getLevelName(),
@@ -357,8 +391,21 @@ public class CubeQueryService {
         return !isDateFilter(filter, cube);
     }
 
-    private String parseFilterAndGetMdx(String filter, String cube) {
-        var condition = parseQueryFilter(filter);
-        return "";
+    // To be implemented
+    private static ICubeFilter parseFilterExpressionAndGetCubeFilter(String filterExpression) {
+        var cubeFilterBuilder = CubeFilter.builder();
+        var filter = parseFilterExpression(filterExpression);
+        if (filter.operator().equals("AND")) {
+            var andCondition = (AndCondition) filter;
+            // collect sub conditions
+        } else if (filter.operator().equals("OR")) {
+            var orFilter = (OrCondition) filter;
+            // collect subconditions
+        } else if (filter.operator().equals("NOT")) {
+            // do something
+        } else if (filter.operator().equals("EQ")) {
+            // do something else
+        }
+        return cubeFilterBuilder.build();
     }
 }

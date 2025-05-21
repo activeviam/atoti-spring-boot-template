@@ -6,9 +6,12 @@
  */
 package com.activeviam.apps.query;
 
+import com.activeviam.activepivot.core.intf.api.cube.metadata.HierarchyIdentifier;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
 
 public interface LevelsConverter {
 
     LevelIdentifier stringToLevelIdentifier(String level);
+
+    HierarchyIdentifier stringToHierarchyIdentifier(String hierarchy);
 }

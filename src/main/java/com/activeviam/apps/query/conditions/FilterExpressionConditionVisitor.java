@@ -4,22 +4,33 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-package com.activeviam.apps.query.condition;
+package com.activeviam.apps.query.conditions;
 
-import static com.activeviam.apps.query.condition.AndCondition.AND;
-import static com.activeviam.apps.query.condition.EqualsCondition.EQ;
-import static com.activeviam.apps.query.condition.OrCondition.OR;
+import static com.activeviam.apps.query.conditions.AndCondition.AND;
+import static com.activeviam.apps.query.conditions.EqualsCondition.EQ;
+import static com.activeviam.apps.query.conditions.OrCondition.OR;
 
 import java.time.LocalDate;
 import java.util.List;
 
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.springframework.stereotype.Component;
 
 import com.activeviam.apps.query.grammar.QueryConditionBaseVisitor;
 import com.activeviam.apps.query.grammar.QueryConditionParser;
 
 @Component
-public class QueryConditionVisitor extends QueryConditionBaseVisitor<LogicalCondition> {
+public class FilterExpressionConditionVisitor extends QueryConditionBaseVisitor<LogicalCondition> {
+
+    public static LogicalCondition parseFilterExpression(String query) {
+        var lexer = new com.activeviam.apps.query.grammar.QueryConditionLexer(CharStreams.fromString(query));
+        var tokens = new CommonTokenStream(lexer);
+        var parser = new QueryConditionParser(tokens);
+        var context = parser.input();
+        var visitor = new FilterExpressionConditionVisitor();
+        return visitor.visitInput(context);
+    }
 
     @Override
     public LogicalCondition visitOperatorQuery(QueryConditionParser.OperatorQueryContext ctx) {

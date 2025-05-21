@@ -4,21 +4,22 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-package com.activeviam.apps.query.condition;
+package com.activeviam.apps.query.conditions;
 
 import java.util.Collection;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class AndCondition implements LogicalCondition {
+@Getter
+public class OrCondition implements LogicalCondition {
 
-    public static final String AND = "AND";
-
+    public static final String OR = "OR";
     private final Collection<LogicalCondition> subConditions;
 
     @Override
     public String operator() {
-        return AND;
+        return OR;
     }
 }

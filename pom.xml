@@ -299,7 +299,7 @@
             <argument>-package</argument>
             <argument>${grammar.package}</argument>
           </arguments>
-          <outputDirectory>${project.build.directory}/generated-sources/antlr4/${grammar.directory}</outputDirectory>
+          <outputDirectory>${project.build.directory}/generated-sources/${grammar.directory}</outputDirectory>
         </configuration>
         <executions>
           <execution>

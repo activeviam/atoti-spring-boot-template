@@ -12,7 +12,6 @@ import java.util.Objects;
 import org.springframework.util.ObjectUtils;
 
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Data;
 
@@ -20,7 +19,10 @@ import lombok.Data;
 public class CubeQuery {
     private final List<Metric> metrics;
     private final List<LevelIdentifier> levels;
-    private final String filter;
+    // Filters only support the AND condition
+    private final List<Filter> filters;
+    // FiltersExpression will replace filters to support OR
+    private final String filtersExpression;
     private final CubeQuery.TopCount topCounts;
     private final List<CubeQuery.Sort> sortBy;
     private final CubeQuery.TopRank topRank;
@@ -91,7 +93,10 @@ public class CubeQuery {
                 dto.getLevels().stream()
                         .map(levelsConverter::stringToLevelIdentifier)
                         .toList(),
-                dto.getFilter(),
+                dto.getFilters().entrySet().stream()
+                        .map(entry -> Filter.fromDTO(entry.getKey(), entry.getValue(), levelsConverter))
+                        .toList(),
+                dto.getFiltersExpression(),
                 TopCount.fromDTO(dto.getTopCounts(), levelsConverter),
                 dto.getSortBy().stream()
                         .map(s -> Sort.fromDTO(s, levelsConverter))

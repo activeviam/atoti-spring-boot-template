@@ -45,10 +45,6 @@ public class DremioJdbcSourceConfig {
     public static final String COUNTERPARTIES_SQL_TOPIC = COUNTERPARTIES_STORE_NAME;
 
     public static final String COB_DATE_SQL_PARSER = "CobDateSqlParser";
-    public static final String TEST_DECIMAL_SQL_PARSER = "TestDecimalSqlParser";
-    public static final String TRADE_ID_INT_DECIMAL_SQL_PARSER = "TradeIdIntDecimalSqlParser";
-    public static final String TRADE_ID_LONG_DECIMAL_SQL_PARSER = "TradeIdLongDecimalSqlParser";
-    public static final String TRADE_ID_LONG_TO_INT_SQL_PARSER = "TradeIdLongtoIntDecimalSqlParser";
 
     public static final String TRADES_SQL_QUERY =
             """

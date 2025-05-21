@@ -6,6 +6,7 @@
  */
 package com.activeviam.apps.query;
 
+import com.activeviam.activepivot.core.intf.api.cube.metadata.HierarchyIdentifier;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
 
 import lombok.RequiredArgsConstructor;
@@ -18,5 +19,10 @@ public class SingleDimensionLevelsConverter implements LevelsConverter {
     @Override
     public LevelIdentifier stringToLevelIdentifier(String level) {
         return new LevelIdentifier(defaultDimension, level, level);
+    }
+
+    @Override
+    public HierarchyIdentifier stringToHierarchyIdentifier(String hierarchy) {
+        return new HierarchyIdentifier(defaultDimension, hierarchy);
     }
 }

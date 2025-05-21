@@ -4,21 +4,20 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-package com.activeviam.apps.query.condition;
+package com.activeviam.apps.query.conditions;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public class EqualsCondition<T> implements LogicalCondition {
-
-    public static final String EQ = "==";
+public class NotEqualsCondition<T> implements LogicalCondition {
+    public static final String NOT_EQ = "!=";
     private final String field;
     private final T value;
 
     @Override
     public String operator() {
-        return EQ;
+        return NOT_EQ;
     }
 }
