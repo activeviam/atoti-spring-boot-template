@@ -6,13 +6,10 @@
  */
 package com.activeviam.apps.cfg.database;
 
-import static com.activeviam.apps.constants.PropertyConstants.COB_DATES_PROPERTIES_PREFIX;
 import static com.activeviam.apps.constants.PropertyConstants.DATABASE_PROPERTIES_PREFIX;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-
-import com.activeviam.apps.cfg.source.CobDatesProperties;
 
 public class DatabaseConfig {
 
@@ -20,11 +17,5 @@ public class DatabaseConfig {
     @Bean
     DatabaseProperties databaseProperties() {
         return new DatabaseProperties();
-    }
-
-    @ConfigurationProperties(prefix = COB_DATES_PROPERTIES_PREFIX)
-    @Bean
-    CobDatesProperties cobDatesProperties() {
-        return new CobDatesProperties();
     }
 }

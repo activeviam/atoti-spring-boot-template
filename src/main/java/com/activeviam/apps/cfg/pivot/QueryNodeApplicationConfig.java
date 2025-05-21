@@ -25,6 +25,7 @@ import com.activeviam.activepivot.server.spring.api.config.IDatastoreConfig;
 import com.activeviam.apps.annotations.ConditionalOnQueryNode;
 import com.activeviam.apps.cfg.pivot.querynode.QueryCubeConfig;
 import com.activeviam.apps.cfg.pivot.querynode.QueryNodeActivePivotManagerConfig;
+import com.activeviam.apps.cfg.pivot.querynode.RolloverService;
 import com.activeviam.database.datastore.api.IDatastore;
 import com.activeviam.database.datastore.api.description.impl.DatastoreSchemaDescription;
 import com.activeviam.tech.core.api.agent.AgentException;
@@ -33,7 +34,7 @@ import com.activeviam.tech.mvcc.api.security.impl.BranchPermissionsManager;
 
 @ConditionalOnQueryNode
 @Configuration
-@Import({QueryNodeActivePivotManagerConfig.class, QueryCubeConfig.class})
+@Import({QueryNodeActivePivotManagerConfig.class, QueryCubeConfig.class, RolloverService.class})
 public class QueryNodeApplicationConfig implements IActivePivotConfig, IDatastoreConfig {
     private final IActivePivotManagerDescription activePivotManagerDescription;
     private final IEpochManagementPolicy epochManagementPolicy;

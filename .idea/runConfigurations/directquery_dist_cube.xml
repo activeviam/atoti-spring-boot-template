@@ -1,10 +1,10 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="directquery dist cube" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <option name="ACTIVE_PROFILES" value="directquery,datanode" />
+    <envs>
+      <env name="FILE_PING_PATH" value="$PROJECT_DIR$/fileping" />
+    </envs>
     <module name="atoti-spring-boot-template" />
-    <selectedOptions>
-      <option name="environmentVariables" />
-    </selectedOptions>
     <option name="SHORTEN_COMMAND_LINE" value="ARGS_FILE" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.activeviam.apps.AtotiSpringBootApplication" />
     <option name="VM_PARAMETERS" value="--add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED" />

@@ -1,0 +1,147 @@
+/*
+ * Copyright (C) ActiveViam 2025
+ * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
+ * property of ActiveViam Limited. Any unauthorized use,
+ * reproduction or transfer of this material is strictly prohibited
+ */
+package com.activeviam.apps.rest;
+
+import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.COUNTERPARTIES_SQL_QUERY;
+import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.COUNTERPARTIES_SQL_TOPIC;
+import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.TRADES_SQL_QUERY;
+import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.TRADES_SQL_TOPIC;
+import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.TRADE_ATTRIBUTES_SQL_QUERY;
+import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.TRADE_ATTRIBUTES_SQL_TOPIC;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
+import static com.activeviam.apps.rest.EndpointConstants.CUSTOM_REST_PATH;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.stream.Streams;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.activeviam.apps.annotations.ConditionalOnApplicationWithDatastore;
+import com.activeviam.database.api.DatabasePrinter;
+import com.activeviam.database.datastore.api.IDatastore;
+import com.activeviam.io.dlc.impl.DataLoadControllerService;
+import com.activeviam.io.dlc.impl.description.topic.JdbcTopicDescription;
+import com.activeviam.io.dlc.impl.operations.request.DlcLoadRequest;
+import com.activeviam.io.dlc.impl.rest.resposne.DlcLoadResponseDTO;
+
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequestMapping(CobDateLoadController.COB_DATE_ENDPOINT)
+@RequiredArgsConstructor
+@ConditionalOnApplicationWithDatastore
+public class CobDateLoadController {
+
+    public static final String DATE_FORMAT = "yyyy-MM-dd";
+
+    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT);
+
+    public static final String COB_DATE_ENDPOINT = CUSTOM_REST_PATH + "/cob-date";
+
+    private final DataLoadControllerService dataLoadControllerService;
+
+    private final IDatastore datastore;
+
+    private static String injectCobDates(String query, Collection<LocalDate> cobDates) {
+        return query.replace(
+                "?",
+                cobDates.stream().map(d -> "'" + d.format(DATE_FORMATTER) + "'").collect(Collectors.joining(",")));
+    }
+
+    private static JdbcTopicDescription overrideTradeTopic(Collection<LocalDate> cobDates) {
+        return JdbcTopicDescription.builder(TRADES_SQL_TOPIC, injectCobDates(TRADES_SQL_QUERY, cobDates))
+                .build();
+    }
+
+    private static JdbcTopicDescription overrideTradeAttributesTopic(Collection<LocalDate> cobDates) {
+        return JdbcTopicDescription.builder(
+                        TRADE_ATTRIBUTES_SQL_TOPIC, injectCobDates(TRADE_ATTRIBUTES_SQL_QUERY, cobDates))
+                .build();
+    }
+
+    private static JdbcTopicDescription overrideCounterpartiesTopic() {
+        return JdbcTopicDescription.builder(COUNTERPARTIES_SQL_TOPIC, COUNTERPARTIES_SQL_QUERY)
+                .build();
+    }
+
+    //    @PostMapping({"/{cobDate}"})
+    //    public DlcLoadResponseDTO loadCobDate(@PathVariable @DateTimeFormat(pattern = DATE_FORMAT) LocalDate cobDate)
+    // {
+    //        // Workaround: we need to override the parameterized topics because Dremio does not support
+    //        // parameterized queries yet (it will from v. 26)
+    //        var result = dataLoadControllerService
+    //                .execute(DlcLoadRequest.builder()
+    //                        // .topics(COUNTERPARTIES_SQL_TOPIC)
+    //                        .topicOverrides(Set.of(
+    //                                // overrideCounterpartiesTopic(),
+    //                                overrideTradeTopic(List.of(cobDate)), overrideTradeAttributesTopic(cobDate)))
+    //                        .build())
+    //                .toDto();
+    //        DatabasePrinter.printTableSizes(datastore.getMasterHead());
+    //        return result;
+    //    }
+
+    @PostMapping
+    public DlcLoadResponseDTO loadCobDates(@RequestBody Collection<LocalDate> cobDates) {
+        // Workaround: we need to override the parameterized topics because Dremio does not support
+        // parameterized queries yet (it will from v. 26)
+        var existingDatesQuery = datastore
+                .getMasterHead()
+                .getQueryManager()
+                .distinctQuery()
+                .forTable(TRADES_STORE_NAME)
+                .withoutCondition()
+                .withTableFields(COB_DATE)
+                .compile();
+        var existingDates = Streams.of(datastore
+                        .getMasterHead()
+                        .getQueryRunner()
+                        .distinctQuery(existingDatesQuery)
+                        .withoutParameters()
+                        .run()
+                        .iterator())
+                .map(r -> (LocalDate) r.read(COB_DATE))
+                .toList();
+        var datesToLoad =
+                cobDates.stream().filter(date -> !existingDates.contains(date)).toList();
+
+        // Load dates separately for now
+        var result = dataLoadControllerService
+                .execute(DlcLoadRequest.builder()
+                        // .topics(COUNTERPARTIES_SQL_TOPIC)
+                        .topicOverrides(Set.of(
+                                // overrideCounterpartiesTopic(),
+                                overrideTradeTopic(datesToLoad), overrideTradeAttributesTopic(datesToLoad)))
+                        .build())
+                .toDto();
+        DatabasePrinter.printTableSizes(datastore.getMasterHead());
+        return result;
+    }
+
+    //    @DeleteMapping({"/{cobDate}"})
+    //    public DlcUnloadResponseDTO deleteCobDate(@PathVariable @DateTimeFormat(pattern = DATE_FORMAT) LocalDate
+    // cobDate) {
+    //        var result = dataLoadControllerService
+    //                .execute(DlcUnloadRequest.builder()
+    //                        .topics(DREMIO_UNLOAD_TOPIC)
+    //                        .scope(DlcScope.of(
+    //                                COB_DATE_SCOPE_PARAMETER,
+    //                                cobDate.format(DATE_FORMATTER))) // FIXME: do we need to format?
+    //                        .build())
+    //                .toDto();
+    //        DatabasePrinter.printTableSizes(datastore.getMasterHead());
+    //        return result;
+    //    }
+}

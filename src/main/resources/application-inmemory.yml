@@ -18,5 +18,4 @@ dlc:
         password: "admin12345"
         accepts-topic-overrides: true
 cob-dates:
-  in-memory-dates:
-    - 2025-03-03
+  days-in-memory: 1
