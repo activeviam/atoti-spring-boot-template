@@ -66,7 +66,7 @@ class MeasuresTest {
         var resultCell = cubeTester
                 .mdxQuery()
                 .withMdx(String.format(
-                        "SELECT [%s].[%s] ON COLUMNS FROM [%s]", IHierarchy.MEASURES, NOTIONAL, CUBE_NAME))
+                        "SELECT [%s].[%s] ON COLUMNS FROM [%s]", IHierarchy.MEASURES, NOTIONAL + ".Sum", CUBE_NAME))
                 .run()
                 .getTester()
                 .hasOnlyOneCell();

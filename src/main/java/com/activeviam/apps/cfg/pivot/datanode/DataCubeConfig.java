@@ -46,7 +46,7 @@ public class DataCubeConfig {
             DatabaseProperties databaseProperties,
             CobDatesProperties cobDatesProperties,
             @Autowired(required = false) DistributionProperties distributionProperties,
-            @Value("${server.port}") int serverPort) {
+            @Value("${server.port:9090}") int serverPort) {
 
         var isInMemory = databaseProperties.isDatastoreType();
         var builder =

@@ -19,7 +19,7 @@ import lombok.Data;
 @ConfigurationProperties(prefix = "cube-query-service")
 public class CubeQueryProperties {
     private String defaultCube;
-    private Map<String, CubeDefaults> cubeDefaults;
+    private Map<String, CubeDefaults> cubeConfiguration;
 
     @Data
     public static class CubeDefaults {

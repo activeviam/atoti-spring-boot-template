@@ -23,6 +23,13 @@ import com.activeviam.activepivot.core.intf.api.copper.ICopperContext;
 public class Measures implements Consumer<ICopperContext> {
     private final List<CopperMeasure> copperMeasures = new ArrayList<>();
 
+    public static String postfixMeasure(String base, String measure) {
+        return String.join(".", base, measure);
+    }
+
+    public static final String SUM = "Sum";
+    public static final String MEAN = "Mean";
+
     public Measures() {
         copperMeasures.add(
                 Copper.count().withAlias("Count").withFormatter(INT_FORMATTER).withinFolder(NATIVE_MEASURES));
@@ -30,8 +37,10 @@ public class Measures implements Consumer<ICopperContext> {
                 .withAlias("Update.Timestamp")
                 .withinFolder(NATIVE_MEASURES)
                 .withFormatter(TIMESTAMP_FORMATTER));
-        copperMeasures.add(Copper.sum(NOTIONAL).as(NOTIONAL + ".Sum").withFormatter(DOUBLE_FORMATTER));
-        copperMeasures.add(Copper.avg(NOTIONAL).as(NOTIONAL + ".Mean").withFormatter(DOUBLE_FORMATTER));
+        copperMeasures.add(
+                Copper.sum(NOTIONAL).as(postfixMeasure(NOTIONAL, SUM)).withFormatter(DOUBLE_FORMATTER));
+        copperMeasures.add(
+                Copper.avg(NOTIONAL).as(postfixMeasure(NOTIONAL, MEAN)).withFormatter(DOUBLE_FORMATTER));
     }
 
     @Override

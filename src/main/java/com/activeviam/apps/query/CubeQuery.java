@@ -12,6 +12,7 @@ import java.util.Objects;
 import org.springframework.util.ObjectUtils;
 
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
+import com.activeviam.apps.query.rest.CubeQueryDTO;
 
 import lombok.Data;
 
@@ -34,7 +35,7 @@ public class CubeQuery {
         }
 
         public static Metric fromDTO(CubeQueryDTO.MetricDTO dto) {
-            return new Metric(dto.metric(), dto.parameter());
+            return new Metric(dto.getMetric(), dto.getParameter());
         }
     }
 
@@ -98,11 +99,11 @@ public class CubeQuery {
                         .toList(),
                 dto.getFiltersExpression(),
                 TopCount.fromDTO(dto.getTopCounts(), levelsConverter),
-                dto.getSortBy().stream()
+                dto.getSortBys().stream()
                         .map(s -> Sort.fromDTO(s, levelsConverter))
                         .toList(),
                 TopRank.fromDTO(dto.getTopRank(), levelsConverter),
-                dto.getPartitionedBy().stream()
+                dto.getPartitionedBys().stream()
                         .map(p -> Partitioning.fromDTO(p, levelsConverter))
                         .toList());
     }

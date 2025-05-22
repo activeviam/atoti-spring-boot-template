@@ -134,7 +134,7 @@ content-service:
         poolName: ContentServer-ConnectionPool
 cube-query-service:
   default-cube: "Cube"
-  cube-defaults:
+  cube-configuration:
     Cube:
-      date-filter-levels: CobDate
-      default-dimension: "Trade Attributes"
+          date-filter-levels: CobDate
+          default-dimension: "Trade Attributes"

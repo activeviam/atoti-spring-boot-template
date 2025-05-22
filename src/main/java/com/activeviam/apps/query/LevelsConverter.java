@@ -9,6 +9,10 @@ package com.activeviam.apps.query;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.HierarchyIdentifier;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
 
+/**
+ * Implementations of this class are used to convert the level expression in the requests to the correct
+ * LevelIdentifier for the levels in the cube, especially when only the level name and not the hierarchy and dimension are provided
+ */
 public interface LevelsConverter {
 
     LevelIdentifier stringToLevelIdentifier(String level);

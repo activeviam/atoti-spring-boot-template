@@ -7,7 +7,6 @@
 package com.activeviam.apps.query;
 
 import static com.activeviam.activepivot.server.json.api.dataexport.IJsonOutputConfiguration.FORMAT_PROPERTY;
-import static com.activeviam.apps.query.conditions.FilterExpressionConditionVisitor.parseFilterExpression;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,8 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import com.activeviam.activepivot.core.impl.api.contextvalues.subcube.CubeFilter;
-import com.activeviam.activepivot.core.intf.api.contextvalues.subcube.ICubeFilter;
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.HierarchyIdentifier;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
@@ -32,8 +29,7 @@ import com.activeviam.activepivot.server.intf.api.dataexport.IDataExportService;
 import com.activeviam.activepivot.server.json.api.dataexport.JsonCsvPivotTableOutputConfiguration;
 import com.activeviam.activepivot.server.json.api.dataexport.JsonDataExportOrder;
 import com.activeviam.activepivot.server.json.api.query.JsonMdxQuery;
-import com.activeviam.apps.query.conditions.AndCondition;
-import com.activeviam.apps.query.conditions.OrCondition;
+import com.activeviam.apps.query.rest.CubeQueryDTO;
 
 @Service
 public class CubeQueryService {
@@ -50,7 +46,7 @@ public class CubeQueryService {
             CubeQueryProperties cubeQueryProperties) {
         this.dataExportService = dataExportService;
         this.activePivotManager = activePivotManager;
-        cubeQueryProperties.getCubeDefaults().forEach((cube, defaults) -> {
+        cubeQueryProperties.getCubeConfiguration().forEach((cube, defaults) -> {
             var levelConverter = new SingleDimensionLevelsConverter(defaults.getDefaultDimension());
             levelsConverters.put(cube, levelConverter);
             dateLevelsForFiltering
@@ -72,7 +68,7 @@ public class CubeQueryService {
     private Map<String, String> buildQueryContext(CubeQuery cubeQuery) {
         var context = new HashMap<String, String>();
         var hiddenLevels = cubeQuery.getLevels().stream()
-                .map(CubeQueryService::levelIdentifierToMdxLevel)
+                .map(CubeQueryService::levelToMdxPath)
                 .collect(Collectors.joining(","));
         context.put("mdx.hiddensubtotals", hiddenLevels);
         cubeQuery
@@ -190,7 +186,7 @@ public class CubeQueryService {
             dateFilters.stream().findFirst().ifPresent(dateFilter -> {
                 query.append(fromCube(cube));
                 query.append(System.lineSeparator());
-                query.append(whereDateFilterMdx(dateFilter));
+                query.append(where(dateFilter));
             });
             query.append(System.lineSeparator());
         });
@@ -202,13 +198,9 @@ public class CubeQueryService {
         return String.format("FROM [%s]", cube);
     }
 
-    private static String whereDateFilterMdx(CubeQuery.Filter filter) {
+    private static String where(CubeQuery.Filter filter) {
         return String.format(
-                "WHERE [%s].[%s].[%s].[%s]",
-                filter.level().getDimensionName(),
-                filter.level().getHierarchyName(),
-                filter.level().getLevelName(),
-                filter.values().getFirst());
+                "WHERE %s.[%s]", levelToMdxPath(filter.level()), filter.values().getFirst());
     }
 
     private String fromCubeWithDateFilterMdx(String cube, List<CubeQuery.Filter> dateFilters) {
@@ -251,15 +243,19 @@ public class CubeQueryService {
 
     private static String sortedHierarchizedLevels(
             LevelIdentifier level, Optional<CubeQuery.Sort> sort, boolean isSlicingHierarchy) {
-        var hierarchized = isSlicingHierarchy
-                ? String.format(
-                        "[%s].[%s].[%s].Members",
-                        level.getDimensionName(), level.getHierarchyName(), level.getLevelName())
-                : String.format(
-                        "Hierarchize(Descendants({[%s].[%s].[AllMember]},1,SELF_AND_BEFORE))",
-                        level.getDimensionName(), level.getHierarchyName());
-        return sort.map(s -> String.format("Order(%s, %s, %s)", hierarchized, sortToMdx(s), s.sortType()))
-                .orElse(hierarchized);
+        var levelMembers = isSlicingHierarchy ? members(level) : hierarchizedDescendants(level);
+        return sort.map(s -> String.format("Order(%s, %s, %s)", levelMembers, sortToMdx(s), s.sortType()))
+                .orElse(levelMembers);
+    }
+
+    private static String members(LevelIdentifier level) {
+        return String.format("%s.Members", levelToMdxPath(level));
+    }
+
+    private static String hierarchizedDescendants(LevelIdentifier level) {
+        return String.format(
+                "Hierarchize(Descendants({[%s].[%s].[AllMember]},1,SELF_AND_BEFORE))",
+                level.getDimensionName(), level.getHierarchyName());
     }
 
     private static String hierarchizedLevelsWithTopRank(
@@ -286,7 +282,7 @@ public class CubeQueryService {
         return String.format(topRankTemplate.toString(), hierarchizedLevels);
     }
 
-    private static String levelIdentifierToMdxLevel(LevelIdentifier levelIdentifier) {
+    private static String levelToMdxPath(LevelIdentifier levelIdentifier) {
         return String.format(
                 "[%s].[%s].[%s]",
                 levelIdentifier.getDimensionName(), levelIdentifier.getHierarchyName(), levelIdentifier.getLevelName());
@@ -300,23 +296,15 @@ public class CubeQueryService {
         return String.format(
                 " FROM (SELECT {%s} ON COLUMNS",
                 filter.values().stream()
-                        .map(value -> String.format(
-                                "[%s].[%s].[%s].[%s]",
-                                filter.level().getDimensionName(),
-                                filter.level().getHierarchyName(),
-                                filter.level().getLevelName(),
-                                value))
+                        .map(value -> String.format("%s.[%s]", levelToMdxPath(filter.level()), value))
                         .collect(Collectors.joining(",")));
     }
 
     private static String dateFilterToMdx(CubeQuery.Filter filter) {
         if (filter.values().size() == 1) {
             return String.format(
-                    " [%s].[%s].[%s].[%s] ON COLUMNS ",
-                    filter.level().getDimensionName(),
-                    filter.level().getHierarchyName(),
-                    filter.level().getLevelName(),
-                    filter.values().getFirst());
+                    " %s.[%s] ON COLUMNS ",
+                    levelToMdxPath(filter.level()), filter.values().getFirst());
         }
         return "";
     }
@@ -353,10 +341,8 @@ public class CubeQueryService {
 
     private static String topRankCalculatedMeasureMdx(CubeQuery.TopRank topRank) {
         return String.format(
-                "Set OrderedL1 AS Order([%s].[%s].[%s].members,[Measures].[%s],BDESC) Member [Measures].[top_rank] AS Rank([%s].[%s].CurrentMember, OrderedL1)",
-                topRank.level().getDimensionName(),
-                topRank.level().getHierarchyName(),
-                topRank.level().getLevelName(),
+                "Set OrderedL1 AS Order(%s.members,[Measures].[%s],BDESC) Member [Measures].[top_rank] AS Rank([%s].[%s].CurrentMember, OrderedL1)",
+                levelToMdxPath(topRank.level()),
                 topRank.metric(),
                 topRank.level().getDimensionName(),
                 topRank.level().getHierarchyName());
@@ -391,21 +377,21 @@ public class CubeQueryService {
         return !isDateFilter(filter, cube);
     }
 
-    // To be implemented
-    private static ICubeFilter parseFilterExpressionAndGetCubeFilter(String filterExpression) {
-        var cubeFilterBuilder = CubeFilter.builder();
-        var filter = parseFilterExpression(filterExpression);
-        if (filter.operator().equals("AND")) {
-            var andCondition = (AndCondition) filter;
-            // collect sub conditions
-        } else if (filter.operator().equals("OR")) {
-            var orFilter = (OrCondition) filter;
-            // collect subconditions
-        } else if (filter.operator().equals("NOT")) {
-            // do something
-        } else if (filter.operator().equals("EQ")) {
-            // do something else
-        }
-        return cubeFilterBuilder.build();
-    }
+    //    // To be implemented
+    //    private static ICubeFilter parseFilterExpressionAndGetCubeFilter(String filterExpression) {
+    //        var cubeFilterBuilder = CubeFilter.builder();
+    //        var filter = parseFilterExpression(filterExpression);
+    //        if (filter.operator().equals("AND")) {
+    //            var andCondition = (AndCondition) filter;
+    //            // collect sub conditions
+    //        } else if (filter.operator().equals("OR")) {
+    //            var orFilter = (OrCondition) filter;
+    //            // collect subconditions
+    //        } else if (filter.operator().equals("NOT")) {
+    //            // do something
+    //        } else if (filter.operator().equals("EQ")) {
+    //            // do something else
+    //        }
+    //        return cubeFilterBuilder.build();
+    //    }
 }

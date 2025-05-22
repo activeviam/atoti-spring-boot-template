@@ -10,11 +10,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
 import com.activeviam.activepivot.core.datastore.api.builder.ApplicationWithDatastore;
+import com.activeviam.apps.cfg.source.CobDatesProperties;
 import com.activeviam.atoti.server.test.api.CubeTester;
 import com.activeviam.database.datastore.api.transaction.IOpenedTransaction;
 import com.activeviam.tech.core.api.exceptions.ActiveViamRuntimeException;
 
-@Import({ApplicationWithDatastoreConfig.class})
+@Import({CobDatesProperties.class, ApplicationWithDatastoreConfig.class})
 public class CubeTesterConfig {
 
     @Bean
