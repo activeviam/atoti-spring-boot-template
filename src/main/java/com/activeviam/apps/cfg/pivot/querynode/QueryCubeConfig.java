@@ -6,9 +6,9 @@
  */
 package com.activeviam.apps.cfg.pivot.querynode;
 
+import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.COB_DATE_LEVEL;
 import static com.activeviam.apps.constants.CubeConstants.APPLICATION_NAME;
 import static com.activeviam.apps.constants.CubeConstants.CUBE_NAME;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 
 import java.util.concurrent.TimeUnit;
 
@@ -23,7 +23,7 @@ import com.activeviam.apps.cfg.pivot.distribution.DistributionProperties;
 
 public class QueryCubeConfig {
 
-    public static final LevelIdentifier DISTRIBUTING_LEVEL = LevelIdentifier.simple(COB_DATE);
+    public static final LevelIdentifier DISTRIBUTING_LEVEL = COB_DATE_LEVEL;
 
     @Bean
     public IDistributedActivePivotInstanceDescription activePivotInstanceDescription(

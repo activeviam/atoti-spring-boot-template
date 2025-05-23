@@ -39,10 +39,11 @@ public class CubeQuery {
         }
     }
 
-    public record Filter(LevelIdentifier level, List<String> values) {
+    public record Filter(LevelIdentifier level, List<String> values, boolean exclude) {
 
-        public static Filter fromDTO(String level, List<String> values, LevelsConverter levelsConverter) {
-            return new Filter(levelsConverter.stringToLevelIdentifier(level), values);
+        public static Filter fromDTO(CubeQueryDTO.FilterDTO dto, LevelsConverter levelsConverter) {
+            return new Filter(
+                    levelsConverter.stringToLevelIdentifier(dto.getLevel()), dto.getValues(), dto.isExclude());
         }
     }
 
@@ -51,10 +52,10 @@ public class CubeQuery {
         public static TopCount fromDTO(CubeQueryDTO.TopCountDTO dto, LevelsConverter levelsConverter) {
             return Objects.nonNull(dto)
                     ? new TopCount(
-                            dto.metric(),
-                            levelsConverter.stringToLevelIdentifier(dto.level()),
-                            dto.count(),
-                            dto.bottom())
+                            dto.getMetric(),
+                            levelsConverter.stringToLevelIdentifier(dto.getLevel()),
+                            dto.getCount(),
+                            dto.isBottom())
                     : null;
         }
     }
@@ -63,18 +64,19 @@ public class CubeQuery {
 
         public static Sort fromDTO(CubeQueryDTO.SortDTO dto, LevelsConverter levelsConverter) {
             return new Sort(
-                    ObjectUtils.isEmpty(dto.metric())
-                            ? dto.level()
-                            : dto.metric(), // If we only specify the level, we use level as metric as well
-                    levelsConverter.stringToLevelIdentifier(dto.level()),
-                    dto.ascending() ? "ASC" : "DESC");
+                    ObjectUtils.isEmpty(dto.getMetric())
+                            ? dto.getLevel()
+                            : dto.getMetric(), // If we only specify the level, we use level as metric as well
+                    levelsConverter.stringToLevelIdentifier(dto.getLevel()),
+                    dto.isAscending() ? "ASC" : "DESC");
         }
     }
 
     public record TopRank(String metric, LevelIdentifier level, int topN) {
         public static TopRank fromDTO(CubeQueryDTO.TopRankDTO dto, LevelsConverter levelsConverter) {
             return Objects.nonNull(dto)
-                    ? new TopRank(dto.metric(), levelsConverter.stringToLevelIdentifier(dto.level()), dto.topN())
+                    ? new TopRank(
+                            dto.getMetric(), levelsConverter.stringToLevelIdentifier(dto.getLevel()), dto.getTopN())
                     : null;
         }
     }
@@ -83,7 +85,9 @@ public class CubeQuery {
         public static Partitioning fromDTO(CubeQueryDTO.PartitioningDTO dto, LevelsConverter levelsConverter) {
             return Objects.nonNull(dto)
                     ? new Partitioning(
-                            dto.newMetric(), dto.metric(), levelsConverter.stringToLevelIdentifier(dto.level()))
+                            dto.getNewMetric(),
+                            dto.getMetric(),
+                            levelsConverter.stringToLevelIdentifier(dto.getLevel()))
                     : null;
         }
     }
@@ -94,8 +98,8 @@ public class CubeQuery {
                 dto.getLevels().stream()
                         .map(levelsConverter::stringToLevelIdentifier)
                         .toList(),
-                dto.getFilters().entrySet().stream()
-                        .map(entry -> Filter.fromDTO(entry.getKey(), entry.getValue(), levelsConverter))
+                dto.getFilters().stream()
+                        .map(filter -> Filter.fromDTO(filter, levelsConverter))
                         .toList(),
                 dto.getFiltersExpression(),
                 TopCount.fromDTO(dto.getTopCounts(), levelsConverter),

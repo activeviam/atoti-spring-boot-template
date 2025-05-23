@@ -8,11 +8,13 @@ package com.activeviam.apps.cfg.pivot.datanode;
 
 import static com.activeviam.activepivot.core.intf.api.description.IAxisHierarchyDescription.AUTO_CONTRIBUTE_UNKNOWN_MEMBER_NEVER;
 import static com.activeviam.activepivot.core.intf.api.description.IAxisHierarchyDescription.AUTO_CONTRIBUTE_UNKNOWN_MEMBER_PROPERTY;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
 
 import com.activeviam.activepivot.core.intf.api.cube.metadata.ILevelInfo;
+import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstanceDescription;
 import com.activeviam.activepivot.core.intf.api.description.builder.ICanBuildCubeDescription;
 import com.activeviam.activepivot.core.intf.api.description.builder.dimension.ICanStartBuildingDimensions;
@@ -22,6 +24,12 @@ import com.activeviam.tech.core.api.ordering.IComparator;
 public class Dimensions implements ICanStartBuildingDimensions.DimensionsAdder {
 
     public static final String TRADE_ATTRIBUTES_DIMENSION = "Trade Attributes";
+
+    public static final LevelIdentifier COB_DATE_LEVEL =
+            new LevelIdentifier(TRADE_ATTRIBUTES_DIMENSION, COB_DATE, COB_DATE);
+
+    public static final LevelIdentifier COUNTERPARTY_LEVEL =
+            new LevelIdentifier(TRADE_ATTRIBUTES_DIMENSION, COUNTERPARTY_ID, COUNTERPARTY_ID);
 
     @Override
     public ICanBuildCubeDescription<IActivePivotInstanceDescription> apply(ICanStartBuildingDimensions builder) {

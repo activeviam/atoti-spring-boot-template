@@ -6,9 +6,11 @@
  */
 package com.activeviam.apps.cfg.pivot.datanode;
 
+import static com.activeviam.apps.cfg.pivot.datanode.Measures.SUM;
 import static com.activeviam.apps.cfg.pivot.querynode.QueryCubeConfig.DISTRIBUTING_LEVEL;
 import static com.activeviam.apps.constants.CubeConstants.APPLICATION_NAME;
 import static com.activeviam.apps.constants.CubeConstants.CUBE_NAME;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 
 import java.util.List;
 import java.util.Map;
@@ -60,6 +62,7 @@ public class DataCubeConfig {
                     .withPartialProvider()
                     .leaf()
                     .includingOnlyLevels(DISTRIBUTING_LEVEL)
+                    .includingOnlyMeasures(Measures.postfixMeasure(NOTIONAL, SUM))
                     .filteredOn(Map.of(DISTRIBUTING_LEVEL, List.of(cobDatesProperties.computeEndOfMonthDates())));
         }
         // Shared context values

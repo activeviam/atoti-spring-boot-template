@@ -6,61 +6,111 @@
  */
 package com.activeviam.apps.query.rest;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.Singular;
 
 @Data
 @Builder(setterPrefix = "with")
 public class CubeQueryDTO {
     @Singular
-    private List<MetricDTO> metrics = new ArrayList<>();
+    private List<MetricDTO> metrics;
 
     @Singular
-    private List<String> levels = new ArrayList<>();
+    private List<String> levels;
 
     @Singular
-    private Map<String, List<String>> filters = new HashMap<>();
+    private List<FilterDTO> filters;
     // NOTE: filtersExpression will replace filters map so we can support the OR condition
     private String filtersExpression;
     private TopCountDTO topCounts;
 
     @Singular
-    private List<SortDTO> sortBys = new ArrayList<>();
+    private List<SortDTO> sortBys;
 
     private TopRankDTO topRank;
 
     @Singular
-    private List<PartitioningDTO> partitionedBys = new ArrayList<>();
+    private List<PartitioningDTO> partitionedBys;
+
+    @Data
+    @Builder(setterPrefix = "with")
+    public static class FilterDTO {
+        @NonNull
+        private String level;
+
+        @NonNull
+        private List<String> values;
+
+        @Builder.Default
+        private boolean exclude = false;
+    }
 
     @Data
     @Builder(setterPrefix = "with")
     public static class MetricDTO {
+        @NonNull
         private String metric;
 
         @Builder.Default
         private String parameter = null;
-
-        public MetricDTO(String metric, String parameter) {
-            this.metric = metric;
-            this.parameter = parameter;
-        }
-
-        public MetricDTO(String metric) {
-            this(metric, null);
-        }
     }
 
-    public record TopCountDTO(String metric, String level, int count, boolean bottom) {}
+    @Data
+    @Builder(setterPrefix = "with")
+    public static class TopCountDTO {
+        @NonNull
+        private String metric;
 
-    public record SortDTO(String metric, String level, boolean ascending) {}
+        @NonNull
+        private String level;
 
-    public record TopRankDTO(String metric, String level, int topN) {}
+        @Builder.Default
+        private int count = 5;
 
-    public record PartitioningDTO(String newMetric, String metric, String level) {}
+        @Builder.Default
+        private boolean bottom = false;
+    }
+
+    @Data
+    @Builder(setterPrefix = "with")
+    public static class SortDTO {
+        @NonNull
+        private String metric;
+
+        @NonNull
+        String level;
+
+        @Builder.Default
+        boolean ascending = false;
+    }
+
+    @Data
+    @Builder(setterPrefix = "with")
+    public static class TopRankDTO {
+        @NonNull
+        private String metric;
+
+        @NonNull
+        private String level;
+
+        @Builder.Default
+        private int topN = 5;
+    }
+
+    @Data
+    @Builder(setterPrefix = "with")
+    public static class PartitioningDTO {
+        @NonNull
+        private String newMetric;
+
+        @NonNull
+        private String metric;
+
+        @NonNull
+        private String level;
+    }
 }

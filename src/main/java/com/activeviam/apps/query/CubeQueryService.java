@@ -183,8 +183,8 @@ public class CubeQueryService {
         allFilters.forEach(filter -> {
             query.append(filterToMdx(filter));
             query.append(System.lineSeparator());
+            query.append(fromCube(cube));
             dateFilters.stream().findFirst().ifPresent(dateFilter -> {
-                query.append(fromCube(cube));
                 query.append(System.lineSeparator());
                 query.append(where(dateFilter));
             });
@@ -293,11 +293,16 @@ public class CubeQueryService {
     }
 
     private static String filterToMdx(CubeQuery.Filter filter) {
-        return String.format(
-                " FROM (SELECT {%s} ON COLUMNS",
+        var membersList = String.format(
+                "{%s}",
                 filter.values().stream()
                         .map(value -> String.format("%s.[%s]", levelToMdxPath(filter.level()), value))
                         .collect(Collectors.joining(",")));
+        return String.format(
+                " FROM (SELECT %s ON COLUMNS",
+                filter.exclude()
+                        ? String.format("Except (%s,{%s})", levelToMdxPath(filter.level()) + ".Members", membersList)
+                        : membersList);
     }
 
     private static String dateFilterToMdx(CubeQuery.Filter filter) {

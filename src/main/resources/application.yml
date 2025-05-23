@@ -11,7 +11,6 @@ server:
         same-site: NONE
         secure: true
         name: ATOTISERVER_JSESSIONID
-
 spring:
   application:
     name: "atoti-spring-boot"
@@ -138,3 +137,5 @@ cube-query-service:
     Cube:
           date-filter-levels: CobDate
           default-dimension: "Trade Attributes"
+logging.level.atoti.server.directquery.driver_manager: OFF
+
