@@ -36,6 +36,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IMeasureHierarchy;
+import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
 import com.activeviam.activepivot.server.intf.api.dataexport.IDataExportService;
 import com.activeviam.apps.cfg.pivot.ApplicationWithDatastoreConfig;
 import com.activeviam.apps.cfg.pivot.CubeTesterConfig;
@@ -107,43 +108,46 @@ class QueryServiceTest {
                 .build();
     }
 
-    private static CubeQueryDTO.MetricDTO countMetricDto() {
-        return CubeQueryDTO.MetricDTO.builder()
-                .withMetric(IMeasureHierarchy.COUNT_ID)
-                .build();
-    }
+    private static final CubeQueryDTO.MetricDTO COUNT_METRIC_DTO = CubeQueryDTO.MetricDTO.builder()
+            .withMetric(IMeasureHierarchy.COUNT_ID)
+            .build();
 
-    private static CubeQueryDTO.MetricDTO notionalSumMetricDto() {
-        return CubeQueryDTO.MetricDTO.builder()
-                .withMetric(postfixMeasure(NOTIONAL, SUM))
-                .build();
-    }
+    private static final CubeQueryDTO.MetricDTO NOTIONAL_SUM_METRIC_DTO = CubeQueryDTO.MetricDTO.builder()
+            .withMetric(postfixMeasure(NOTIONAL, SUM))
+            .build();
 
-    private static CubeQueryDTO.MetricDTO notionalMeanMetricDto() {
-        return CubeQueryDTO.MetricDTO.builder()
-                .withMetric(postfixMeasure(NOTIONAL, MEAN))
-                .build();
+    private static final CubeQueryDTO.MetricDTO NOTIONAL_MEAN_METRIC_DTO = CubeQueryDTO.MetricDTO.builder()
+            .withMetric(postfixMeasure(NOTIONAL, MEAN))
+            .build();
+
+    private static void assertCellValue(
+            ICellSetTester.ICellByCoordinatesFinder resultCells, Map<LevelIdentifier, Object> levels, Object value) {
+        var finder = resultCells;
+        for (var level : levels.entrySet()) {
+            finder = finder.coordinate(level.getKey(), level.getValue());
+        }
+        assertThat(finder.getCell().getValue()).isEqualTo(value);
     }
 
     private static final Map<String, TestInputOutput> TESTS = Map.of(
             "Count",
             new TestInputOutput(
-                    CubeQueryDTO.builder().withMetric(countMetricDto()).build(),
+                    CubeQueryDTO.builder().withMetric(COUNT_METRIC_DTO).build(),
                     resultCells -> assertThat(resultCells.getCell().getValue()).isEqualTo(3L)),
             "Notionals",
             new TestInputOutput(
                     CubeQueryDTO.builder()
-                            .withMetric(notionalSumMetricDto())
-                            .withMetric(notionalMeanMetricDto())
+                            .withMetric(NOTIONAL_SUM_METRIC_DTO)
+                            .withMetric(NOTIONAL_MEAN_METRIC_DTO)
                             .build(),
                     resultCells -> {
                         assertThat(resultCells
-                                        .measure(notionalSumMetricDto().getMetric())
+                                        .measure(NOTIONAL_SUM_METRIC_DTO.getMetric())
                                         .getCell()
                                         .getValue())
                                 .isEqualTo(750d);
                         assertThat(resultCells
-                                        .measure(notionalMeanMetricDto().getMetric())
+                                        .measure(NOTIONAL_MEAN_METRIC_DTO.getMetric())
                                         .getCell()
                                         .getValue())
                                 .isEqualTo(250d);
@@ -151,107 +155,59 @@ class QueryServiceTest {
             "Notionals with cpty",
             new TestInputOutput(
                     CubeQueryDTO.builder()
-                            .withMetric(notionalSumMetricDto())
+                            .withMetric(NOTIONAL_SUM_METRIC_DTO)
                             .withLevel(COUNTERPARTY_LEVEL.getLevelName())
                             .build(),
                     resultCells -> {
-                        assertThat(resultCells
-                                        .coordinate(COUNTERPARTY_LEVEL, CPTY_1)
-                                        .getCell()
-                                        .getValue())
-                                .isEqualTo(100.0);
-                        assertThat(resultCells
-                                        .coordinate(COUNTERPARTY_LEVEL, CPTY_2)
-                                        .getCell()
-                                        .getValue())
-                                .isEqualTo(650.0);
-                        assertThat(resultCells
-                                        .coordinate(COUNTERPARTY_LEVEL, ALLMEMBER)
-                                        .getCell()
-                                        .getValue())
-                                .isEqualTo(750.0);
+                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
+                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
+                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 750.0);
                     }),
             "Notionals with cpty and date filter",
             new TestInputOutput(
                     CubeQueryDTO.builder()
-                            .withMetric(notionalSumMetricDto())
+                            .withMetric(NOTIONAL_SUM_METRIC_DTO)
                             .withFilter(dateFilterDto())
                             .withLevel(COUNTERPARTY_LEVEL.getLevelName())
                             .build(),
                     resultCells -> {
-                        assertThat(resultCells
-                                        .coordinate(COUNTERPARTY_LEVEL, CPTY_1)
-                                        .getCell()
-                                        .getValue())
-                                .isEqualTo(100.0);
-                        assertThat(resultCells
-                                        .coordinate(COUNTERPARTY_LEVEL, CPTY_2)
-                                        .getCell()
-                                        .getValue())
-                                .isEqualTo(650.0);
-                        assertThat(resultCells
-                                        .coordinate(COUNTERPARTY_LEVEL, ALLMEMBER)
-                                        .getCell()
-                                        .getValue())
-                                .isEqualTo(750.0);
+                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
+                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
+                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 750.0);
                     }),
             "Notionals with cpty and cpty filter",
             new TestInputOutput(
                     CubeQueryDTO.builder()
-                            .withMetric(notionalSumMetricDto())
+                            .withMetric(NOTIONAL_SUM_METRIC_DTO)
                             .withFilter(cptyFilterDto(List.of(CPTY_1), false))
                             .withLevel(COUNTERPARTY_LEVEL.getLevelName())
                             .build(),
                     resultCells -> {
-                        assertThat(resultCells
-                                        .coordinate(COUNTERPARTY_LEVEL, CPTY_1)
-                                        .getCell()
-                                        .getValue())
-                                .isEqualTo(100.0);
-                        assertThat(resultCells
-                                        .coordinate(COUNTERPARTY_LEVEL, ALLMEMBER)
-                                        .getCell()
-                                        .getValue())
-                                .isEqualTo(100.0);
+                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
+                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 100.0);
                     }),
             "Notionals with cpty and cpty exclude filter",
             new TestInputOutput(
                     CubeQueryDTO.builder()
-                            .withMetric(notionalSumMetricDto())
+                            .withMetric(NOTIONAL_SUM_METRIC_DTO)
                             .withFilter(cptyFilterDto(List.of(CPTY_1), true))
                             .withLevel(COUNTERPARTY_LEVEL.getLevelName())
                             .build(),
                     resultCells -> {
-                        assertThat(resultCells
-                                        .coordinate(COUNTERPARTY_LEVEL, CPTY_2)
-                                        .getCell()
-                                        .getValue())
-                                .isEqualTo(650.0);
-                        assertThat(resultCells
-                                        .coordinate(COUNTERPARTY_LEVEL, ALLMEMBER)
-                                        .getCell()
-                                        .getValue())
-                                .isEqualTo(650.0);
+                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
+                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 650.0);
                     }),
             "Notionals with cpty, cpty filter, date filter",
             new TestInputOutput(
                     CubeQueryDTO.builder()
-                            .withMetric(notionalSumMetricDto())
+                            .withMetric(NOTIONAL_SUM_METRIC_DTO)
                             .withFilter(dateFilterDto())
                             .withFilter(cptyFilterDto(List.of(CPTY_1), false))
                             .withLevel(COUNTERPARTY_LEVEL.getLevelName())
                             .build(),
                     resultCells -> {
-                        assertThat(resultCells
-                                        .coordinate(COUNTERPARTY_LEVEL, CPTY_1)
-                                        .getCell()
-                                        .getValue())
-                                .isEqualTo(100.0);
-                        assertThat(resultCells
-                                        .coordinate(COUNTERPARTY_LEVEL, ALLMEMBER)
-                                        .getCell()
-                                        .getValue())
-                                .isEqualTo(100.0);
+                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
+                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 100.0);
                     }));
 
     // NOTE: this only generates the MDX query, but doesn't run it through the service!
