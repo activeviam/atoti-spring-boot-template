@@ -13,14 +13,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public class AndCondition implements LogicalCondition {
-
-    public static final String AND = "AND";
+public class AndLogicalCondition implements LogicalCondition {
 
     private final Collection<LogicalCondition> subConditions;
-
-    @Override
-    public String operator() {
-        return AND;
-    }
 }

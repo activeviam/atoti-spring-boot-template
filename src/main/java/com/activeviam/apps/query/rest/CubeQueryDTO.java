@@ -8,14 +8,19 @@ package com.activeviam.apps.query.rest;
 
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Singular;
 
 @Data
 @Builder(setterPrefix = "with")
+@AllArgsConstructor
+@NoArgsConstructor
 public class CubeQueryDTO {
+
     @Singular
     private List<MetricDTO> metrics;
 
@@ -38,7 +43,10 @@ public class CubeQueryDTO {
 
     @Data
     @Builder(setterPrefix = "with")
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class FilterDTO {
+
         @NonNull
         private String level;
 
@@ -51,6 +59,8 @@ public class CubeQueryDTO {
 
     @Data
     @Builder(setterPrefix = "with")
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class MetricDTO {
         @NonNull
         private String metric;
@@ -61,6 +71,8 @@ public class CubeQueryDTO {
 
     @Data
     @Builder(setterPrefix = "with")
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class TopCountDTO {
         @NonNull
         private String metric;
@@ -77,6 +89,8 @@ public class CubeQueryDTO {
 
     @Data
     @Builder(setterPrefix = "with")
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class SortDTO {
         @NonNull
         private String metric;
@@ -90,6 +104,8 @@ public class CubeQueryDTO {
 
     @Data
     @Builder(setterPrefix = "with")
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class TopRankDTO {
         @NonNull
         private String metric;
@@ -103,6 +119,8 @@ public class CubeQueryDTO {
 
     @Data
     @Builder(setterPrefix = "with")
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class PartitioningDTO {
         @NonNull
         private String newMetric;

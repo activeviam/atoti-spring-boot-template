@@ -6,8 +6,10 @@
  */
 package com.activeviam.apps.query;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.springframework.util.ObjectUtils;
 
@@ -94,20 +96,22 @@ public class CubeQuery {
 
     public static CubeQuery fromDTO(CubeQueryDTO dto, LevelsConverter levelsConverter) {
         return new CubeQuery(
-                dto.getMetrics().stream().map(Metric::fromDTO).toList(),
-                dto.getLevels().stream()
+                Optional.ofNullable(dto.getMetrics()).orElse(Collections.emptyList()).stream()
+                        .map(Metric::fromDTO)
+                        .toList(),
+                Optional.ofNullable(dto.getLevels()).orElse(Collections.emptyList()).stream()
                         .map(levelsConverter::stringToLevelIdentifier)
                         .toList(),
-                dto.getFilters().stream()
+                Optional.ofNullable(dto.getFilters()).orElse(Collections.emptyList()).stream()
                         .map(filter -> Filter.fromDTO(filter, levelsConverter))
                         .toList(),
                 dto.getFiltersExpression(),
                 TopCount.fromDTO(dto.getTopCounts(), levelsConverter),
-                dto.getSortBys().stream()
+                Optional.ofNullable(dto.getSortBys()).orElse(Collections.emptyList()).stream()
                         .map(s -> Sort.fromDTO(s, levelsConverter))
                         .toList(),
                 TopRank.fromDTO(dto.getTopRank(), levelsConverter),
-                dto.getPartitionedBys().stream()
+                Optional.ofNullable(dto.getPartitionedBys()).orElse(Collections.emptyList()).stream()
                         .map(p -> Partitioning.fromDTO(p, levelsConverter))
                         .toList());
     }

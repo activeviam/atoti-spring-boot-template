@@ -6,7 +6,4 @@
  */
 package com.activeviam.apps.query.conditions;
 
-public interface LogicalCondition {
-
-    String operator();
-}
+public interface LogicalCondition {}

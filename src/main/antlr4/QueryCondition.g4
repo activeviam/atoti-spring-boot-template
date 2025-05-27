@@ -10,36 +10,29 @@ query
    : left=query logicalOp=('AND' | 'OR') right=query #operatorQuery
 //   : logicalOp=('AND' | 'OR') LPAREN argumentList? RPAREN #operatorQuery
    | LPAREN query RPAREN #priorityQuery
-   | criteria #criteriaQuery
+   | field=fieldName 'IN' LSQPAREN values=valuesList RSQPAREN #inConditionQuery
+   | 'NOT' notConditition=query #notConditionQuery
    ;
 
-argumentList
-   : (ARG_SEPARATOR query)*
-   ;
-
-// Criteria consists of a key, an operator, and a value
-criteria
-   : key op value
+valuesList
+   :  (STRING ARG_SEPARATOR)*
+      | (NUMBER ARG_SEPARATOR)*
+      | (BOOL ARG_SEPARATOR)*
+      | (DATE ARG_SEPARATOR)*
    ;
 
 // Key is an identifier (e.g., field name)
-key
+fieldName
    : IDENTIFIER
    ;
 
-// Value can be a string, number, boolean, or date
-value
-   : STRING
-   | NUMBER
-   | BOOL
-   | DATE
-   ;
-
-// Operators used in criteria
-op
-   : '=='
-   | '!='
-   ;
+//// Value can be a string, number, boolean, or date
+//value
+//   : STRING
+//   | NUMBER
+//   | BOOL
+//   | DATE
+//   ;
 
 // Identifiers (e.g., field names)
 ARG_SEPARATOR
@@ -90,6 +83,15 @@ LPAREN
 
 RPAREN
    : ')'
+   ;
+
+LSQPAREN
+   : '['
+   ;
+
+
+RSQPAREN
+   : ']'
    ;
 
 WHITESPACES

@@ -6,19 +6,13 @@
  */
 package com.activeviam.apps.query.conditions;
 
+import java.util.Collection;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public class EqualsCondition<T> implements LogicalCondition {
-
-    public static final String EQ = "==";
-    private final String field;
-    private final T value;
-
-    @Override
-    public String operator() {
-        return EQ;
-    }
+public class OrLogicalCondition implements LogicalCondition {
+    private final Collection<LogicalCondition> subConditions;
 }

@@ -11,13 +11,6 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public class NotEqualsCondition<T> implements LogicalCondition {
-    public static final String NOT_EQ = "!=";
-    private final String field;
-    private final T value;
-
-    @Override
-    public String operator() {
-        return NOT_EQ;
-    }
+public class NotLogicalCondition implements LogicalCondition {
+    private final LogicalCondition condition;
 }

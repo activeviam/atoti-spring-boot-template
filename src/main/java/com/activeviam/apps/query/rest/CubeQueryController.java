@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import com.activeviam.apps.query.CubeQueryProperties;
 import com.activeviam.apps.query.CubeQueryService;
 
 import lombok.RequiredArgsConstructor;
@@ -23,27 +22,26 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CubeQueryController {
     private final CubeQueryService cubeQueryService;
-    private final CubeQueryProperties cubeQueryProperties;
 
     public static final String QUERY_ENDPOINT = "/cube_query";
 
     @PostMapping("/mdx/{cube}")
     public String getMdxQueryforCube(@PathVariable String cube, @RequestBody CubeQueryDTO queryDTO) {
-        return cubeQueryService.buildMdxQuery(cube, queryDTO);
+        return cubeQueryService.getCubeQuerier(cube).buildMdxQuery(queryDTO);
     }
 
     @PostMapping("/mdx")
     public String getMdxQueryForDefaultCube(@RequestBody CubeQueryDTO queryDTO) {
-        return cubeQueryService.buildMdxQuery(cubeQueryProperties.getDefaultCube(), queryDTO);
+        return cubeQueryService.getDefaultCubeQuerier().buildMdxQuery(queryDTO);
     }
 
     @PostMapping("/{cube}")
     public StreamingResponseBody runQueryOnCube(@PathVariable String cube, @RequestBody CubeQueryDTO queryDTO) {
-        return cubeQueryService.runQuery(cube, queryDTO);
+        return cubeQueryService.getCubeQuerier(cube).runQuery(queryDTO);
     }
 
     @PostMapping()
     public StreamingResponseBody runQueryOnDefaultCube(@RequestBody CubeQueryDTO queryDTO) {
-        return cubeQueryService.runQuery(cubeQueryProperties.getDefaultCube(), queryDTO);
+        return cubeQueryService.getDefaultCubeQuerier().runQuery(queryDTO);
     }
 }

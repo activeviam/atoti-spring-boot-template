@@ -217,8 +217,9 @@ class QueryServiceTest {
     Stream<DynamicTest> queryServiceMdxTests() {
         return TESTS.entrySet().stream()
                 .map(entry -> DynamicTest.dynamicTest(entry.getKey() + " Measures", () -> {
-                    var mdx = cubeQueryService.buildMdxQuery(
-                            CUBE_NAME, entry.getValue().dto());
+                    var mdx = cubeQueryService
+                            .getCubeQuerier(CUBE_NAME)
+                            .buildMdxQuery(entry.getValue().dto());
                     log.info("MDX:\n{}", mdx);
                     var resultCell = cubeTester
                             .mdxQuery()

@@ -13,13 +13,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public class OrCondition implements LogicalCondition {
-
-    public static final String OR = "OR";
-    private final Collection<LogicalCondition> subConditions;
-
-    @Override
-    public String operator() {
-        return OR;
-    }
+public class InLogicalCondition<T> implements LogicalCondition {
+    private final String field;
+    private final Collection<T> values;
 }

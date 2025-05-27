@@ -6,10 +6,6 @@
  */
 package com.activeviam.apps.query.conditions;
 
-import static com.activeviam.apps.query.conditions.AndCondition.AND;
-import static com.activeviam.apps.query.conditions.EqualsCondition.EQ;
-import static com.activeviam.apps.query.conditions.OrCondition.OR;
-
 import java.time.LocalDate;
 import java.util.List;
 
@@ -39,15 +35,52 @@ public class FilterExpressionConditionVisitor extends QueryConditionBaseVisitor<
             var leftCond = visit(ctx.left);
             var rightCond = visit(ctx.right);
             var subConditions = List.of(leftCond, rightCond);
-
-            if (ctx.logicalOp.getText().equalsIgnoreCase(AND)) {
-                return new AndCondition(subConditions);
-            } else if (ctx.logicalOp.getText().equalsIgnoreCase(OR)) {
-                return new OrCondition(subConditions);
+            if (ctx.logicalOp.getText().equalsIgnoreCase("AND")) {
+                return new AndLogicalCondition(subConditions);
+            } else if (ctx.logicalOp.getText().equalsIgnoreCase("OR")) {
+                return new OrLogicalCondition(subConditions);
             }
         }
         // Otherwise, it is a single criteria query
         return visitChildren(ctx);
+    }
+
+    @Override
+    public LogicalCondition visitNotConditionQuery(QueryConditionParser.NotConditionQueryContext ctx) {
+        return new NotLogicalCondition(visit(ctx));
+    }
+
+    @Override
+    public LogicalCondition visitInConditionQuery(QueryConditionParser.InConditionQueryContext ctx) {
+        var values = ctx.values;
+        var field = ctx.field.getText();
+        if (!values.BOOL().isEmpty()) {
+            return new InLogicalCondition<Boolean>(
+                    field,
+                    values.BOOL().stream()
+                            .map(v -> Boolean.parseBoolean(v.getText()))
+                            .toList());
+        } else if (!values.STRING().isEmpty()) {
+            return new InLogicalCondition<String>(
+                    field,
+                    values.STRING().stream()
+                            .map(v -> v.getText().replace("'", ""))
+                            .toList());
+        } else if (!values.NUMBER().isEmpty()) {
+            return new InLogicalCondition<Double>(
+                    field,
+                    values.NUMBER().stream()
+                            .map(v -> Double.parseDouble(v.getText()))
+                            .toList());
+        } else if (!values.DATE().isEmpty()) {
+            return new InLogicalCondition<LocalDate>(
+                    field,
+                    values.DATE().stream()
+                            .map(v -> LocalDate.parse(v.getText()))
+                            .toList());
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 
     @Override
@@ -56,45 +89,7 @@ public class FilterExpressionConditionVisitor extends QueryConditionBaseVisitor<
     }
 
     @Override
-    public LogicalCondition visitCriteriaQuery(QueryConditionParser.CriteriaQueryContext ctx) {
-        return visit(ctx.criteria());
-    }
-
-    @Override
-    public LogicalCondition visitCriteria(QueryConditionParser.CriteriaContext ctx) {
-        var field = ctx.key().getText();
-        var operator = ctx.op().getText();
-        return parseCriteria(operator, ctx.value(), field);
-    }
-
-    @Override
     public LogicalCondition visitInput(QueryConditionParser.InputContext ctx) {
         return visit(ctx.query());
-    }
-
-    private LogicalCondition parseCriteria(String operator, QueryConditionParser.ValueContext ctx, String field) {
-        if (ctx.BOOL() != null) {
-            var value = Boolean.parseBoolean(ctx.getText());
-            return operator.equals(EQ)
-                    ? new EqualsCondition<Boolean>(field, value)
-                    : new NotEqualsCondition<Boolean>(field, value);
-        } else if (ctx.STRING() != null) {
-            var value = ctx.getText().replace("'", "");
-            return operator.equals(EQ)
-                    ? new EqualsCondition<String>(field, value)
-                    : new NotEqualsCondition<String>(field, value);
-        } else if (ctx.NUMBER() != null) {
-            var value = Double.parseDouble(ctx.getText());
-            return operator.equals(EQ)
-                    ? new EqualsCondition<Double>(field, value)
-                    : new NotEqualsCondition<Double>(field, value);
-        } else if (ctx.DATE() != null) {
-            var value = LocalDate.parse(ctx.getText());
-            return operator.equals(EQ)
-                    ? new EqualsCondition<LocalDate>(field, value)
-                    : new NotEqualsCondition<LocalDate>(field, value);
-        } else {
-            throw new UnsupportedOperationException();
-        }
     }
 }
