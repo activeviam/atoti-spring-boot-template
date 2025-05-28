@@ -31,6 +31,10 @@ public class CubeQuery {
     private final CubeQuery.TopRank topRank;
     private final List<CubeQuery.Partitioning> partitionedBy;
 
+    public static String calculatedMemberDefaultName(String metric, String level) {
+        return metric + "@" + level;
+    }
+
     public record Metric(String metric, String parameter) {
         public String getMetricName() {
             return ObjectUtils.isEmpty(parameter) ? metric : metric + "_" + parameter;
@@ -74,11 +78,10 @@ public class CubeQuery {
         }
     }
 
-    public record TopRank(String metric, LevelIdentifier level, int topN) {
+    public record TopRank(String metric, LevelIdentifier level) {
         public static TopRank fromDTO(CubeQueryDTO.TopRankDTO dto, LevelsConverter levelsConverter) {
             return Objects.nonNull(dto)
-                    ? new TopRank(
-                            dto.getMetric(), levelsConverter.stringToLevelIdentifier(dto.getLevel()), dto.getTopN())
+                    ? new TopRank(dto.getMetric(), levelsConverter.stringToLevelIdentifier(dto.getLevel()))
                     : null;
         }
     }
@@ -87,7 +90,8 @@ public class CubeQuery {
         public static Partitioning fromDTO(CubeQueryDTO.PartitioningDTO dto, LevelsConverter levelsConverter) {
             return Objects.nonNull(dto)
                     ? new Partitioning(
-                            dto.getNewMetric(),
+                            Optional.ofNullable(dto.getNewMetric())
+                                    .orElse(calculatedMemberDefaultName(dto.getMetric(), dto.getLevel())),
                             dto.getMetric(),
                             levelsConverter.stringToLevelIdentifier(dto.getLevel()))
                     : null;

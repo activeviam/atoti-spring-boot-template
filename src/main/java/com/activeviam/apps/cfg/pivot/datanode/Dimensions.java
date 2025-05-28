@@ -31,6 +31,9 @@ public class Dimensions implements ICanStartBuildingDimensions.DimensionsAdder {
     public static final LevelIdentifier COUNTERPARTY_LEVEL =
             new LevelIdentifier(TRADE_ATTRIBUTES_DIMENSION, COUNTERPARTY_ID, COUNTERPARTY_ID);
 
+    public static final LevelIdentifier TRADE_ID_LEVEL =
+            new LevelIdentifier(TRADE_ATTRIBUTES_DIMENSION, TRADE_ID, TRADE_ID);
+
     @Override
     public ICanBuildCubeDescription<IActivePivotInstanceDescription> apply(ICanStartBuildingDimensions builder) {
         return builder.withDimension(TRADE_ATTRIBUTES_DIMENSION)

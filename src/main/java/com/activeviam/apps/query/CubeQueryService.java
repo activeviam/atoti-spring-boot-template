@@ -10,6 +10,7 @@ import static com.activeviam.activepivot.core.intf.api.cube.hierarchy.IHierarchy
 import static com.activeviam.activepivot.server.json.api.dataexport.IJsonOutputConfiguration.FORMAT_PROPERTY;
 import static com.activeviam.apps.query.conditions.FilterExpressionConditionVisitor.parseFilterExpression;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,13 +19,18 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
+import com.activeviam.activepivot.core.impl.api.contextvalues.mdx.MdxContext;
 import com.activeviam.activepivot.core.impl.internal.context.filter.QueryBasedCubeRestriction;
+import com.activeviam.activepivot.core.impl.internal.context.impl.ContextUtils;
+import com.activeviam.activepivot.core.intf.api.contextvalues.mdx.IMdxContext;
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.cube.IMultiVersionActivePivot;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.HierarchyIdentifier;
@@ -48,6 +54,10 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class CubeQueryService {
 
+    public static final String TOP_RANK = "top_rank";
+    public static final String TOP_RANK_MEMBER = CubeQuerier.metricToMdxMember(TOP_RANK);
+    ;
+    public static final String TOP_RANK_SET = "OrderedL1";
     private final Map<String, CubeQuerier> cubeQueriers = new HashMap<>();
     private final String defaultCube;
 
@@ -62,7 +72,15 @@ public class CubeQueryService {
             var dateFilterLevels = defaults.getDateFilterLevels().stream()
                     .map(levelsConverter::stringToLevelIdentifier)
                     .collect(Collectors.toSet());
-            cubeQueriers.put(cube, new CubeQuerier(cube, levelsConverter, dateFilterLevels, pivot, dataExportService));
+            cubeQueriers.put(
+                    cube,
+                    new CubeQuerier(
+                            cube,
+                            levelsConverter,
+                            dateFilterLevels,
+                            cubeQueryProperties.getDefaultDoubleFormatter(),
+                            pivot,
+                            dataExportService));
         });
     }
 
@@ -80,89 +98,138 @@ public class CubeQueryService {
         private final String cube;
         private final LevelsConverter levelsConverter;
         private final Set<LevelIdentifier> dateLevelsForFiltering;
+        private final String defaultDoubleFormatter;
         private final IMultiVersionActivePivot activePivot;
         private final IDataExportService dataExportService;
-
         Set<HierarchyIdentifier> slicingHierarchies;
 
         public String buildMdxQuery(CubeQueryDTO dto) {
-            var cubeQuery = CubeQuery.fromDTO(dto, levelsConverter);
-            return buildMdxQuery(cubeQuery);
+            return buildMdxQuery(CubeQuery.fromDTO(dto, levelsConverter));
         }
 
         public StreamingResponseBody runQuery(CubeQueryDTO dto) {
-            Map<String, Object> config = Map.of(FORMAT_PROPERTY, JsonCsvPivotTableOutputConfiguration.PLUGIN_KEY);
             var cubeQuery = CubeQuery.fromDTO(dto, levelsConverter);
-            var dataExportOrder = new JsonDataExportOrder(
-                    new JsonMdxQuery(buildMdxQuery(cubeQuery), buildQueryContext(cubeQuery)), config);
-            var context = activePivot.getContext();
-            var snapshot = context.getAllUser();
-            try {
-                var cubeRestriction = QueryBasedCubeRestriction.create(
-                        filterExpressionToCubeRestrictions(cubeQuery.getFiltersExpression()));
-                context.set(IQueryBasedCubeRestriction.class, cubeRestriction);
-                return dataExportService.streamMdxQuery(dataExportOrder);
-            } finally {
-                activePivot.getContext().restore(snapshot);
-            }
+            var contextSnapshot = ContextUtils.applyContextValues(
+                    activePivot.getContext(),
+                    List.of(buildMdxContext(cubeQuery), buildCubeRestrictions(cubeQuery)),
+                    true);
+            Map<String, Object> config = Map.of(FORMAT_PROPERTY, JsonCsvPivotTableOutputConfiguration.PLUGIN_KEY);
+            var dataExportOrder =
+                    new JsonDataExportOrder(new JsonMdxQuery(buildMdxQuery(cubeQuery), Collections.emptyMap()), config);
+            var output = dataExportService.streamMdxQuery(dataExportOrder);
+            ContextUtils.replaceContextValues(activePivot.getContext(), contextSnapshot);
+            return output;
         }
 
-        private Map<String, String> buildQueryContext(CubeQuery cubeQuery) {
-            var context = new HashMap<String, String>();
-            var hiddenLevels = cubeQuery.getLevels().stream()
-                    .map(CubeQuerier::levelToMdxPath)
-                    .collect(Collectors.joining(","));
-            context.put("mdx.hiddensubtotals", hiddenLevels);
-            cubeQuery
-                    .getMetrics()
-                    .forEach(metric -> context.put(
-                            String.format("mdx.formatters.[Measures].[%s]", metric.getMetricName()),
-                            "DOUBLE[####.##]"));
-            return context;
+        // For tests
+        IMdxContext buildMdxContext(CubeQueryDTO dto) {
+            return buildMdxContext(CubeQuery.fromDTO(dto, levelsConverter));
+        }
+
+        IQueryBasedCubeRestriction buildCubeRestrictions(CubeQueryDTO dto) {
+            return buildCubeRestrictions(CubeQuery.fromDTO(dto, levelsConverter));
+        }
+
+        private IMdxContext buildMdxContext(CubeQuery cubeQuery) {
+            var mdxContext = new MdxContext();
+            // FIXME: why?
+            // mdxContext.setHiddenSubtotals(cubeQuery.getLevels());
+            // FIXME: workaround, remove once https://github.com/activeviam/activepivot/pull/12984 is merged
+            mdxContext.setLightCrossJoinEnabled(false);
+            mdxContext.setFormatters(extractAllMetricNames(cubeQuery).stream()
+                    .collect(Collectors.toMap(Function.identity(), m -> defaultDoubleFormatter)));
+            // Add TopRank Set and Member
+            if (!ObjectUtils.isEmpty(cubeQuery.getTopRank())) {
+                var topRank = cubeQuery.getTopRank();
+                mdxContext.addNamedSet(StartBuilding.namedSet()
+                        .withName(TOP_RANK_SET)
+                        .withExpression(topRankSetExpression(topRank))
+                        .build());
+                mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
+                        .withName(TOP_RANK_MEMBER)
+                        .withExpression(topRankMemberExpression(topRank))
+                        .build());
+            }
+            if (!ObjectUtils.isEmpty(cubeQuery.getPartitionedBy())) {
+                cubeQuery
+                        .getPartitionedBy()
+                        .forEach(p -> mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
+                                .withName(metricToMdxMember(p.newMetric()))
+                                .withExpression(partitioningCalculatedMemberExpression(p))
+                                .build()));
+            }
+            if (!ObjectUtils.isEmpty(cubeQuery.getSortBy())) {
+                // Create calculated members for sorting that requires it
+                cubeQuery.getSortBy().stream()
+                        .filter(CubeQuerier::sortRequiresCalculatedMember)
+                        .forEach(sort -> mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
+                                .withName(sortingCalculatedMeasure(sort))
+                                .withExpression(sortingCalculatedMemberExpression(sort))
+                                .build()));
+            }
+            return mdxContext;
+        }
+
+        private IQueryBasedCubeRestriction buildCubeRestrictions(CubeQuery cubeQuery) {
+            return QueryBasedCubeRestriction.create(
+                    filterExpressionToCubeRestrictions(cubeQuery.getFiltersExpression()));
+        }
+
+        private static List<String> extractAllMetricNames(CubeQuery cubeQuery) {
+            var allMetrics = new ArrayList<>(cubeQuery.getMetrics().stream()
+                    .map(CubeQuery.Metric::getMetricName)
+                    .toList());
+            // Add calculated members
+            allMetrics.addAll(Optional.ofNullable(cubeQuery.getPartitionedBy()).orElse(Collections.emptyList()).stream()
+                    .map(CubeQuery.Partitioning::newMetric)
+                    .toList());
+            return allMetrics;
         }
 
         private String buildMdxQuery(CubeQuery cubeQuery) {
             var query = new StringBuilder();
             var sortBy = cubeQuery.getSortBy();
-            var sortByCalculatedMember = ObjectUtils.isEmpty(sortBy)
-                    ? null
-                    : sortBy.stream()
-                            .filter(CubeQuerier::sortRequiresCalculatedMember)
-                            .toList();
-            var partitionedBy = cubeQuery.getPartitionedBy();
             var topRank = cubeQuery.getTopRank();
+
+            //            var sortByCalculatedMember = ObjectUtils.isEmpty(sortBy)
+            //                    ? null
+            //                    : sortBy.stream()
+            //                            .filter(CubeQuerier::sortRequiresCalculatedMember)
+            //                            .toList();
+            //            var partitionedBy = cubeQuery.getPartitionedBy();
             // If any of these conditions is true, we need to add the calculated Members
-            if (!ObjectUtils.isEmpty(sortByCalculatedMember)
-                    || !ObjectUtils.isEmpty(partitionedBy)
-                    || Objects.nonNull(topRank)) {
-                query.append("WITH ");
-                query.append(System.lineSeparator());
+            // if (!ObjectUtils.isEmpty(sortByCalculatedMember)
+            // || !ObjectUtils.isEmpty(partitionedBy)
+            //                    || Objects.nonNull(topRank)
+            // ) {
+            //                query.append("WITH ");
+            //                query.append(System.lineSeparator());
+            //
+            //                // Sort
+            //                if (!ObjectUtils.isEmpty(sortByCalculatedMember)) {
+            //                    query.append(sortByCalculatedMember.stream()
+            //                            .map(CubeQuerier::sortingCalculatedMeasure)
+            //                            .collect(Collectors.joining(",")));
+            //                    query.append(System.lineSeparator());
+            //                }
 
-                // Sort
-                if (!ObjectUtils.isEmpty(sortByCalculatedMember)) {
-                    query.append(sortByCalculatedMember.stream()
-                            .map(CubeQuerier::sortingCalculatedMeasure)
-                            .collect(Collectors.joining(",")));
-                    query.append(System.lineSeparator());
-                }
+            // Partitioning
+            //                if (!ObjectUtils.isEmpty(partitionedBy)) {
+            //                    query.append(partitionedBy.stream()
+            //                            .map(CubeQuerier::partitioningCalculatedMeasureMdx)
+            //                            .collect(Collectors.joining(",")));
+            //                    query.append(System.lineSeparator());
+            //                }
 
-                // Partitioning
-                if (!ObjectUtils.isEmpty(partitionedBy)) {
-                    query.append(partitionedBy.stream()
-                            .map(CubeQuerier::partitioningCalculatedMeasureMdx)
-                            .collect(Collectors.joining(",")));
-                    query.append(System.lineSeparator());
-                }
-
-                // Top Rank
-                if (!ObjectUtils.isEmpty(topRank)) {
-                    query.append(topRankCalculatedMeasureMdx(topRank));
-                    query.append(System.lineSeparator());
-                }
-            }
+            //                // Top Rank
+            //                if (!ObjectUtils.isEmpty(topRank)) {
+            //                    query.append(topRankSetMdx(topRank));
+            //                    query.append(System.lineSeparator());
+            //                }
+            //     }
 
             var levels = cubeQuery.getLevels();
-            query.append("SELECT");
+            query.append("SELECT NON EMPTY");
             query.append(System.lineSeparator());
             // Levels and top rank
             if (!ObjectUtils.isEmpty(levels)) {
@@ -177,42 +244,43 @@ public class CubeQueryService {
             }
 
             // Metrics
-            var metrics = cubeQuery.getMetrics();
+            var metrics = extractAllMetricNames(cubeQuery);
             if (!ObjectUtils.isEmpty(metrics)) {
                 query.append(String.format(
                         "{%s} ON COLUMNS",
-                        metrics.stream().map(CubeQuerier::metricToMdx).collect(Collectors.joining(","))));
+                        metrics.stream().map(CubeQuerier::metricToMdxMember).collect(Collectors.joining(","))));
                 query.append(System.lineSeparator());
             }
 
-            // Filters
-            var allFilters = cubeQuery.getFilters();
-            var otherFilters = cubeQuery.getFilters().stream()
-                    .filter(this::isNotDateFilter)
-                    .toList();
-            var dateFilters =
-                    cubeQuery.getFilters().stream().filter(this::isDateFilter).toList();
-            var dateLevels = cubeQuery.getLevels().stream()
-                    .filter(dateLevelsForFiltering::contains)
-                    .toList();
-
-            if (!ObjectUtils.isEmpty(otherFilters)) {
-                // Top count
-                if (!ObjectUtils.isEmpty(cubeQuery.getTopCounts()) && !ObjectUtils.isEmpty(levels)) {
-                    query.append(topCountToMdx(cubeQuery.getTopCounts()));
-                    query.append(System.lineSeparator());
-                }
-                // all filters are the same
-                if (!dateLevels.isEmpty()) {
-                    addSubSelectFilters(query, cube, allFilters, Collections.emptyList());
-                } else {
-                    // Add WHERE as of date to every sub select
-                    addSubSelectFilters(query, cube, otherFilters, dateFilters);
-                }
-            } else {
-                // FROM CUBE
-                query.append(fromCubeWithDateFilterMdx(cube, dateFilters));
-            }
+            //            // Filters
+            //            var allFilters = cubeQuery.getFilters();
+            //            var otherFilters = cubeQuery.getFilters().stream()
+            //                    .filter(this::isNotDateFilter)
+            //                    .toList();
+            //            var dateFilters =
+            //                    cubeQuery.getFilters().stream().filter(this::isDateFilter).toList();
+            //            var dateLevels = cubeQuery.getLevels().stream()
+            //                    .filter(dateLevelsForFiltering::contains)
+            //                    .toList();
+            //
+            //            if (!ObjectUtils.isEmpty(otherFilters)) {
+            //                // Top count
+            //                if (!ObjectUtils.isEmpty(cubeQuery.getTopCounts()) && !ObjectUtils.isEmpty(levels)) {
+            //                    query.append(topCountToMdx(cubeQuery.getTopCounts()));
+            //                    query.append(System.lineSeparator());
+            //                }
+            //                // all filters are the same
+            //                if (!dateLevels.isEmpty()) {
+            //                    addSubSelectFilters(query, cube, allFilters, Collections.emptyList());
+            //                } else {
+            //                    // Add WHERE as of date to every sub select
+            //                    addSubSelectFilters(query, cube, otherFilters, dateFilters);
+            //                }
+            //            } else {
+            //                // FROM CUBE
+            //                query.append(fromCubeWithDateFilterMdx(cube, dateFilters));
+            //            }
+            query.append(fromCube(cube));
             return query.toString();
         }
 
@@ -252,7 +320,7 @@ public class CubeQueryService {
                     .findFirst()
                     .ifPresentOrElse(
                             dateFilter -> {
-                                fromCube.append("FROM ( SELECT ");
+                                fromCube.append("FROM ( SELECT NON EMPTY");
                                 fromCube.append(System.lineSeparator());
                                 fromCube.append(dateFilterToMdx(dateFilter));
                                 fromCube.append(fromCube(cube));
@@ -303,19 +371,19 @@ public class CubeQueryService {
             var topRankTemplate = new StringBuilder();
             if (Objects.nonNull(topRankDefinition)) {
                 if (levels.size() == 1) {
-                    topRankTemplate.append("Order(%s)");
+                    topRankTemplate.append("Order(%s");
                 } else {
                     topRankTemplate.append("Order(Crossjoin(%s)");
                 }
                 topRankTemplate
-                        .append(", [Measures].[")
-                        .append(topRankDefinition.metric())
-                        .append("], BDESC) ON ROWS,");
+                        .append(", ")
+                        .append(metricToMdxMember(topRankDefinition.metric()))
+                        .append(", BDESC) ON ROWS,");
             } else {
                 if (levels.size() == 1) {
                     topRankTemplate.append("%s");
                 } else {
-                    topRankTemplate.append("NON EMPTY Crossjoin(%s) ");
+                    topRankTemplate.append("Crossjoin(%s) ");
                 }
                 topRankTemplate.append(" ON ROWS,");
             }
@@ -330,8 +398,8 @@ public class CubeQueryService {
                     levelIdentifier.getLevelName());
         }
 
-        private static String metricToMdx(CubeQuery.Metric metric) {
-            return String.format("[Measures].[%s]", metric.getMetricName());
+        private static String metricToMdxMember(String metric) {
+            return String.format("[Measures].[%s]", metric);
         }
 
         private static String filterToMdx(CubeQuery.Filter filter) {
@@ -360,17 +428,17 @@ public class CubeQueryService {
         private static String topCountToMdx(CubeQuery.TopCount topCount) {
 
             return String.format(
-                    " FROM (SELECT %s(Filter([%s].[%s].Levels(1).Members, NOT IsEmpty([Measures].[%s])), %s, [Measures].[%s]) ON COLUMNS ",
+                    " FROM (SELECT %s(Filter([%s].[%s].Levels(1).Members, NOT IsEmpty(%s)), %s, %s) ON COLUMNS ",
                     topCount.bottom() ? "BottomCount" : "TopCount",
                     topCount.level().getDimensionName(),
                     topCount.level().getHierarchyName(),
-                    topCount.metric(),
+                    metricToMdxMember(topCount.metric()),
                     topCount.count(),
-                    topCount.metric());
+                    metricToMdxMember(topCount.metric()));
         }
 
         private static String sortingCalculatedMeasure(CubeQuery.Sort sort) {
-            return String.format("[Measures].[%s_sorting]", sort.level().getLevelName());
+            return metricToMdxMember(String.format("%s_sorting", sort.level().getLevelName()));
         }
 
         private static boolean sortRequiresCalculatedMember(CubeQuery.Sort sort) {
@@ -379,21 +447,32 @@ public class CubeQueryService {
 
         private static String sortToMdx(CubeQuery.Sort sort) {
             return sortRequiresCalculatedMember(sort)
-                    ? String.format(
-                            "Member %s AS [%s].[%s].CurrentMember.MEMBER_VALUE",
-                            sortingCalculatedMeasure(sort),
-                            sort.level().getDimensionName(),
-                            sort.level().getHierarchyName())
-                    : String.format("[Measures].[%s]", sort.metric());
+                    ? sortingCalculatedMeasure(sort)
+                    : metricToMdxMember(sort.metric());
         }
 
-        private static String topRankCalculatedMeasureMdx(CubeQuery.TopRank topRank) {
+        private static String sortingCalculatedMemberExpression(CubeQuery.Sort sort) {
             return String.format(
-                    "Set OrderedL1 AS Order(%s.members,[Measures].[%s],BDESC) Member [Measures].[top_rank] AS Rank([%s].[%s].CurrentMember, OrderedL1)",
-                    levelToMdxPath(topRank.level()),
-                    topRank.metric(),
-                    topRank.level().getDimensionName(),
-                    topRank.level().getHierarchyName());
+                    "[%s].[%s].CurrentMember.MEMBER_VALUE",
+                    sort.level().getDimensionName(), sort.level().getHierarchyName());
+        }
+
+        //        private static String topRankSetMdx(CubeQuery.TopRank topRank) {
+        //            return String.format(
+        //                    "Set %s AS %s Member % AS %s",
+        //                    TOP_RANK_SET, topRankSetExpression(topRank), TOP_RANK_MEMBER,
+        // topRankMemberExpression(topRank));
+        //        }
+
+        private static String topRankSetExpression(CubeQuery.TopRank topRank) {
+            return String.format(
+                    "Order(%s.members,%s,BDESC)", levelToMdxPath(topRank.level()), metricToMdxMember(topRank.metric()));
+        }
+
+        private static String topRankMemberExpression(CubeQuery.TopRank topRank) {
+            return String.format(
+                    "Rank([%s].[%s].CurrentMember, %s)",
+                    topRank.level().getDimensionName(), topRank.level().getHierarchyName(), TOP_RANK_SET);
         }
 
         //    private static String topRankOthersCalculatedMeasureMdx(CubeQuery.TopRank topRank) {
@@ -410,11 +489,16 @@ public class CubeQueryService {
 
         private static String partitioningCalculatedMeasureMdx(CubeQuery.Partitioning partitioning) {
             return String.format(
-                    "Member [Measures].[%s] AS ([%s].[%s].CurrentMember.Parent, [Measures].[%s])",
-                    partitioning.newMetric(),
+                    "Member %s AS %s",
+                    metricToMdxMember(partitioning.newMetric()), partitioningCalculatedMemberExpression(partitioning));
+        }
+
+        private static String partitioningCalculatedMemberExpression(CubeQuery.Partitioning partitioning) {
+            return String.format(
+                    "([%s].[%s].CurrentMember.Parent, %s)",
                     partitioning.level().getDimensionName(),
                     partitioning.level().getHierarchyName(),
-                    partitioning.metric());
+                    metricToMdxMember(partitioning.metric()));
         }
 
         private boolean isDateFilter(CubeQuery.Filter filter) {
@@ -454,12 +538,11 @@ public class CubeQueryService {
                     .toList();
         }
 
-        private Object[] inPathValues(String hierarchy, Collection<?> values){
+        private Object[] inPathValues(String hierarchy, Collection<?> values) {
             if (isSlicingHierarchy(levelsConverter.stringToHierarchyIdentifier(hierarchy))) {
-                return new Object[]{values};
-            }
-            else {
-                return  new Object[]{ALLMEMBER, values};
+                return new Object[] {values};
+            } else {
+                return new Object[] {ALLMEMBER, values};
             }
         }
     }

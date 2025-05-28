@@ -47,7 +47,7 @@ public class FilterExpressionConditionVisitor extends QueryConditionBaseVisitor<
 
     @Override
     public LogicalCondition visitNotConditionQuery(QueryConditionParser.NotConditionQueryContext ctx) {
-        return new NotLogicalCondition(visit(ctx));
+        return new NotLogicalCondition(visit(ctx.notConditition));
     }
 
     @Override

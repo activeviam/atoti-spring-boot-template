@@ -20,6 +20,7 @@ import lombok.Data;
 public class CubeQueryProperties {
     private String defaultCube;
     private Map<String, CubeDefaults> cubeConfiguration;
+    private String defaultDoubleFormatter = "DOUBLE[####.##]";
 
     @Data
     public static class CubeDefaults {

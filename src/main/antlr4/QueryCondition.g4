@@ -15,10 +15,10 @@ query
    ;
 
 valuesList
-   :  (STRING ARG_SEPARATOR)*
-      | (NUMBER ARG_SEPARATOR)*
-      | (BOOL ARG_SEPARATOR)*
-      | (DATE ARG_SEPARATOR)*
+   :  (STRING ARG_SEPARATOR?)*
+      | (NUMBER ARG_SEPARATOR?)*
+      | (BOOL ARG_SEPARATOR?)*
+      | (DATE ARG_SEPARATOR?)*
    ;
 
 // Key is an identifier (e.g., field name)

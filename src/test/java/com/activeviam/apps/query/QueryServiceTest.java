@@ -7,8 +7,10 @@
 package com.activeviam.apps.query;
 
 import static com.activeviam.activepivot.core.intf.api.cube.hierarchy.IHierarchy.ALLMEMBER;
+import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.COB_DATE_LEVEL;
 import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.COUNTERPARTY_LEVEL;
 import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.TRADE_ATTRIBUTES_DIMENSION;
+import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.TRADE_ID_LEVEL;
 import static com.activeviam.apps.cfg.pivot.datanode.Measures.MEAN;
 import static com.activeviam.apps.cfg.pivot.datanode.Measures.SUM;
 import static com.activeviam.apps.cfg.pivot.datanode.Measures.postfixMeasure;
@@ -18,10 +20,13 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
+import static com.activeviam.apps.query.CubeQueryService.TOP_RANK;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -51,11 +56,20 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class QueryServiceTest {
     private static final LocalDate TEST_DATE = LocalDate.parse("2019-03-13");
+    private static final LocalDate OTHER_TEST_DATE = LocalDate.parse("2019-03-12");
+
     private static final String CPTY_1 = "Cpty1";
     private static final String CPTY_2 = "Cpty2";
+    private static final String TRADE_1 = "T1";
+    private static final String TRADE_2 = "T2";
+    private static final String TRADE_3 = "T3";
 
     @TestConfiguration
     public static class MeasuresTestConfig extends CubeTesterConfig {
+
+        static {
+            System.setProperty("activeviam.feature.experimental.new_cube_restriction.enabled", "true");
+        }
 
         @MockitoBean
         IDataExportService dataExportService;
@@ -75,15 +89,22 @@ class QueryServiceTest {
         public void loadData(IOpenedTransaction t) {
             t.addAll(
                     TRADES_STORE_NAME,
-                    List.of(new Object[] {TEST_DATE, "T1", 100}, new Object[] {TEST_DATE, "T2", 350d}, new Object[] {
-                        TEST_DATE, "T3", 300d
-                    }));
+                    List.of(
+                            new Object[] {TEST_DATE, TRADE_1, 100d},
+                            new Object[] {TEST_DATE, TRADE_2, 350d},
+                            new Object[] {TEST_DATE, TRADE_3, 300d},
+                            new Object[] {OTHER_TEST_DATE, TRADE_1, 1000d},
+                            new Object[] {OTHER_TEST_DATE, TRADE_2, 3500d},
+                            new Object[] {OTHER_TEST_DATE, TRADE_3, 3000d}));
             t.addAll(
                     TRADE_ATTRIBUTES_STORE_NAME,
                     List.of(
-                            new Object[] {TEST_DATE, "T1", TEST_DATE.minusDays(3), CPTY_1},
-                            new Object[] {TEST_DATE, "T2", TEST_DATE.minusDays(5), CPTY_2},
-                            new Object[] {TEST_DATE, "T3", TEST_DATE.minusDays(7), CPTY_2}));
+                            new Object[] {TEST_DATE, TRADE_1, TEST_DATE.minusDays(3), CPTY_1},
+                            new Object[] {TEST_DATE, TRADE_2, TEST_DATE.minusDays(5), CPTY_2},
+                            new Object[] {TEST_DATE, TRADE_3, TEST_DATE.minusDays(7), CPTY_2},
+                            new Object[] {OTHER_TEST_DATE, TRADE_1, TEST_DATE.minusDays(3), CPTY_1},
+                            new Object[] {OTHER_TEST_DATE, TRADE_2, TEST_DATE.minusDays(5), CPTY_2},
+                            new Object[] {OTHER_TEST_DATE, TRADE_3, TEST_DATE.minusDays(7), CPTY_2}));
         }
     }
 
@@ -92,21 +113,6 @@ class QueryServiceTest {
 
     @Autowired
     CubeQueryService cubeQueryService;
-
-    private static CubeQueryDTO.FilterDTO dateFilterDto() {
-        return CubeQueryDTO.FilterDTO.builder()
-                .withLevel(COB_DATE)
-                .withValues(List.of(TEST_DATE.format(DateTimeFormatter.ISO_DATE)))
-                .build();
-    }
-
-    private static CubeQueryDTO.FilterDTO cptyFilterDto(List<String> cptys, boolean exclude) {
-        return CubeQueryDTO.FilterDTO.builder()
-                .withLevel(COUNTERPARTY_ID)
-                .withValues(cptys)
-                .withExclude(exclude)
-                .build();
-    }
 
     private static final CubeQueryDTO.MetricDTO COUNT_METRIC_DTO = CubeQueryDTO.MetricDTO.builder()
             .withMetric(IMeasureHierarchy.COUNT_ID)
@@ -120,6 +126,9 @@ class QueryServiceTest {
             .withMetric(postfixMeasure(NOTIONAL, MEAN))
             .build();
 
+    private static final CubeQueryDTO.MetricDTO TOP_RANK_MEASURE_DTO =
+            CubeQueryDTO.MetricDTO.builder().withMetric(TOP_RANK).build();
+
     private static void assertCellValue(
             ICellSetTester.ICellByCoordinatesFinder resultCells, Map<LevelIdentifier, Object> levels, Object value) {
         var finder = resultCells;
@@ -129,86 +138,299 @@ class QueryServiceTest {
         assertThat(finder.getCell().getValue()).isEqualTo(value);
     }
 
-    private static final Map<String, TestInputOutput> TESTS = Map.of(
-            "Count",
-            new TestInputOutput(
-                    CubeQueryDTO.builder().withMetric(COUNT_METRIC_DTO).build(),
-                    resultCells -> assertThat(resultCells.getCell().getValue()).isEqualTo(3L)),
-            "Notionals",
-            new TestInputOutput(
-                    CubeQueryDTO.builder()
-                            .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                            .withMetric(NOTIONAL_MEAN_METRIC_DTO)
-                            .build(),
-                    resultCells -> {
-                        assertThat(resultCells
-                                        .measure(NOTIONAL_SUM_METRIC_DTO.getMetric())
-                                        .getCell()
-                                        .getValue())
-                                .isEqualTo(750d);
-                        assertThat(resultCells
-                                        .measure(NOTIONAL_MEAN_METRIC_DTO.getMetric())
-                                        .getCell()
-                                        .getValue())
-                                .isEqualTo(250d);
-                    }),
-            "Notionals with cpty",
-            new TestInputOutput(
-                    CubeQueryDTO.builder()
-                            .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                            .withLevel(COUNTERPARTY_LEVEL.getLevelName())
-                            .build(),
-                    resultCells -> {
-                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
-                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
-                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 750.0);
-                    }),
-            "Notionals with cpty and date filter",
-            new TestInputOutput(
-                    CubeQueryDTO.builder()
-                            .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                            .withFilter(dateFilterDto())
-                            .withLevel(COUNTERPARTY_LEVEL.getLevelName())
-                            .build(),
-                    resultCells -> {
-                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
-                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
-                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 750.0);
-                    }),
-            "Notionals with cpty and cpty filter",
-            new TestInputOutput(
-                    CubeQueryDTO.builder()
-                            .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                            .withFilter(cptyFilterDto(List.of(CPTY_1), false))
-                            .withLevel(COUNTERPARTY_LEVEL.getLevelName())
-                            .build(),
-                    resultCells -> {
-                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
-                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 100.0);
-                    }),
-            "Notionals with cpty and cpty exclude filter",
-            new TestInputOutput(
-                    CubeQueryDTO.builder()
-                            .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                            .withFilter(cptyFilterDto(List.of(CPTY_1), true))
-                            .withLevel(COUNTERPARTY_LEVEL.getLevelName())
-                            .build(),
-                    resultCells -> {
-                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
-                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 650.0);
-                    }),
-            "Notionals with cpty, cpty filter, date filter",
-            new TestInputOutput(
-                    CubeQueryDTO.builder()
-                            .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                            .withFilter(dateFilterDto())
-                            .withFilter(cptyFilterDto(List.of(CPTY_1), false))
-                            .withLevel(COUNTERPARTY_LEVEL.getLevelName())
-                            .build(),
-                    resultCells -> {
-                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
-                        assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 100.0);
-                    }));
+    private static final String CPTY_FILTER = COUNTERPARTY_ID + " IN " + "['" + CPTY_1 + "']";
+    private static final String TRADE_FILTER = TRADE_ID + " IN " + "['" + TRADE_3 + "']";
+
+    private static final String COB_DATE_FILTER =
+            COB_DATE + " IN [" + TEST_DATE.format(DateTimeFormatter.ISO_DATE) + "]";
+
+    private static final Map<String, TestInputOutput> TESTS = new HashMap<>();
+
+    static {
+        TESTS.put(
+                "Count",
+                new TestInputOutput(
+                        CubeQueryDTO.builder().withMetric(COUNT_METRIC_DTO).build(),
+                        resultCells ->
+                                assertThat(resultCells.getCell().getValue()).isEqualTo(3L)));
+
+        TESTS.put(
+                "Notional.Sum; Levels: none, Filter: none",
+                new TestInputOutput(
+                        CubeQueryDTO.builder()
+                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+                                .withMetric(NOTIONAL_MEAN_METRIC_DTO)
+                                .build(),
+                        resultCells -> {
+                            assertThat(resultCells
+                                            .measure(NOTIONAL_SUM_METRIC_DTO.getMetric())
+                                            .getCell()
+                                            .getValue())
+                                    .isEqualTo(750d);
+                            assertThat(resultCells
+                                            .measure(NOTIONAL_MEAN_METRIC_DTO.getMetric())
+                                            .getCell()
+                                            .getValue())
+                                    .isEqualTo(250d);
+                        }));
+        TESTS.put(
+                "Notional.Sum; Levels: cpty; Filter: none",
+                new TestInputOutput(
+                        CubeQueryDTO.builder()
+                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+                                .build(),
+                        resultCells -> {
+                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
+                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
+                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 750.0);
+                        }));
+        TESTS.put(
+                "Notional.Sum; Levels: cpty; Filter: date",
+                new TestInputOutput(
+                        CubeQueryDTO.builder()
+                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+                                .withFiltersExpression(COB_DATE_FILTER)
+                                .build(),
+                        resultCells -> {
+                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
+                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
+                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 750.0);
+                        }));
+
+        TESTS.put(
+                "Notional.Sum; Levels: date; Filter: none",
+                new TestInputOutput(
+                        CubeQueryDTO.builder()
+                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+                                .withLevel(COB_DATE_LEVEL.getLevelName())
+                                .build(),
+                        resultCells -> {
+                            assertCellValue(resultCells, Map.of(COB_DATE_LEVEL, TEST_DATE), 750.0);
+                            assertCellValue(resultCells, Map.of(COB_DATE_LEVEL, OTHER_TEST_DATE), 7500.0);
+                        }));
+        TESTS.put(
+                "Notional.Sum; Levels: cpty; Filter: cpty",
+                new TestInputOutput(
+                        CubeQueryDTO.builder()
+                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+                                .withFiltersExpression(CPTY_FILTER)
+                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+                                .build(),
+                        resultCells -> {
+                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
+                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 100.0);
+                        }));
+        TESTS.put(
+                "Notional.Sum; Levels: cpty; Filter: NOT cpty",
+                new TestInputOutput(
+                        CubeQueryDTO.builder()
+                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+                                .withFiltersExpression("NOT " + CPTY_FILTER)
+                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+                                .build(),
+                        resultCells -> {
+                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
+                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 650.0);
+                        }));
+        TESTS.put(
+                "Notional.Sum; Levels: cpty; Filter; date AND cpty",
+                new TestInputOutput(
+                        CubeQueryDTO.builder()
+                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+                                .withFiltersExpression(COB_DATE_FILTER + " AND " + CPTY_FILTER)
+                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+                                .build(),
+                        resultCells -> {
+                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
+                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 100.0);
+                        }));
+        TESTS.put(
+                "Notional.Sum; Levels: date,cpty; Filters: date AND cpty",
+                new TestInputOutput(
+                        CubeQueryDTO.builder()
+                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+                                .withFiltersExpression(COB_DATE_FILTER + " AND " + CPTY_FILTER)
+                                .withLevel(COB_DATE_LEVEL.getLevelName())
+                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+                                .build(),
+                        resultCells -> {
+                            assertCellValue(
+                                    resultCells, Map.of(COB_DATE_LEVEL, TEST_DATE, COUNTERPARTY_LEVEL, CPTY_1), 100.0);
+                            assertCellValue(
+                                    resultCells,
+                                    Map.of(COB_DATE_LEVEL, TEST_DATE, COUNTERPARTY_LEVEL, ALLMEMBER),
+                                    100.0);
+                        }));
+        TESTS.put(
+                "Notional.Sum; Levels: date,cpty,trade; Filter: date AND (cpty OR trade)",
+                new TestInputOutput(
+                        CubeQueryDTO.builder()
+                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+                                .withFiltersExpression(
+                                        COB_DATE_FILTER + " AND (" + CPTY_FILTER + " OR " + TRADE_FILTER + ")")
+                                .withLevel(COB_DATE_LEVEL.getLevelName())
+                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+                                .withLevel(TRADE_ID_LEVEL.getLevelName())
+                                .build(),
+                        resultCells -> {
+                            assertCellValue(
+                                    resultCells,
+                                    Map.of(
+                                            COB_DATE_LEVEL,
+                                            TEST_DATE,
+                                            COUNTERPARTY_LEVEL,
+                                            ALLMEMBER,
+                                            TRADE_ID_LEVEL,
+                                            ALLMEMBER),
+                                    400.0);
+                            assertCellValue(
+                                    resultCells,
+                                    Map.of(
+                                            COB_DATE_LEVEL,
+                                            TEST_DATE,
+                                            COUNTERPARTY_LEVEL,
+                                            ALLMEMBER,
+                                            TRADE_ID_LEVEL,
+                                            TRADE_1),
+                                    100.0);
+                            assertCellValue(
+                                    resultCells,
+                                    Map.of(
+                                            COB_DATE_LEVEL,
+                                            TEST_DATE,
+                                            COUNTERPARTY_LEVEL,
+                                            ALLMEMBER,
+                                            TRADE_ID_LEVEL,
+                                            TRADE_3),
+                                    300.0);
+                            assertCellValue(
+                                    resultCells,
+                                    Map.of(
+                                            COB_DATE_LEVEL,
+                                            TEST_DATE,
+                                            COUNTERPARTY_LEVEL,
+                                            CPTY_1,
+                                            TRADE_ID_LEVEL,
+                                            ALLMEMBER),
+                                    100.0);
+                            assertCellValue(
+                                    resultCells,
+                                    Map.of(
+                                            COB_DATE_LEVEL,
+                                            TEST_DATE,
+                                            COUNTERPARTY_LEVEL,
+                                            CPTY_1,
+                                            TRADE_ID_LEVEL,
+                                            TRADE_1),
+                                    100.0);
+                            assertCellValue(
+                                    resultCells,
+                                    Map.of(
+                                            COB_DATE_LEVEL,
+                                            TEST_DATE,
+                                            COUNTERPARTY_LEVEL,
+                                            CPTY_2,
+                                            TRADE_ID_LEVEL,
+                                            ALLMEMBER),
+                                    300.0);
+                            assertCellValue(
+                                    resultCells,
+                                    Map.of(
+                                            COB_DATE_LEVEL,
+                                            TEST_DATE,
+                                            COUNTERPARTY_LEVEL,
+                                            CPTY_2,
+                                            TRADE_ID_LEVEL,
+                                            TRADE_3),
+                                    300.0);
+                        }));
+        TESTS.put(
+                "SORT Notional.Sum; Levels: cpty; Filters: no filter",
+                new TestInputOutput(
+                        CubeQueryDTO.builder()
+                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+                                .withSortBy(CubeQueryDTO.SortDTO.builder()
+                                        .withMetric(postfixMeasure(NOTIONAL, SUM))
+                                        .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+                                        .withAscending(false)
+                                        .build())
+                                .build(),
+                        resultCells -> {}));
+        TESTS.put(
+                "PARTITION Notional.Sum; Levels: cpty; Filters: no filter",
+                new TestInputOutput(
+                        CubeQueryDTO.builder()
+                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+                                .withPartitionedBy(CubeQueryDTO.PartitioningDTO.builder()
+                                        .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+                                        .withMetric(postfixMeasure(NOTIONAL, SUM))
+                                        .build())
+                                .build(),
+                        resultCells -> {
+                            var calculatedMember = CubeQuery.calculatedMemberDefaultName(
+                                    NOTIONAL_SUM_METRIC_DTO.getMetric(), COUNTERPARTY_LEVEL.getLevelName());
+                            assertCellValue(
+                                    resultCells.measure(NOTIONAL_SUM_METRIC_DTO.getMetric()),
+                                    Map.of(COUNTERPARTY_LEVEL, ALLMEMBER),
+                                    750.0);
+                            assertCellValue(
+                                    resultCells.measure(NOTIONAL_SUM_METRIC_DTO.getMetric()),
+                                    Map.of(COUNTERPARTY_LEVEL, CPTY_1),
+                                    100.0);
+                            assertCellValue(
+                                    resultCells.measure(NOTIONAL_SUM_METRIC_DTO.getMetric()),
+                                    Map.of(COUNTERPARTY_LEVEL, CPTY_2),
+                                    650.0);
+                            assertCellValue(
+                                    resultCells.measure(calculatedMember), Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), null);
+                            assertCellValue(
+                                    resultCells.measure(calculatedMember), Map.of(COUNTERPARTY_LEVEL, CPTY_1), 750.0);
+                            assertCellValue(
+                                    resultCells.measure(calculatedMember), Map.of(COUNTERPARTY_LEVEL, CPTY_2), 750.0);
+                        }));
+        TESTS.put(
+                "TOP RANK Notional.Sum; Levels: tradeId; Filters: no filter",
+                new TestInputOutput(
+                        CubeQueryDTO.builder()
+                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+                                .withMetric(TOP_RANK_MEASURE_DTO)
+                                .withLevel(TRADE_ID_LEVEL.getLevelName())
+                                .withTopRank(CubeQueryDTO.TopRankDTO.builder()
+                                        .withLevel(TRADE_ID_LEVEL.getLevelName())
+                                        .withMetric(NOTIONAL_SUM_METRIC_DTO.getMetric())
+                                        .build())
+                                .build(),
+                        resultCells -> {
+                            assertCellValue(
+                                    resultCells.measure(NOTIONAL_SUM_METRIC_DTO.getMetric()),
+                                    Map.of(TRADE_ID_LEVEL, TRADE_1),
+                                    100.0);
+                            assertCellValue(
+                                    resultCells.measure(NOTIONAL_SUM_METRIC_DTO.getMetric()),
+                                    Map.of(TRADE_ID_LEVEL, TRADE_2),
+                                    350.0);
+                            assertCellValue(
+                                    resultCells.measure(NOTIONAL_SUM_METRIC_DTO.getMetric()),
+                                    Map.of(TRADE_ID_LEVEL, TRADE_3),
+                                    300.0);
+                            assertCellValue(
+                                    resultCells.measure(TOP_RANK_MEASURE_DTO.getMetric()),
+                                    Map.of(TRADE_ID_LEVEL, TRADE_2),
+                                    1);
+                            assertCellValue(
+                                    resultCells.measure(TOP_RANK_MEASURE_DTO.getMetric()),
+                                    Map.of(TRADE_ID_LEVEL, TRADE_3),
+                                    2);
+                            assertCellValue(
+                                    resultCells.measure(TOP_RANK_MEASURE_DTO.getMetric()),
+                                    Map.of(TRADE_ID_LEVEL, TRADE_1),
+                                    3);
+                        }));
+    }
 
     // NOTE: this only generates the MDX query, but doesn't run it through the service!
     // To run this through the service we need an actual object of type IDataExportService
@@ -216,19 +438,22 @@ class QueryServiceTest {
     @TestFactory
     Stream<DynamicTest> queryServiceMdxTests() {
         return TESTS.entrySet().stream()
-                .map(entry -> DynamicTest.dynamicTest(entry.getKey() + " Measures", () -> {
-                    var mdx = cubeQueryService
-                            .getCubeQuerier(CUBE_NAME)
-                            .buildMdxQuery(entry.getValue().dto());
-                    log.info("MDX:\n{}", mdx);
-                    var resultCell = cubeTester
+                .map(entry -> DynamicTest.dynamicTest(entry.getKey(), () -> {
+                    var queryDto = entry.getValue().dto();
+                    var cubeQuerier = cubeQueryService.getCubeQuerier(CUBE_NAME);
+                    var mdxQuery = cubeQuerier.buildMdxQuery(queryDto);
+                    var cubeRestrictions = cubeQuerier.buildCubeRestrictions(queryDto);
+                    var mdxContext = cubeQuerier.buildMdxContext(queryDto);
+                    log.info("MDX:\n{}", mdxQuery);
+                    var cellsTester = cubeTester
                             .mdxQuery()
-                            .withMdx(mdx)
+                            .withMdx(mdxQuery)
+                            .withContextValues(cubeRestrictions, mdxContext)
                             .run()
                             .show()
-                            .getTester()
-                            .findCell();
-                    entry.getValue().resultConsumer().accept(resultCell);
+                            .getTester();
+                    assertThat(cellsTester.isEmpty()).isFalse();
+                    entry.getValue().resultConsumer().accept(cellsTester.findCell());
                 }));
     }
 

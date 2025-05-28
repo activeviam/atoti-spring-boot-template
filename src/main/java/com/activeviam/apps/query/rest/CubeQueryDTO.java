@@ -112,9 +112,6 @@ public class CubeQueryDTO {
 
         @NonNull
         private String level;
-
-        @Builder.Default
-        private int topN = 5;
     }
 
     @Data
@@ -122,7 +119,6 @@ public class CubeQueryDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class PartitioningDTO {
-        @NonNull
         private String newMetric;
 
         @NonNull
