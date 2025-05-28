@@ -53,7 +53,7 @@ public class CubeQuery {
         }
     }
 
-    public record TopCount(String metric, LevelIdentifier level, int count, boolean bottom) {
+    public record TopCount(String metric, LevelIdentifier level, int count, boolean bottom, boolean aggregateOthers) {
 
         public static TopCount fromDTO(CubeQueryDTO.TopCountDTO dto, LevelsConverter levelsConverter) {
             return Objects.nonNull(dto)
@@ -61,7 +61,8 @@ public class CubeQuery {
                             dto.getMetric(),
                             levelsConverter.stringToLevelIdentifier(dto.getLevel()),
                             dto.getCount(),
-                            dto.isBottom())
+                            dto.isBottom(),
+                            dto.isAggregateOthers())
                     : null;
         }
     }

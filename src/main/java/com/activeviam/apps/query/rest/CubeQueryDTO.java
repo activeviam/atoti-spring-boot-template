@@ -85,6 +85,9 @@ public class CubeQueryDTO {
 
         @Builder.Default
         private boolean bottom = false;
+
+        @Builder.Default
+        private boolean aggregateOthers = true;
     }
 
     @Data

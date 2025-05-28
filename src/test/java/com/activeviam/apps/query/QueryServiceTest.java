@@ -21,7 +21,8 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
-import static com.activeviam.apps.query.CubeQueryService.TOP_RANK;
+import static com.activeviam.apps.query.CubeQueryService.OTHERS_MEMBER;
+import static com.activeviam.apps.query.CubeQueryService.TOP_RANK_MEASURE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
@@ -127,7 +128,7 @@ class QueryServiceTest {
             .build();
 
     private static final CubeQueryDTO.MetricDTO TOP_RANK_MEASURE_DTO =
-            CubeQueryDTO.MetricDTO.builder().withMetric(TOP_RANK).build();
+            CubeQueryDTO.MetricDTO.builder().withMetric(TOP_RANK_MEASURE).build();
 
     private static void assertCellValue(
             ICellSetTester.ICellByCoordinatesFinder resultCells, Map<LevelIdentifier, Object> levels, Object value) {
@@ -258,10 +259,6 @@ class QueryServiceTest {
                         resultCells -> {
                             assertCellValue(
                                     resultCells, Map.of(COB_DATE_LEVEL, TEST_DATE, COUNTERPARTY_LEVEL, CPTY_1), 100.0);
-                            assertCellValue(
-                                    resultCells,
-                                    Map.of(COB_DATE_LEVEL, TEST_DATE, COUNTERPARTY_LEVEL, ALLMEMBER),
-                                    100.0);
                         }));
         TESTS.put(
                 "Notional.Sum; Levels: date,cpty,trade; Filter: date AND (cpty OR trade)",
@@ -275,16 +272,6 @@ class QueryServiceTest {
                                 .withLevel(TRADE_ID_LEVEL.getLevelName())
                                 .build(),
                         resultCells -> {
-                            assertCellValue(
-                                    resultCells,
-                                    Map.of(
-                                            COB_DATE_LEVEL,
-                                            TEST_DATE,
-                                            COUNTERPARTY_LEVEL,
-                                            ALLMEMBER,
-                                            TRADE_ID_LEVEL,
-                                            ALLMEMBER),
-                                    400.0);
                             assertCellValue(
                                     resultCells,
                                     Map.of(
@@ -313,28 +300,8 @@ class QueryServiceTest {
                                             COUNTERPARTY_LEVEL,
                                             CPTY_1,
                                             TRADE_ID_LEVEL,
-                                            ALLMEMBER),
-                                    100.0);
-                            assertCellValue(
-                                    resultCells,
-                                    Map.of(
-                                            COB_DATE_LEVEL,
-                                            TEST_DATE,
-                                            COUNTERPARTY_LEVEL,
-                                            CPTY_1,
-                                            TRADE_ID_LEVEL,
                                             TRADE_1),
                                     100.0);
-                            assertCellValue(
-                                    resultCells,
-                                    Map.of(
-                                            COB_DATE_LEVEL,
-                                            TEST_DATE,
-                                            COUNTERPARTY_LEVEL,
-                                            CPTY_2,
-                                            TRADE_ID_LEVEL,
-                                            ALLMEMBER),
-                                    300.0);
                             assertCellValue(
                                     resultCells,
                                     Map.of(
@@ -429,6 +396,38 @@ class QueryServiceTest {
                                     resultCells.measure(TOP_RANK_MEASURE_DTO.getMetric()),
                                     Map.of(TRADE_ID_LEVEL, TRADE_1),
                                     3);
+                        }));
+        TESTS.put(
+                "TOP 2 Notional.Sum; Levels: cptyId,tradeId; Filters: no filter",
+                new TestInputOutput(
+                        CubeQueryDTO.builder()
+                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+                                .withLevel(TRADE_ID_LEVEL.getLevelName())
+                                .withTopCounts(CubeQueryDTO.TopCountDTO.builder()
+                                        .withLevel(TRADE_ID_LEVEL.getLevelName())
+                                        .withMetric(NOTIONAL_SUM_METRIC_DTO.getMetric())
+                                        .withCount(2)
+                                        .withAggregateOthers(true)
+                                        .build())
+                                .build(),
+                        resultCells -> {
+                            assertCellValue(
+                                    resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER, TRADE_ID_LEVEL, TRADE_2), 350.0);
+                            assertCellValue(
+                                    resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER, TRADE_ID_LEVEL, TRADE_3), 300.0);
+                            assertCellValue(
+                                    resultCells,
+                                    Map.of(COUNTERPARTY_LEVEL, ALLMEMBER, TRADE_ID_LEVEL, OTHERS_MEMBER),
+                                    100.0);
+                            assertCellValue(
+                                    resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2, TRADE_ID_LEVEL, TRADE_2), 350.0);
+                            assertCellValue(
+                                    resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2, TRADE_ID_LEVEL, TRADE_3), 300.0);
+                            assertCellValue(
+                                    resultCells,
+                                    Map.of(COUNTERPARTY_LEVEL, CPTY_1, TRADE_ID_LEVEL, OTHERS_MEMBER),
+                                    100.0);
                         }));
     }
 
