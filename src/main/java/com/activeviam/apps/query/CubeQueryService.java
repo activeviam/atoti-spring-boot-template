@@ -398,34 +398,30 @@ public class CubeQueryService {
         // Recursively build the cube restriction object
         private ICubeRestriction convertQueryConditionToCubeRestriction(LogicalCondition queryCondition) {
             return switch (queryCondition) {
-                // This code works with 6.1.7
                 case AndLogicalCondition andLogicalCondition ->
+                    // This code works with 6.1.7
                     AndCubeRestriction.create(toListOfRestrictions(andLogicalCondition.getSubConditions()));
+                // FIXME: use this code in version > 6.1.8
+                // ICubeRestriction.and(toListOfRestrictions(andLogicalCondition.getSubConditions()));
                 case OrLogicalCondition orLogicalCondition ->
+                    // This code works with 6.1.7
                     OrCubeRestriction.create(toListOfRestrictions(orLogicalCondition.getSubConditions()));
+                // FIXME: use this code in version > 6.1.8
+                // ICubeRestriction.or(toListOfRestrictions(orLogicalCondition.getSubConditions()));
                 case NotLogicalCondition notLogicalCondition ->
+                    // This code works with 6.1.7
                     NotCubeRestriction.create(
                             convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
+                // FIXME: use this code in version > 6.1.8
+                // ICubeRestriction.not(convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
                 case InLogicalCondition<?> inLogicalCondition ->
+                    // This code works with 6.1.7
                     InLevelRestriction.create(
                             levelsConverter.stringToLevelIdentifier(inLogicalCondition.getField()),
                             new HashSet<>(inLogicalCondition.getValues()));
                 // FIXME: use this code in version > 6.1.8
-                //                case AndLogicalCondition andLogicalCondition ->
-                //
-                // ICubeRestriction.and(toListOfRestrictions(andLogicalCondition.getSubConditions()));
-                //                case OrLogicalCondition orLogicalCondition ->
-                //
-                // ICubeRestriction.or(toListOfRestrictions(orLogicalCondition.getSubConditions()));
-                //                case NotLogicalCondition notLogicalCondition ->
-                //
-                // ICubeRestriction.not(convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
-                //                case InLogicalCondition<?> inLogicalCondition ->
-                //                        ICubeRestriction.inPath(
-                //
-                // levelsConverter.stringToHierarchyIdentifier(inLogicalCondition.getField()),
-                //                                inPathValues(inLogicalCondition.getField(),
-                // inLogicalCondition.getValues()));
+                // ICubeRestriction.inPath(levelsConverter.stringToHierarchyIdentifier(inLogicalCondition.getField()),
+                // inPathValues(inLogicalCondition.getField(),inLogicalCondition.getValues()));
                 default -> ICubeRestriction.TRUE_INSTANCE;
             };
         }
