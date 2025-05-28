@@ -7,7 +7,6 @@
 package com.activeviam.apps.query;
 
 import static com.activeviam.activepivot.core.intf.api.cube.hierarchy.IHierarchy.ALLMEMBER;
-import static com.activeviam.activepivot.server.json.api.dataexport.IJsonOutputConfiguration.FORMAT_PROPERTY;
 import static com.activeviam.apps.query.conditions.FilterExpressionConditionVisitor.parseFilterExpression;
 
 import java.util.ArrayList;
@@ -43,7 +42,6 @@ import com.activeviam.activepivot.core.intf.internal.context.filter.InLevelRestr
 import com.activeviam.activepivot.core.intf.internal.context.filter.NotCubeRestriction;
 import com.activeviam.activepivot.core.intf.internal.context.filter.OrCubeRestriction;
 import com.activeviam.activepivot.server.intf.api.dataexport.IDataExportService;
-import com.activeviam.activepivot.server.json.api.dataexport.JsonCsvPivotTableOutputConfiguration;
 import com.activeviam.activepivot.server.json.api.dataexport.JsonDataExportOrder;
 import com.activeviam.activepivot.server.json.api.query.JsonMdxQuery;
 import com.activeviam.apps.query.conditions.AndLogicalCondition;
@@ -109,19 +107,22 @@ public class CubeQueryService {
         private final IDataExportService dataExportService;
         Set<HierarchyIdentifier> slicingHierarchies;
 
+        LevelsConverter getLevelsConverter() {
+            return levelsConverter;
+        }
+
         public String buildMdxQuery(CubeQueryDTO dto) {
             return buildMdxQuery(CubeQuery.fromDTO(dto, levelsConverter));
         }
 
-        public StreamingResponseBody runQuery(CubeQueryDTO dto) {
+        public StreamingResponseBody runQuery(CubeQueryDTO dto, Map<String, Object> exporterConfig) {
             var cubeQuery = CubeQuery.fromDTO(dto, levelsConverter);
             var contextSnapshot = ContextUtils.applyContextValues(
                     activePivot.getContext(),
                     List.of(buildMdxContext(cubeQuery), buildCubeRestrictions(cubeQuery)),
                     true);
-            Map<String, Object> config = Map.of(FORMAT_PROPERTY, JsonCsvPivotTableOutputConfiguration.PLUGIN_KEY);
-            var dataExportOrder =
-                    new JsonDataExportOrder(new JsonMdxQuery(buildMdxQuery(cubeQuery), Collections.emptyMap()), config);
+            var dataExportOrder = new JsonDataExportOrder(
+                    new JsonMdxQuery(buildMdxQuery(cubeQuery), Collections.emptyMap()), exporterConfig);
             var output = dataExportService.streamMdxQuery(dataExportOrder);
             ContextUtils.replaceContextValues(activePivot.getContext(), contextSnapshot);
             return output;
@@ -317,7 +318,7 @@ public class CubeQueryService {
                             .collect(Collectors.joining(",")));
         }
 
-        private static String levelToMdxPath(LevelIdentifier levelIdentifier) {
+        static String levelToMdxPath(LevelIdentifier levelIdentifier) {
             return String.format(
                     "[%s].[%s].[%s]",
                     levelIdentifier.getDimensionName(),

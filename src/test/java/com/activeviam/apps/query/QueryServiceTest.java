@@ -7,6 +7,7 @@
 package com.activeviam.apps.query;
 
 import static com.activeviam.activepivot.core.intf.api.cube.hierarchy.IHierarchy.ALLMEMBER;
+import static com.activeviam.activepivot.server.json.api.dataexport.IJsonOutputConfiguration.FORMAT_PROPERTY;
 import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.COB_DATE_LEVEL;
 import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.COUNTERPARTY_LEVEL;
 import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.TRADE_ATTRIBUTES_DIMENSION;
@@ -21,31 +22,47 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
+import static com.activeviam.apps.query.CubeQueryService.CubeQuerier.levelToMdxPath;
 import static com.activeviam.apps.query.CubeQueryService.OTHERS_MEMBER;
 import static com.activeviam.apps.query.CubeQueryService.TOP_RANK_MEASURE;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.apache.arrow.memory.RootAllocator;
+import org.apache.arrow.vector.FieldVector;
+import org.apache.arrow.vector.Float8Vector;
+import org.apache.arrow.vector.VarCharVector;
+import org.apache.arrow.vector.VectorSchemaRoot;
+import org.apache.arrow.vector.ipc.ArrowStreamReader;
+import org.apache.arrow.vector.types.FloatingPointPrecision;
+import org.apache.arrow.vector.types.pojo.ArrowType;
+import org.apache.arrow.vector.types.pojo.Field;
+import org.apache.arrow.vector.types.pojo.FieldType;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IMeasureHierarchy;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
-import com.activeviam.activepivot.server.intf.api.dataexport.IDataExportService;
+import com.activeviam.activepivot.server.impl.private_.rest.dataexport.DataExportService;
+import com.activeviam.activepivot.server.json.api.dataexport.JsonArrowOutputConfiguration;
 import com.activeviam.apps.cfg.pivot.ApplicationWithDatastoreConfig;
 import com.activeviam.apps.cfg.pivot.CubeTesterConfig;
+import com.activeviam.apps.query.rest.CubeQueryController;
 import com.activeviam.apps.query.rest.CubeQueryDTO;
 import com.activeviam.atoti.server.test.api.CubeTester;
 import com.activeviam.atoti.server.test.api.ICellSetTester;
@@ -56,8 +73,8 @@ import lombok.extern.slf4j.Slf4j;
 @SpringJUnitConfig
 @Slf4j
 class QueryServiceTest {
-    private static final LocalDate TEST_DATE = LocalDate.parse("2019-03-13");
-    private static final LocalDate OTHER_TEST_DATE = LocalDate.parse("2019-03-12");
+    private static final LocalDate TEST_DATE = LocalDate.parse("2025-03-13");
+    private static final LocalDate OTHER_TEST_DATE = LocalDate.parse("2025-03-12");
 
     private static final String CPTY_1 = "Cpty1";
     private static final String CPTY_2 = "Cpty2";
@@ -72,9 +89,6 @@ class QueryServiceTest {
             System.setProperty("activeviam.feature.experimental.new_cube_restriction.enabled", "true");
         }
 
-        @MockitoBean
-        IDataExportService dataExportService;
-
         @Bean
         CubeQueryService cubeQueryService(ApplicationWithDatastoreConfig application) {
             var cubeQueryProperties = new CubeQueryProperties();
@@ -83,7 +97,13 @@ class QueryServiceTest {
             cubeDefaults.setDefaultDimension(TRADE_ATTRIBUTES_DIMENSION);
             cubeDefaults.setDateFilterLevels(List.of(COB_DATE));
             cubeQueryProperties.setCubeConfiguration(Map.of(CUBE_NAME, cubeDefaults));
+            var dataExportService = new DataExportService(application.activePivotManager(), Path.of(""));
             return new CubeQueryService(dataExportService, application.activePivotManager(), cubeQueryProperties);
+        }
+
+        @Bean
+        CubeQueryController cubeQueryController(CubeQueryService cubeQueryService) {
+            return new CubeQueryController(cubeQueryService);
         }
 
         @Override
@@ -153,7 +173,8 @@ class QueryServiceTest {
                 new TestInputOutput(
                         CubeQueryDTO.builder().withMetric(COUNT_METRIC_DTO).build(),
                         resultCells ->
-                                assertThat(resultCells.getCell().getValue()).isEqualTo(3L)));
+                                assertThat(resultCells.getCell().getValue()).isEqualTo(3L),
+                        allocator -> null));
 
         TESTS.put(
                 "Notional.Sum; Levels: none, Filter: none",
@@ -173,7 +194,8 @@ class QueryServiceTest {
                                             .getCell()
                                             .getValue())
                                     .isEqualTo(250d);
-                        }));
+                        },
+                        allocator -> null));
         TESTS.put(
                 "Notional.Sum; Levels: cpty; Filter: none",
                 new TestInputOutput(
@@ -185,7 +207,8 @@ class QueryServiceTest {
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 750.0);
-                        }));
+                        },
+                        allocator -> null));
         TESTS.put(
                 "Notional.Sum; Levels: cpty; Filter: date",
                 new TestInputOutput(
@@ -198,7 +221,8 @@ class QueryServiceTest {
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 750.0);
-                        }));
+                        },
+                        allocator -> null));
 
         TESTS.put(
                 "Notional.Sum; Levels: date; Filter: none",
@@ -210,7 +234,8 @@ class QueryServiceTest {
                         resultCells -> {
                             assertCellValue(resultCells, Map.of(COB_DATE_LEVEL, TEST_DATE), 750.0);
                             assertCellValue(resultCells, Map.of(COB_DATE_LEVEL, OTHER_TEST_DATE), 7500.0);
-                        }));
+                        },
+                        allocator -> null));
         TESTS.put(
                 "Notional.Sum; Levels: cpty; Filter: cpty",
                 new TestInputOutput(
@@ -222,7 +247,8 @@ class QueryServiceTest {
                         resultCells -> {
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 100.0);
-                        }));
+                        },
+                        allocator -> null));
         TESTS.put(
                 "Notional.Sum; Levels: cpty; Filter: NOT cpty",
                 new TestInputOutput(
@@ -234,7 +260,8 @@ class QueryServiceTest {
                         resultCells -> {
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 650.0);
-                        }));
+                        },
+                        allocator -> null));
         TESTS.put(
                 "Notional.Sum; Levels: cpty; Filter; date AND cpty",
                 new TestInputOutput(
@@ -246,7 +273,8 @@ class QueryServiceTest {
                         resultCells -> {
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 100.0);
-                        }));
+                        },
+                        allocator -> null));
         TESTS.put(
                 "Notional.Sum; Levels: date,cpty; Filters: date AND cpty",
                 new TestInputOutput(
@@ -259,7 +287,8 @@ class QueryServiceTest {
                         resultCells -> {
                             assertCellValue(
                                     resultCells, Map.of(COB_DATE_LEVEL, TEST_DATE, COUNTERPARTY_LEVEL, CPTY_1), 100.0);
-                        }));
+                        },
+                        allocator -> null));
         TESTS.put(
                 "Notional.Sum; Levels: date,cpty,trade; Filter: date AND (cpty OR trade)",
                 new TestInputOutput(
@@ -312,7 +341,8 @@ class QueryServiceTest {
                                             TRADE_ID_LEVEL,
                                             TRADE_3),
                                     300.0);
-                        }));
+                        },
+                        allocator -> null));
         TESTS.put(
                 "SORT Notional.Sum; Levels: cpty; Filters: no filter",
                 new TestInputOutput(
@@ -325,7 +355,11 @@ class QueryServiceTest {
                                         .withAscending(false)
                                         .build())
                                 .build(),
-                        resultCells -> {}));
+                        resultCells -> {
+                            // FIXME: we cannot check the order here
+
+                        },
+                        allocator -> null));
         TESTS.put(
                 "PARTITION Notional.Sum; Levels: cpty; Filters: no filter",
                 new TestInputOutput(
@@ -358,7 +392,8 @@ class QueryServiceTest {
                                     resultCells.measure(calculatedMember), Map.of(COUNTERPARTY_LEVEL, CPTY_1), 750.0);
                             assertCellValue(
                                     resultCells.measure(calculatedMember), Map.of(COUNTERPARTY_LEVEL, CPTY_2), 750.0);
-                        }));
+                        },
+                        allocator -> null));
         TESTS.put(
                 "TOP RANK Notional.Sum; Levels: tradeId; Filters: no filter",
                 new TestInputOutput(
@@ -396,7 +431,8 @@ class QueryServiceTest {
                                     resultCells.measure(TOP_RANK_MEASURE_DTO.getMetric()),
                                     Map.of(TRADE_ID_LEVEL, TRADE_1),
                                     3);
-                        }));
+                        },
+                        allocator -> null));
         TESTS.put(
                 "TOP 2 Notional.Sum; Levels: cptyId,tradeId; Filters: no filter",
                 new TestInputOutput(
@@ -428,7 +464,48 @@ class QueryServiceTest {
                                     resultCells,
                                     Map.of(COUNTERPARTY_LEVEL, CPTY_1, TRADE_ID_LEVEL, OTHERS_MEMBER),
                                     100.0);
-                        }));
+                        },
+                        allocator -> new VectorSchemaRoot(List.of(
+                                stringFieldVector(allocator, stringArrowField(COUNTERPARTY_LEVEL), new String[] {
+                                    null, null, null, CPTY_1, CPTY_2, CPTY_2
+                                }),
+                                stringFieldVector(allocator, stringArrowField(TRADE_ID_LEVEL), new String[] {
+                                    TRADE_2, TRADE_3, OTHERS_MEMBER, OTHERS_MEMBER, TRADE_2, TRADE_3
+                                }),
+                                doubleFieldVector(
+                                        allocator,
+                                        doubleArrowField(NOTIONAL_SUM_METRIC_DTO.getMetric()),
+                                        new double[] {350.0, 300.0, 100.0, 100.0, 350.0, 300.0})))));
+    }
+
+    private static Field stringArrowField(LevelIdentifier levelIdentifier) {
+        return new Field(levelToMdxPath(levelIdentifier), FieldType.nullable(new ArrowType.Utf8()), null);
+    }
+
+    private static Field doubleArrowField(String measure) {
+        return new Field(measure, FieldType.nullable(new ArrowType.FloatingPoint(FloatingPointPrecision.DOUBLE)), null);
+    }
+
+    private static FieldVector doubleFieldVector(RootAllocator allocator, Field field, double[] values) {
+        var doubleVector = new Float8Vector(field, allocator);
+        doubleVector.allocateNew(values.length);
+        for (var i = 0; i < values.length; i++) {
+            doubleVector.set(i, values[i]);
+        }
+        doubleVector.setValueCount(values.length);
+        return doubleVector;
+    }
+
+    private static FieldVector stringFieldVector(RootAllocator allocator, Field field, String[] values) {
+        var varCharVector = new VarCharVector(field, allocator);
+        varCharVector.allocateNew(values.length);
+        for (var i = 0; i < values.length; i++) {
+            if (values[i] != null) {
+                varCharVector.set(i, values[i].getBytes());
+            }
+        }
+        varCharVector.setValueCount(values.length);
+        return varCharVector;
     }
 
     // NOTE: this only generates the MDX query, but doesn't run it through the service!
@@ -456,6 +533,42 @@ class QueryServiceTest {
                 }));
     }
 
+    // NOTE: this only generates the MDX query, but doesn't run it through the service!
+    // To run this through the service we need an actual object of type IDataExportService
+    // which is currently mocked
+    @TestFactory
+    Stream<DynamicTest> queryControllerMdxTests() {
+        return TESTS.entrySet().stream()
+                .map(entry -> DynamicTest.dynamicTest("Exporter: " + entry.getKey(), () -> {
+                    var queryDto = entry.getValue().dto();
+                    var querier = cubeQueryService.getCubeQuerier(CUBE_NAME);
+                    var streamingResult = querier.runQuery(
+                            queryDto, Map.of(FORMAT_PROPERTY, JsonArrowOutputConfiguration.PLUGIN_KEY));
+                    try (var outputStream = new ByteArrayOutputStream()) {
+                        outputStream.flush();
+                        streamingResult.writeTo(outputStream);
+                        try (var rootAllocator = new RootAllocator();
+                                var reader = new ArrowStreamReader(
+                                        new ByteArrayInputStream(outputStream.toByteArray()), rootAllocator);
+                                var expectedSchemaRoot = entry.getValue()
+                                        .expectedVectorSchemaRootBuilder()
+                                        .apply(rootAllocator)) {
+                            while (reader.loadNextBatch()) {
+                                var vectorSchemaRoot = reader.getVectorSchemaRoot();
+                                assertThat(vectorSchemaRoot).isNotNull();
+                                log.info(vectorSchemaRoot.contentToTSVString());
+                                if (expectedSchemaRoot != null) {
+                                    assertThat(vectorSchemaRoot.equals(expectedSchemaRoot))
+                                            .isTrue();
+                                }
+                            }
+                        }
+                    }
+                }));
+    }
+
     private record TestInputOutput(
-            CubeQueryDTO dto, Consumer<ICellSetTester.ICellByCoordinatesFinder> resultConsumer) {}
+            CubeQueryDTO dto,
+            Consumer<ICellSetTester.ICellByCoordinatesFinder> resultConsumer,
+            Function<RootAllocator, VectorSchemaRoot> expectedVectorSchemaRootBuilder) {}
 }

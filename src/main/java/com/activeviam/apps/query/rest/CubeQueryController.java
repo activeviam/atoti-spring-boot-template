@@ -6,6 +6,10 @@
  */
 package com.activeviam.apps.query.rest;
 
+import static com.activeviam.activepivot.server.json.api.dataexport.IJsonOutputConfiguration.FORMAT_PROPERTY;
+
+import java.util.Map;
+
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import com.activeviam.activepivot.server.json.api.dataexport.JsonCsvPivotTableOutputConfiguration;
 import com.activeviam.apps.query.CubeQueryService;
 
 import lombok.RequiredArgsConstructor;
@@ -24,6 +29,9 @@ public class CubeQueryController {
     private final CubeQueryService cubeQueryService;
 
     public static final String QUERY_ENDPOINT = "/cube_query";
+
+    private static final Map<String, Object> CSV_OUTPUT_EXPORTER_CONFIG =
+            Map.of(FORMAT_PROPERTY, JsonCsvPivotTableOutputConfiguration.PLUGIN_KEY);
 
     @PostMapping("/mdx/{cube}")
     public String getMdxQueryforCube(@PathVariable String cube, @RequestBody CubeQueryDTO queryDTO) {
@@ -37,11 +45,11 @@ public class CubeQueryController {
 
     @PostMapping("/{cube}")
     public StreamingResponseBody runQueryOnCube(@PathVariable String cube, @RequestBody CubeQueryDTO queryDTO) {
-        return cubeQueryService.getCubeQuerier(cube).runQuery(queryDTO);
+        return cubeQueryService.getCubeQuerier(cube).runQuery(queryDTO, CSV_OUTPUT_EXPORTER_CONFIG);
     }
 
     @PostMapping()
     public StreamingResponseBody runQueryOnDefaultCube(@RequestBody CubeQueryDTO queryDTO) {
-        return cubeQueryService.getDefaultCubeQuerier().runQuery(queryDTO);
+        return cubeQueryService.getDefaultCubeQuerier().runQuery(queryDTO, CSV_OUTPUT_EXPORTER_CONFIG);
     }
 }
