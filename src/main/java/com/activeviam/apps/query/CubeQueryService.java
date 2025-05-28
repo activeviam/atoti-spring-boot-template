@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -35,8 +36,12 @@ import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.cube.IMultiVersionActivePivot;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.HierarchyIdentifier;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
+import com.activeviam.activepivot.core.intf.internal.context.filter.AndCubeRestriction;
 import com.activeviam.activepivot.core.intf.internal.context.filter.ICubeRestriction;
 import com.activeviam.activepivot.core.intf.internal.context.filter.IQueryBasedCubeRestriction;
+import com.activeviam.activepivot.core.intf.internal.context.filter.InLevelRestriction;
+import com.activeviam.activepivot.core.intf.internal.context.filter.NotCubeRestriction;
+import com.activeviam.activepivot.core.intf.internal.context.filter.OrCubeRestriction;
 import com.activeviam.activepivot.server.intf.api.dataexport.IDataExportService;
 import com.activeviam.activepivot.server.json.api.dataexport.JsonCsvPivotTableOutputConfiguration;
 import com.activeviam.activepivot.server.json.api.dataexport.JsonDataExportOrder;
@@ -393,16 +398,34 @@ public class CubeQueryService {
         // Recursively build the cube restriction object
         private ICubeRestriction convertQueryConditionToCubeRestriction(LogicalCondition queryCondition) {
             return switch (queryCondition) {
+                // This code works with 6.1.7
                 case AndLogicalCondition andLogicalCondition ->
-                    ICubeRestriction.and(toListOfRestrictions(andLogicalCondition.getSubConditions()));
+                    AndCubeRestriction.create(toListOfRestrictions(andLogicalCondition.getSubConditions()));
                 case OrLogicalCondition orLogicalCondition ->
-                    ICubeRestriction.or(toListOfRestrictions(orLogicalCondition.getSubConditions()));
+                    OrCubeRestriction.create(toListOfRestrictions(orLogicalCondition.getSubConditions()));
                 case NotLogicalCondition notLogicalCondition ->
-                    ICubeRestriction.not(convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
+                    NotCubeRestriction.create(
+                            convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
                 case InLogicalCondition<?> inLogicalCondition ->
-                    ICubeRestriction.inPath(
-                            levelsConverter.stringToHierarchyIdentifier(inLogicalCondition.getField()),
-                            inPathValues(inLogicalCondition.getField(), inLogicalCondition.getValues()));
+                    InLevelRestriction.create(
+                            levelsConverter.stringToLevelIdentifier(inLogicalCondition.getField()),
+                            new HashSet<>(inLogicalCondition.getValues()));
+                // FIXME: use this code in version > 6.1.8
+                //                case AndLogicalCondition andLogicalCondition ->
+                //
+                // ICubeRestriction.and(toListOfRestrictions(andLogicalCondition.getSubConditions()));
+                //                case OrLogicalCondition orLogicalCondition ->
+                //
+                // ICubeRestriction.or(toListOfRestrictions(orLogicalCondition.getSubConditions()));
+                //                case NotLogicalCondition notLogicalCondition ->
+                //
+                // ICubeRestriction.not(convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
+                //                case InLogicalCondition<?> inLogicalCondition ->
+                //                        ICubeRestriction.inPath(
+                //
+                // levelsConverter.stringToHierarchyIdentifier(inLogicalCondition.getField()),
+                //                                inPathValues(inLogicalCondition.getField(),
+                // inLogicalCondition.getValues()));
                 default -> ICubeRestriction.TRUE_INSTANCE;
             };
         }
