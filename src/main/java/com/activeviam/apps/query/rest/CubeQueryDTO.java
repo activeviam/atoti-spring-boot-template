@@ -27,8 +27,8 @@ public class CubeQueryDTO {
     @Singular
     private List<String> levels;
 
-    @Singular
-    private List<FilterDTO> filters;
+    //    @Singular
+    //    private List<FilterDTO> filters;
     // NOTE: filtersExpression will replace filters map so we can support the OR condition
     private String filtersExpression;
     private TopCountDTO topCounts;

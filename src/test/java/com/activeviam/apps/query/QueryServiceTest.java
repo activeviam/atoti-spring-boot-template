@@ -167,7 +167,8 @@ class QueryServiceTest {
     }
 
     private static final String CPTY_FILTER = COUNTERPARTY_ID + " IN " + "['" + CPTY_1 + "']";
-    private static final String TRADE_FILTER = TRADE_ID + " IN " + "['" + TRADE_3 + "']";
+    private static final String TRADE_3_FILTER = TRADE_ID + " IN " + "['" + TRADE_3 + "']";
+    private static final String TRADE_1_FILTER = TRADE_ID + " IN " + "['" + TRADE_1 + "']";
 
     private static final String COB_DATE_FILTER =
             COB_DATE + " IN [" + TEST_DATE.format(DateTimeFormatter.ISO_DATE) + "]";
@@ -243,6 +244,7 @@ class QueryServiceTest {
                             assertCellValue(resultCells, Map.of(COB_DATE_LEVEL, OTHER_TEST_DATE), 7500.0);
                         },
                         null));
+
         TESTS.put(
                 "Notional.Sum; Levels: cpty; Filter: cpty",
                 new TestInputOutput(
@@ -256,6 +258,24 @@ class QueryServiceTest {
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 100.0);
                         },
                         null));
+
+        TESTS.put(
+                "Notional.Sum; Levels: trade; Filter: date,cpty,trade",
+                new TestInputOutput(
+                        CubeQueryDTO.builder()
+                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+                                .withFiltersExpression(
+                                        COB_DATE_FILTER + " AND " + TRADE_1_FILTER + " AND " + CPTY_FILTER)
+                                .withLevel(TRADE_ID_LEVEL.getLevelName())
+                                .build(),
+                        resultCells -> {
+                            assertCellValue(resultCells, Map.of(TRADE_ID_LEVEL, ALLMEMBER), 100.0);
+                            assertCellValue(resultCells, Map.of(TRADE_ID_LEVEL, TRADE_1), 100.0);
+                        },
+                        List.of(
+                                new ResultColumn(TRADE_ID_LEVEL, new String[] {null, TRADE_1}),
+                                new ResultColumn(NOTIONAL_SUM_METRIC_DTO.getMetric(), new Double[] {100.0, 100.0}))));
+
         TESTS.put(
                 "Notional.Sum; Levels: cpty; Filter: NOT cpty",
                 new TestInputOutput(
@@ -302,7 +322,7 @@ class QueryServiceTest {
                         CubeQueryDTO.builder()
                                 .withMetric(NOTIONAL_SUM_METRIC_DTO)
                                 .withFiltersExpression(
-                                        COB_DATE_FILTER + " AND (" + CPTY_FILTER + " OR " + TRADE_FILTER + ")")
+                                        COB_DATE_FILTER + " AND (" + CPTY_FILTER + " OR " + TRADE_3_FILTER + ")")
                                 .withLevel(COB_DATE_LEVEL.getLevelName())
                                 .withLevel(COUNTERPARTY_LEVEL.getLevelName())
                                 .withLevel(TRADE_ID_LEVEL.getLevelName())
@@ -628,6 +648,7 @@ class QueryServiceTest {
                     var mdxQuery = cubeQuerier.buildMdxQuery(queryDto);
                     var cubeRestrictions = cubeQuerier.buildCubeRestrictions(queryDto);
                     var mdxContext = cubeQuerier.buildMdxContext(queryDto);
+                    log.info("DTO:\n{}", queryDto);
                     log.info("MDX:\n{}", mdxQuery);
                     var cellsTester = cubeTester
                             .mdxQuery()
@@ -682,38 +703,8 @@ class QueryServiceTest {
                         outputStream.flush();
                         streamingResult.writeTo(outputStream);
                         try (var reader = new BufferedReader(new StringReader(outputStream.toString()))) {
-                            log.info("CSV:\n{}", reader);
-                            //                            var expectedResults = entry.getValue().expectedResults();
-                            //                            if (Objects.nonNull(expectedResults)) {
-                            //                                var counter = new AtomicInteger(0);
-                            //                                reader.lines().forEach(row -> {
-                            //                                    var cells = row.split(",");
-                            //                                    var rowCount = counter.get();
-                            //                                    if (rowCount == 0) {
-                            //                                        // check number of columns
-                            //                                        assertThat(cells).hasSize(expectedResults.size());
-                            //                                        // FIXME: check header
-                            //                                    } else {
-                            //                                        // check values
-                            //                                        for (var i = 0; i < cells.length; i++) {
-                            //                                            // data doesnt contain the header row!
-                            //                                            var expectedValue =
-                            // expectedResults.get(i).data[counter.get() - 1];
-                            //                                            if (Objects.nonNull(expectedValue)) {
-                            //                                                // String conversion might not match!
-                            //
-                            // assertThat(cells[i]).isEqualTo(expectedValue.toString());
-                            //                                            }
-                            //                                            else {
-                            //                                                // Is this correct?
-                            //
-                            // assertThat(cells[i]).isEqualTo("AllMember");
-                            //                                            }
-                            //                                        }
-                            //                                    }
-                            //                                    counter.incrementAndGet();
-                            //                                });
-                            //                            }
+                            log.info("CSV:\n");
+                            reader.lines().forEach(log::info);
                         }
                     }
                 }));

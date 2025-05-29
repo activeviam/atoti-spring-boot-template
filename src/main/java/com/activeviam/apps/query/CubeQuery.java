@@ -23,7 +23,7 @@ public class CubeQuery {
     private final List<Metric> metrics;
     private final List<LevelIdentifier> levels;
     // Filters only support the AND condition
-    private final List<Filter> filters;
+    // private final List<Filter> filters;
     // FiltersExpression will replace filters to support OR
     private final String filtersExpression;
     private final CubeQuery.TopCount topCounts;
@@ -107,9 +107,9 @@ public class CubeQuery {
                 Optional.ofNullable(dto.getLevels()).orElse(Collections.emptyList()).stream()
                         .map(levelsConverter::stringToLevelIdentifier)
                         .toList(),
-                Optional.ofNullable(dto.getFilters()).orElse(Collections.emptyList()).stream()
-                        .map(filter -> Filter.fromDTO(filter, levelsConverter))
-                        .toList(),
+                //                Optional.ofNullable(dto.getFilters()).orElse(Collections.emptyList()).stream()
+                //                        .map(filter -> Filter.fromDTO(filter, levelsConverter))
+                //                        .toList(),
                 dto.getFiltersExpression(),
                 TopCount.fromDTO(dto.getTopCounts(), levelsConverter),
                 Optional.ofNullable(dto.getSortBys()).orElse(Collections.emptyList()).stream()

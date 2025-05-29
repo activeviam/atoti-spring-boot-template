@@ -81,7 +81,6 @@ public class CubeQueryService {
                     new CubeQuerier(
                             cube,
                             levelsConverter,
-                            dateFilterLevels,
                             cubeQueryProperties.getDefaultDoubleFormatter(),
                             pivot,
                             dataExportService));
@@ -101,7 +100,6 @@ public class CubeQueryService {
     public static class CubeQuerier {
         private final String cube;
         private final LevelsConverter levelsConverter;
-        private final Set<LevelIdentifier> dateLevelsForFiltering;
         private final String defaultDoubleFormatter;
         private final IMultiVersionActivePivot activePivot;
         private final IDataExportService dataExportService;

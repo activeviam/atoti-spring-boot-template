@@ -9,8 +9,12 @@ package com.activeviam.apps.cfg.security.dsl;
 import static com.activeviam.springboot.atoti.server.starter.api.AtotiSecurityProperties.ROLE_ADMIN;
 import static com.activeviam.springboot.atoti.server.starter.api.AtotiSecurityProperties.ROLE_USER;
 
+import java.util.Objects;
+
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 
 import com.activeviam.web.spring.api.security.IAtotiServerFilters;
 import com.activeviam.web.spring.api.security.dsl.AtotiServerHumanDsl;
@@ -18,7 +22,7 @@ import com.activeviam.web.spring.api.security.dsl.AtotiServerMachineDsl;
 import com.activeviam.web.spring.api.security.dsl.HumanToMachineSecurityDsl;
 import com.activeviam.web.spring.api.security.dsl.MachineToMachineSecurityDsl;
 
-// @Configuration
+@Configuration
 public class NoAuthDslConfiguration {
 
     private static void authenticateAnonymous(HttpSecurity http) throws Exception {
@@ -32,6 +36,9 @@ public class NoAuthDslConfiguration {
             @Override
             protected void configureAuthentication(HttpSecurity http) throws Exception {
                 authenticateAnonymous(http);
+                http.addFilterAfter(
+                        Objects.requireNonNull(filters.getContextValueFilter(), "Context value filter"),
+                        SwitchUserFilter.class);
             }
         };
     }
