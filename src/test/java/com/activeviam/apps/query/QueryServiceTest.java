@@ -44,12 +44,14 @@ import java.util.stream.Stream;
 
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.BigIntVector;
+import org.apache.arrow.vector.DateDayVector;
 import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.Float8Vector;
 import org.apache.arrow.vector.IntVector;
 import org.apache.arrow.vector.VarCharVector;
 import org.apache.arrow.vector.VectorSchemaRoot;
 import org.apache.arrow.vector.ipc.ArrowStreamReader;
+import org.apache.arrow.vector.types.DateUnit;
 import org.apache.arrow.vector.types.FloatingPointPrecision;
 import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Field;
@@ -347,7 +349,14 @@ class QueryServiceTest {
                                             TRADE_3),
                                     300.0);
                         },
-                        null));
+                        List.of(
+                                new ResultColumn(
+                                        COB_DATE_LEVEL, new LocalDate[] {TEST_DATE, TEST_DATE, TEST_DATE, TEST_DATE}),
+                                new ResultColumn(COUNTERPARTY_LEVEL, new String[] {null, null, CPTY_1, CPTY_2}),
+                                new ResultColumn(TRADE_ID_LEVEL, new String[] {TRADE_1, TRADE_3, TRADE_1, TRADE_3}),
+                                new ResultColumn(
+                                        NOTIONAL_SUM_METRIC_DTO.getMetric(),
+                                        new Double[] {100.0, 300.0, 100.0, 300.0}))));
         TESTS.put(
                 "SORT Notional.Sum; Levels: cpty; Filters: no filter",
                 new TestInputOutput(
@@ -361,10 +370,12 @@ class QueryServiceTest {
                                         .build())
                                 .build(),
                         resultCells -> {
-                            // FIXME: we cannot check the order here
-
+                            // we cannot check the order here with the resultCells
                         },
-                        null));
+                        List.of(
+                                new ResultColumn(COUNTERPARTY_LEVEL, new String[] {null, CPTY_2, CPTY_1}),
+                                new ResultColumn(
+                                        NOTIONAL_SUM_METRIC_DTO.getMetric(), new Double[] {750.0, 650.0, 100.0}))));
         TESTS.put(
                 "PARTITION Notional.Sum; Levels: cpty; Filters: no filter",
                 new TestInputOutput(
@@ -402,6 +413,7 @@ class QueryServiceTest {
                                 new ResultColumn(COUNTERPARTY_LEVEL, new String[] {null, CPTY_1, CPTY_2}),
                                 new ResultColumn(
                                         NOTIONAL_SUM_METRIC_DTO.getMetric(), new Double[] {750.0, 100.0, 650.0}),
+                                // this is a calculated measure so return value is string
                                 new ResultColumn(
                                         NOTIONAL_SUM_METRIC_DTO.getMetric() + "@" + COUNTERPARTY_LEVEL.getLevelName(),
                                         new String[] {null, "750.0", "750.0"}))));
@@ -500,16 +512,18 @@ class QueryServiceTest {
                 .map(e -> {
                     var field = e.field;
                     var data = e.data();
-                    if (field instanceof LevelIdentifier level) {
-                        return stringFieldVector(allocator, stringArrowField(levelToMdxPath(level)), (String[]) data);
-                    } else if (data instanceof Double[] doubles) {
-                        return doubleFieldVector(allocator, doubleArrowField((String) field), doubles);
+                    var level =
+                            field instanceof LevelIdentifier ? levelToMdxPath((LevelIdentifier) field) : (String) field;
+                    if (data instanceof Double[] doubles) {
+                        return doubleFieldVector(allocator, doubleArrowField(level), doubles);
                     } else if (data instanceof Integer[] ints) {
-                        return intFieldVector(allocator, intArrowField((String) field), ints);
+                        return intFieldVector(allocator, intArrowField(level), ints);
                     } else if (data instanceof Long[] longs) {
-                        return longFieldVector(allocator, longArrowField((String) field), longs);
+                        return longFieldVector(allocator, longArrowField(level), longs);
                     } else if (data instanceof String[] strings) {
-                        return stringFieldVector(allocator, stringArrowField((String) field), strings);
+                        return stringFieldVector(allocator, stringArrowField(level), strings);
+                    } else if (data instanceof LocalDate[] dates) {
+                        return dateFieldVector(allocator, dateArrowField(level), dates);
                     }
                     throw new UnsupportedOperationException("Unsupported field type: " + field.toString());
                 })
@@ -531,6 +545,10 @@ class QueryServiceTest {
 
     private static Field longArrowField(String measure) {
         return new Field(measure, FieldType.nullable(new ArrowType.Int(64, true)), null);
+    }
+
+    private static Field dateArrowField(String measure) {
+        return new Field(measure, FieldType.nullable(new ArrowType.Date(DateUnit.DAY)), null);
     }
 
     private static FieldVector doubleFieldVector(RootAllocator allocator, Field field, Double[] values) {
@@ -579,6 +597,19 @@ class QueryServiceTest {
             var value = values[i];
             if (Objects.nonNull(value)) {
                 vector.set(i, values[i].getBytes());
+            }
+        }
+        vector.setValueCount(values.length);
+        return vector;
+    }
+
+    private static FieldVector dateFieldVector(RootAllocator allocator, Field field, LocalDate[] values) {
+        var vector = new DateDayVector(field, allocator);
+        vector.allocateNew(values.length);
+        for (var i = 0; i < values.length; i++) {
+            var value = values[i];
+            if (Objects.nonNull(value)) {
+                vector.set(i, (int) values[i].toEpochDay());
             }
         }
         vector.setValueCount(values.length);
