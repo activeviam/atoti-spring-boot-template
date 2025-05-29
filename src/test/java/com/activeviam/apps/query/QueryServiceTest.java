@@ -25,23 +25,28 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
 import static com.activeviam.apps.query.CubeQueryService.CubeQuerier.levelToMdxPath;
 import static com.activeviam.apps.query.CubeQueryService.OTHERS_MEMBER;
 import static com.activeviam.apps.query.CubeQueryService.TOP_RANK_MEASURE;
+import static com.activeviam.apps.query.rest.CubeQueryController.CSV_OUTPUT_EXPORTER_CONFIG;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.StringReader;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.arrow.memory.RootAllocator;
+import org.apache.arrow.vector.BigIntVector;
 import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.Float8Vector;
+import org.apache.arrow.vector.IntVector;
 import org.apache.arrow.vector.VarCharVector;
 import org.apache.arrow.vector.VectorSchemaRoot;
 import org.apache.arrow.vector.ipc.ArrowStreamReader;
@@ -174,7 +179,7 @@ class QueryServiceTest {
                         CubeQueryDTO.builder().withMetric(COUNT_METRIC_DTO).build(),
                         resultCells ->
                                 assertThat(resultCells.getCell().getValue()).isEqualTo(3L),
-                        allocator -> null));
+                        List.of(new ResultColumn(COUNT_METRIC_DTO.getMetric(), new Long[] {3L}))));
 
         TESTS.put(
                 "Notional.Sum; Levels: none, Filter: none",
@@ -195,7 +200,7 @@ class QueryServiceTest {
                                             .getValue())
                                     .isEqualTo(250d);
                         },
-                        allocator -> null));
+                        null));
         TESTS.put(
                 "Notional.Sum; Levels: cpty; Filter: none",
                 new TestInputOutput(
@@ -208,7 +213,7 @@ class QueryServiceTest {
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 750.0);
                         },
-                        allocator -> null));
+                        null));
         TESTS.put(
                 "Notional.Sum; Levels: cpty; Filter: date",
                 new TestInputOutput(
@@ -222,7 +227,7 @@ class QueryServiceTest {
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 750.0);
                         },
-                        allocator -> null));
+                        null));
 
         TESTS.put(
                 "Notional.Sum; Levels: date; Filter: none",
@@ -235,7 +240,7 @@ class QueryServiceTest {
                             assertCellValue(resultCells, Map.of(COB_DATE_LEVEL, TEST_DATE), 750.0);
                             assertCellValue(resultCells, Map.of(COB_DATE_LEVEL, OTHER_TEST_DATE), 7500.0);
                         },
-                        allocator -> null));
+                        null));
         TESTS.put(
                 "Notional.Sum; Levels: cpty; Filter: cpty",
                 new TestInputOutput(
@@ -248,7 +253,7 @@ class QueryServiceTest {
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 100.0);
                         },
-                        allocator -> null));
+                        null));
         TESTS.put(
                 "Notional.Sum; Levels: cpty; Filter: NOT cpty",
                 new TestInputOutput(
@@ -261,7 +266,7 @@ class QueryServiceTest {
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 650.0);
                         },
-                        allocator -> null));
+                        null));
         TESTS.put(
                 "Notional.Sum; Levels: cpty; Filter; date AND cpty",
                 new TestInputOutput(
@@ -274,7 +279,7 @@ class QueryServiceTest {
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
                             assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 100.0);
                         },
-                        allocator -> null));
+                        null));
         TESTS.put(
                 "Notional.Sum; Levels: date,cpty; Filters: date AND cpty",
                 new TestInputOutput(
@@ -288,7 +293,7 @@ class QueryServiceTest {
                             assertCellValue(
                                     resultCells, Map.of(COB_DATE_LEVEL, TEST_DATE, COUNTERPARTY_LEVEL, CPTY_1), 100.0);
                         },
-                        allocator -> null));
+                        null));
         TESTS.put(
                 "Notional.Sum; Levels: date,cpty,trade; Filter: date AND (cpty OR trade)",
                 new TestInputOutput(
@@ -342,7 +347,7 @@ class QueryServiceTest {
                                             TRADE_3),
                                     300.0);
                         },
-                        allocator -> null));
+                        null));
         TESTS.put(
                 "SORT Notional.Sum; Levels: cpty; Filters: no filter",
                 new TestInputOutput(
@@ -359,7 +364,7 @@ class QueryServiceTest {
                             // FIXME: we cannot check the order here
 
                         },
-                        allocator -> null));
+                        null));
         TESTS.put(
                 "PARTITION Notional.Sum; Levels: cpty; Filters: no filter",
                 new TestInputOutput(
@@ -393,7 +398,7 @@ class QueryServiceTest {
                             assertCellValue(
                                     resultCells.measure(calculatedMember), Map.of(COUNTERPARTY_LEVEL, CPTY_2), 750.0);
                         },
-                        allocator -> null));
+                        null));
         TESTS.put(
                 "TOP RANK Notional.Sum; Levels: tradeId; Filters: no filter",
                 new TestInputOutput(
@@ -432,7 +437,7 @@ class QueryServiceTest {
                                     Map.of(TRADE_ID_LEVEL, TRADE_1),
                                     3);
                         },
-                        allocator -> null));
+                        null));
         TESTS.put(
                 "TOP 2 Notional.Sum; Levels: cptyId,tradeId; Filters: no filter",
                 new TestInputOutput(
@@ -465,17 +470,38 @@ class QueryServiceTest {
                                     Map.of(COUNTERPARTY_LEVEL, CPTY_1, TRADE_ID_LEVEL, OTHERS_MEMBER),
                                     100.0);
                         },
-                        allocator -> new VectorSchemaRoot(List.of(
-                                stringFieldVector(allocator, stringArrowField(COUNTERPARTY_LEVEL), new String[] {
-                                    null, null, null, CPTY_1, CPTY_2, CPTY_2
-                                }),
-                                stringFieldVector(allocator, stringArrowField(TRADE_ID_LEVEL), new String[] {
+                        List.of(
+                                new ResultColumn(
+                                        COUNTERPARTY_LEVEL, new String[] {null, null, null, CPTY_1, CPTY_2, CPTY_2}),
+                                new ResultColumn(TRADE_ID_LEVEL, new String[] {
                                     TRADE_2, TRADE_3, OTHERS_MEMBER, OTHERS_MEMBER, TRADE_2, TRADE_3
                                 }),
-                                doubleFieldVector(
-                                        allocator,
-                                        doubleArrowField(NOTIONAL_SUM_METRIC_DTO.getMetric()),
-                                        new double[] {350.0, 300.0, 100.0, 100.0, 350.0, 300.0})))));
+                                new ResultColumn(
+                                        NOTIONAL_SUM_METRIC_DTO.getMetric(),
+                                        new Double[] {350.0, 300.0, 100.0, 100.0, 350.0, 300.0}))));
+    }
+
+    private static VectorSchemaRoot buildExpectedResult(List<ResultColumn> expectedResults, RootAllocator allocator) {
+        if (Objects.isNull(expectedResults)) {
+            return null;
+        }
+        var vectors = expectedResults.stream()
+                .map(e -> {
+                    var field = e.field;
+                    var data = e.data();
+                    if (field instanceof LevelIdentifier level) {
+                        return stringFieldVector(allocator, stringArrowField(level), (String[]) data);
+                    } else if (data[0] instanceof Double) {
+                        return doubleFieldVector(allocator, doubleArrowField((String) field), (Double[]) data);
+                    } else if (data[0] instanceof Integer) {
+                        return intFieldVector(allocator, intArrowField((String) field), (Integer[]) data);
+                    } else if (data[0] instanceof Long) {
+                        return longFieldVector(allocator, longArrowField((String) field), (Long[]) data);
+                    }
+                    throw new UnsupportedOperationException("Unsupported field type: " + field.toString());
+                })
+                .toList();
+        return new VectorSchemaRoot(vectors);
     }
 
     private static Field stringArrowField(LevelIdentifier levelIdentifier) {
@@ -486,14 +512,42 @@ class QueryServiceTest {
         return new Field(measure, FieldType.nullable(new ArrowType.FloatingPoint(FloatingPointPrecision.DOUBLE)), null);
     }
 
-    private static FieldVector doubleFieldVector(RootAllocator allocator, Field field, double[] values) {
+    private static Field intArrowField(String measure) {
+        return new Field(measure, FieldType.nullable(new ArrowType.Int(32, true)), null);
+    }
+
+    private static Field longArrowField(String measure) {
+        return new Field(measure, FieldType.nullable(new ArrowType.Int(64, true)), null);
+    }
+
+    private static FieldVector doubleFieldVector(RootAllocator allocator, Field field, Double[] values) {
         var doubleVector = new Float8Vector(field, allocator);
         doubleVector.allocateNew(values.length);
         for (var i = 0; i < values.length; i++) {
-            doubleVector.set(i, values[i]);
+            doubleVector.set(i, values[i].doubleValue());
         }
         doubleVector.setValueCount(values.length);
         return doubleVector;
+    }
+
+    private static FieldVector intFieldVector(RootAllocator allocator, Field field, Integer[] values) {
+        var intVector = new IntVector(field, allocator);
+        intVector.allocateNew(values.length);
+        for (var i = 0; i < values.length; i++) {
+            intVector.set(i, values[i].intValue());
+        }
+        intVector.setValueCount(values.length);
+        return intVector;
+    }
+
+    private static FieldVector longFieldVector(RootAllocator allocator, Field field, Long[] values) {
+        var intVector = new BigIntVector(field, allocator);
+        intVector.allocateNew(values.length);
+        for (var i = 0; i < values.length; i++) {
+            intVector.set(i, values[i].longValue());
+        }
+        intVector.setValueCount(values.length);
+        return intVector;
     }
 
     private static FieldVector stringFieldVector(RootAllocator allocator, Field field, String[] values) {
@@ -514,7 +568,7 @@ class QueryServiceTest {
     @TestFactory
     Stream<DynamicTest> queryServiceMdxTests() {
         return TESTS.entrySet().stream()
-                .map(entry -> DynamicTest.dynamicTest(entry.getKey(), () -> {
+                .map(entry -> DynamicTest.dynamicTest("QueryRunner: " + entry.getKey(), () -> {
                     var queryDto = entry.getValue().dto();
                     var cubeQuerier = cubeQueryService.getCubeQuerier(CUBE_NAME);
                     var mdxQuery = cubeQuerier.buildMdxQuery(queryDto);
@@ -533,13 +587,10 @@ class QueryServiceTest {
                 }));
     }
 
-    // NOTE: this only generates the MDX query, but doesn't run it through the service!
-    // To run this through the service we need an actual object of type IDataExportService
-    // which is currently mocked
     @TestFactory
-    Stream<DynamicTest> queryControllerMdxTests() {
+    Stream<DynamicTest> queryExporterArrowTests() {
         return TESTS.entrySet().stream()
-                .map(entry -> DynamicTest.dynamicTest("Exporter: " + entry.getKey(), () -> {
+                .map(entry -> DynamicTest.dynamicTest("ArrowExporter: " + entry.getKey(), () -> {
                     var queryDto = entry.getValue().dto();
                     var querier = cubeQueryService.getCubeQuerier(CUBE_NAME);
                     var streamingResult = querier.runQuery(
@@ -550,9 +601,8 @@ class QueryServiceTest {
                         try (var rootAllocator = new RootAllocator();
                                 var reader = new ArrowStreamReader(
                                         new ByteArrayInputStream(outputStream.toByteArray()), rootAllocator);
-                                var expectedSchemaRoot = entry.getValue()
-                                        .expectedVectorSchemaRootBuilder()
-                                        .apply(rootAllocator)) {
+                                var expectedSchemaRoot =
+                                        buildExpectedResult(entry.getValue().expectedResults(), rootAllocator)) {
                             while (reader.loadNextBatch()) {
                                 var vectorSchemaRoot = reader.getVectorSchemaRoot();
                                 assertThat(vectorSchemaRoot).isNotNull();
@@ -567,8 +617,58 @@ class QueryServiceTest {
                 }));
     }
 
+    @TestFactory
+    Stream<DynamicTest> queryExporterCsvTests() {
+        return TESTS.entrySet().stream()
+                .map(entry -> DynamicTest.dynamicTest("CSVExporter: " + entry.getKey(), () -> {
+                    var queryDto = entry.getValue().dto();
+                    var querier = cubeQueryService.getCubeQuerier(CUBE_NAME);
+                    var streamingResult = querier.runQuery(queryDto, CSV_OUTPUT_EXPORTER_CONFIG);
+                    try (var outputStream = new ByteArrayOutputStream()) {
+                        outputStream.flush();
+                        streamingResult.writeTo(outputStream);
+                        try (var reader = new BufferedReader(new StringReader(outputStream.toString()))) {
+                            log.info("CSV:\n{}", reader);
+                            //                            var expectedResults = entry.getValue().expectedResults();
+                            //                            if (Objects.nonNull(expectedResults)) {
+                            //                                var counter = new AtomicInteger(0);
+                            //                                reader.lines().forEach(row -> {
+                            //                                    var cells = row.split(",");
+                            //                                    var rowCount = counter.get();
+                            //                                    if (rowCount == 0) {
+                            //                                        // check number of columns
+                            //                                        assertThat(cells).hasSize(expectedResults.size());
+                            //                                        // FIXME: check header
+                            //                                    } else {
+                            //                                        // check values
+                            //                                        for (var i = 0; i < cells.length; i++) {
+                            //                                            // data doesnt contain the header row!
+                            //                                            var expectedValue =
+                            // expectedResults.get(i).data[counter.get() - 1];
+                            //                                            if (Objects.nonNull(expectedValue)) {
+                            //                                                // String conversion might not match!
+                            //
+                            // assertThat(cells[i]).isEqualTo(expectedValue.toString());
+                            //                                            }
+                            //                                            else {
+                            //                                                // Is this correct?
+                            //
+                            // assertThat(cells[i]).isEqualTo("AllMember");
+                            //                                            }
+                            //                                        }
+                            //                                    }
+                            //                                    counter.incrementAndGet();
+                            //                                });
+                            //                            }
+                        }
+                    }
+                }));
+    }
+
     private record TestInputOutput(
             CubeQueryDTO dto,
             Consumer<ICellSetTester.ICellByCoordinatesFinder> resultConsumer,
-            Function<RootAllocator, VectorSchemaRoot> expectedVectorSchemaRootBuilder) {}
+            List<ResultColumn> expectedResults) {}
+
+    private record ResultColumn(Object field, Object[] data) {}
 }

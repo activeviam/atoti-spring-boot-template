@@ -30,7 +30,7 @@ public class CubeQueryController {
 
     public static final String QUERY_ENDPOINT = "/cube_query";
 
-    private static final Map<String, Object> CSV_OUTPUT_EXPORTER_CONFIG =
+    public static final Map<String, Object> CSV_OUTPUT_EXPORTER_CONFIG =
             Map.of(FORMAT_PROPERTY, JsonCsvPivotTableOutputConfiguration.PLUGIN_KEY);
 
     @PostMapping("/mdx/{cube}")
