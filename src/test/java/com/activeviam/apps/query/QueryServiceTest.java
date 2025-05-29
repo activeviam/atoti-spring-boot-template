@@ -398,7 +398,13 @@ class QueryServiceTest {
                             assertCellValue(
                                     resultCells.measure(calculatedMember), Map.of(COUNTERPARTY_LEVEL, CPTY_2), 750.0);
                         },
-                        null));
+                        List.of(
+                                new ResultColumn(COUNTERPARTY_LEVEL, new String[] {null, CPTY_1, CPTY_2}),
+                                new ResultColumn(
+                                        NOTIONAL_SUM_METRIC_DTO.getMetric(), new Double[] {750.0, 100.0, 650.0}),
+                                new ResultColumn(
+                                        NOTIONAL_SUM_METRIC_DTO.getMetric() + "@" + COUNTERPARTY_LEVEL.getLevelName(),
+                                        new String[] {null, "750.0", "750.0"}))));
         TESTS.put(
                 "TOP RANK Notional.Sum; Levels: tradeId; Filters: no filter",
                 new TestInputOutput(
@@ -437,7 +443,12 @@ class QueryServiceTest {
                                     Map.of(TRADE_ID_LEVEL, TRADE_1),
                                     3);
                         },
-                        null));
+                        List.of(
+                                new ResultColumn(TRADE_ID_LEVEL, new String[] {null, TRADE_2, TRADE_3, TRADE_1}),
+                                new ResultColumn(
+                                        NOTIONAL_SUM_METRIC_DTO.getMetric(), new Double[] {750.0, 350.0, 300.0, 100.0}),
+                                new ResultColumn(
+                                        TOP_RANK_MEASURE_DTO.getMetric(), new String[] {"0", "1", "2", "3"}))));
         TESTS.put(
                 "TOP 2 Notional.Sum; Levels: cptyId,tradeId; Filters: no filter",
                 new TestInputOutput(
@@ -490,13 +501,15 @@ class QueryServiceTest {
                     var field = e.field;
                     var data = e.data();
                     if (field instanceof LevelIdentifier level) {
-                        return stringFieldVector(allocator, stringArrowField(level), (String[]) data);
-                    } else if (data[0] instanceof Double) {
-                        return doubleFieldVector(allocator, doubleArrowField((String) field), (Double[]) data);
-                    } else if (data[0] instanceof Integer) {
-                        return intFieldVector(allocator, intArrowField((String) field), (Integer[]) data);
-                    } else if (data[0] instanceof Long) {
-                        return longFieldVector(allocator, longArrowField((String) field), (Long[]) data);
+                        return stringFieldVector(allocator, stringArrowField(levelToMdxPath(level)), (String[]) data);
+                    } else if (data instanceof Double[] doubles) {
+                        return doubleFieldVector(allocator, doubleArrowField((String) field), doubles);
+                    } else if (data instanceof Integer[] ints) {
+                        return intFieldVector(allocator, intArrowField((String) field), ints);
+                    } else if (data instanceof Long[] longs) {
+                        return longFieldVector(allocator, longArrowField((String) field), longs);
+                    } else if (data instanceof String[] strings) {
+                        return stringFieldVector(allocator, stringArrowField((String) field), strings);
                     }
                     throw new UnsupportedOperationException("Unsupported field type: " + field.toString());
                 })
@@ -504,8 +517,8 @@ class QueryServiceTest {
         return new VectorSchemaRoot(vectors);
     }
 
-    private static Field stringArrowField(LevelIdentifier levelIdentifier) {
-        return new Field(levelToMdxPath(levelIdentifier), FieldType.nullable(new ArrowType.Utf8()), null);
+    private static Field stringArrowField(String name) {
+        return new Field(name, FieldType.nullable(new ArrowType.Utf8()), null);
     }
 
     private static Field doubleArrowField(String measure) {
@@ -521,45 +534,55 @@ class QueryServiceTest {
     }
 
     private static FieldVector doubleFieldVector(RootAllocator allocator, Field field, Double[] values) {
-        var doubleVector = new Float8Vector(field, allocator);
-        doubleVector.allocateNew(values.length);
+        var vector = new Float8Vector(field, allocator);
+        vector.allocateNew(values.length);
         for (var i = 0; i < values.length; i++) {
-            doubleVector.set(i, values[i].doubleValue());
+            var value = values[i];
+            if (Objects.nonNull(value)) {
+                vector.set(i, values[i].doubleValue());
+            }
         }
-        doubleVector.setValueCount(values.length);
-        return doubleVector;
+        vector.setValueCount(values.length);
+        return vector;
     }
 
     private static FieldVector intFieldVector(RootAllocator allocator, Field field, Integer[] values) {
-        var intVector = new IntVector(field, allocator);
-        intVector.allocateNew(values.length);
+        var vector = new IntVector(field, allocator);
+        vector.allocateNew(values.length);
         for (var i = 0; i < values.length; i++) {
-            intVector.set(i, values[i].intValue());
+            var value = values[i];
+            if (Objects.nonNull(value)) {
+                vector.set(i, values[i].intValue());
+            }
         }
-        intVector.setValueCount(values.length);
-        return intVector;
+        vector.setValueCount(values.length);
+        return vector;
     }
 
     private static FieldVector longFieldVector(RootAllocator allocator, Field field, Long[] values) {
-        var intVector = new BigIntVector(field, allocator);
-        intVector.allocateNew(values.length);
+        var vector = new BigIntVector(field, allocator);
+        vector.allocateNew(values.length);
         for (var i = 0; i < values.length; i++) {
-            intVector.set(i, values[i].longValue());
+            var value = values[i];
+            if (Objects.nonNull(value)) {
+                vector.set(i, values[i].longValue());
+            }
         }
-        intVector.setValueCount(values.length);
-        return intVector;
+        vector.setValueCount(values.length);
+        return vector;
     }
 
     private static FieldVector stringFieldVector(RootAllocator allocator, Field field, String[] values) {
-        var varCharVector = new VarCharVector(field, allocator);
-        varCharVector.allocateNew(values.length);
+        var vector = new VarCharVector(field, allocator);
+        vector.allocateNew(values.length);
         for (var i = 0; i < values.length; i++) {
-            if (values[i] != null) {
-                varCharVector.set(i, values[i].getBytes());
+            var value = values[i];
+            if (Objects.nonNull(value)) {
+                vector.set(i, values[i].getBytes());
             }
         }
-        varCharVector.setValueCount(values.length);
-        return varCharVector;
+        vector.setValueCount(values.length);
+        return vector;
     }
 
     // NOTE: this only generates the MDX query, but doesn't run it through the service!
