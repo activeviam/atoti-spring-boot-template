@@ -53,24 +53,24 @@ public class Measures implements Consumer<ICopperContext> {
                 .as("Amount");
         addMeasures(values, amount);
         CopperMeasure mtm;
-        if (databaseProperties.isDatastoreType()){
+        if (databaseProperties.isDatastoreType()) {
             var simulationsStore = simulationsStore();
-          addHierarchies(Copper.newHierarchy(STAT_NAME_LEVEL.getDimensionName(),STAT_NAME_LEVEL.getHierarchyName())
-                    .fromField(simulationsStore.field(DatastoreConstants.SimReturnsStore.Fields.STAT_NAME))
-                    .slicing()
-                    .withLevelName(STAT_NAME_LEVEL.getLevelName()),
-                  Copper.newHierarchy(ENGINE_MASK_LEVEL.getDimensionName(),ENGINE_MASK_LEVEL.getHierarchyName())
-                          .fromField(simulationsStore.field(DatastoreConstants.SimReturnsStore.Fields.ENGINE_MASK))
-                          .slicing()
-                          .withLevelName(ENGINE_MASK_LEVEL.getLevelName()));
+            addHierarchies(
+                    Copper.newHierarchy(STAT_NAME_LEVEL.getDimensionName(), STAT_NAME_LEVEL.getHierarchyName())
+                            .fromField(simulationsStore.field(DatastoreConstants.SimReturnsStore.Fields.STAT_NAME))
+                            .slicing()
+                            .withLevelName(STAT_NAME_LEVEL.getLevelName()),
+                    Copper.newHierarchy(ENGINE_MASK_LEVEL.getDimensionName(), ENGINE_MASK_LEVEL.getHierarchyName())
+                            .fromField(simulationsStore.field(DatastoreConstants.SimReturnsStore.Fields.ENGINE_MASK))
+                            .slicing()
+                            .withLevelName(ENGINE_MASK_LEVEL.getLevelName()));
             mtm = copperJoinMtM(simulationsStore);
-        }
-        else {
+        } else {
             mtm = preCalculatedScaledMtM();
         }
 
-
-        var scaledMtM = scaledMtM(amount,mtm,databaseProperties.isDirectQueryType()).as("Scaled MtM");
+        var scaledMtM =
+                scaledMtM(amount, mtm, databaseProperties.isDirectQueryType()).as("Scaled MtM");
         addMeasures(scaledMtM, valueAtRisk(scaledMtM, Copper.constant(95.0)).as("VaR 95"));
     }
 
@@ -122,52 +122,52 @@ public class Measures implements Consumer<ICopperContext> {
                 .sum();
     }
 
-    public static CopperStore simulationsStore(){
+    public static CopperStore simulationsStore() {
         return Copper.store(DatastoreConstants.SimReturnsStore.STORE_NAME)
                 .joinToCube()
-                .withMapping(DatastoreConstants.SimReturnsStore.Fields.AS_OF_DATE,Copper.level(AS_OF_DATE_LEVEL))
-                .withMapping(DatastoreConstants.SimReturnsStore.Fields.SECURITY_NAME,Copper.level(SECURITY_LEVEL));
+                .withMapping(DatastoreConstants.SimReturnsStore.Fields.AS_OF_DATE, Copper.level(AS_OF_DATE_LEVEL))
+                .withMapping(DatastoreConstants.SimReturnsStore.Fields.SECURITY_NAME, Copper.level(SECURITY_LEVEL));
     }
 
-    public static CopperMeasure copperJoinMtM(CopperStore simulationsStore){
-            return Copper.newLookupMeasure(simulationsStore.field(DatastoreConstants.SimReturnsStore.Fields.VECTOR));
+    public static CopperMeasure copperJoinMtM(CopperStore simulationsStore) {
+        return Copper.newLookupMeasure(simulationsStore.field(DatastoreConstants.SimReturnsStore.Fields.VECTOR));
     }
 
-//    public static CopperMeasure lookupScaledMtM(CopperMeasure scalingFactorMeasure) {
-//        var lookupMtM = Copper.storeLookup(DatastoreConstants.SimReturnsStore.STORE_NAME)
-//                .withMapping(
-//                        Map.of(DatastoreConstants.SimReturnsStore.Fields.AS_OF_DATE,
-//                        Copper.member(Copper.level(AS_OF_DATE_LEVEL)),
-//                        DatastoreConstants.SimReturnsStore.Fields.SECURITY_NAME,
-//                        Copper.member(Copper.level(SECURITY_LEVEL)),
-//                        DatastoreConstants.SimReturnsStore.Fields.STAT_NAME,
-//                        Copper.member(Copper.level(STAT_NAME_LEVEL)),
-//                        DatastoreConstants.SimReturnsStore.Fields.ENGINE_MASK,
-//                        Copper.member(Copper.level(ENGINE_MASK_LEVEL))))
-//                .valueOf(DatastoreConstants.SimReturnsStore.Fields.VECTOR);
-//        return Copper.combine(scalingFactorMeasure, lookupMtM)
-//                .map(
-//                        (reader, writer) -> {
-//                            if (reader.isNull(0)
-//                                    || reader.isNull(1)
-//                                    || reader.readVector(1).size() == 0) {
-//                                writer.writeNull();
-//                            } else {
-//                                var scalingFactor = reader.readDouble(0);
-//                                var vector = reader.readVector(1);
-//                                var scaledVector = vector.cloneOnHeap();
-//                                scaledVector.scale(scalingFactor);
-//                                writer.write(scaledVector);
-//                            }
-//                        },
-//                        ILiteralType.DOUBLE_ARRAY)
-//                .per(
-//                        Copper.level(SECURITY_LEVEL),
-//                        Copper.level(STAT_NAME_LEVEL),
-//                        Copper.level(ENGINE_MASK_LEVEL),
-//                        Copper.level(AS_OF_DATE_LEVEL))
-//                .sum();
-//    }
+    //    public static CopperMeasure lookupScaledMtM(CopperMeasure scalingFactorMeasure) {
+    //        var lookupMtM = Copper.storeLookup(DatastoreConstants.SimReturnsStore.STORE_NAME)
+    //                .withMapping(
+    //                        Map.of(DatastoreConstants.SimReturnsStore.Fields.AS_OF_DATE,
+    //                        Copper.member(Copper.level(AS_OF_DATE_LEVEL)),
+    //                        DatastoreConstants.SimReturnsStore.Fields.SECURITY_NAME,
+    //                        Copper.member(Copper.level(SECURITY_LEVEL)),
+    //                        DatastoreConstants.SimReturnsStore.Fields.STAT_NAME,
+    //                        Copper.member(Copper.level(STAT_NAME_LEVEL)),
+    //                        DatastoreConstants.SimReturnsStore.Fields.ENGINE_MASK,
+    //                        Copper.member(Copper.level(ENGINE_MASK_LEVEL))))
+    //                .valueOf(DatastoreConstants.SimReturnsStore.Fields.VECTOR);
+    //        return Copper.combine(scalingFactorMeasure, lookupMtM)
+    //                .map(
+    //                        (reader, writer) -> {
+    //                            if (reader.isNull(0)
+    //                                    || reader.isNull(1)
+    //                                    || reader.readVector(1).size() == 0) {
+    //                                writer.writeNull();
+    //                            } else {
+    //                                var scalingFactor = reader.readDouble(0);
+    //                                var vector = reader.readVector(1);
+    //                                var scaledVector = vector.cloneOnHeap();
+    //                                scaledVector.scale(scalingFactor);
+    //                                writer.write(scaledVector);
+    //                            }
+    //                        },
+    //                        ILiteralType.DOUBLE_ARRAY)
+    //                .per(
+    //                        Copper.level(SECURITY_LEVEL),
+    //                        Copper.level(STAT_NAME_LEVEL),
+    //                        Copper.level(ENGINE_MASK_LEVEL),
+    //                        Copper.level(AS_OF_DATE_LEVEL))
+    //                .sum();
+    //    }
 
     public static CopperMeasure valueAtRisk(CopperMeasure vectorMeasure, CopperMeasure confidenceLevelMeasure) {
         return Copper.combine(vectorMeasure, confidenceLevelMeasure)
