@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -35,22 +34,21 @@ import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.cube.IMultiVersionActivePivot;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.HierarchyIdentifier;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
-import com.activeviam.activepivot.core.intf.internal.context.filter.AndCubeRestriction;
 import com.activeviam.activepivot.core.intf.internal.context.filter.ICubeRestriction;
 import com.activeviam.activepivot.core.intf.internal.context.filter.IQueryBasedCubeRestriction;
-import com.activeviam.activepivot.core.intf.internal.context.filter.InLevelRestriction;
-import com.activeviam.activepivot.core.intf.internal.context.filter.NotCubeRestriction;
-import com.activeviam.activepivot.core.intf.internal.context.filter.OrCubeRestriction;
 import com.activeviam.activepivot.server.intf.api.dataexport.IDataExportService;
 import com.activeviam.activepivot.server.json.api.dataexport.JsonDataExportOrder;
 import com.activeviam.activepivot.server.json.api.query.JsonMdxQuery;
 import com.activeviam.apps.query.conditions.AndLogicalCondition;
 import com.activeviam.apps.query.conditions.InLogicalCondition;
+import com.activeviam.apps.query.conditions.LikeLogicalCondition;
 import com.activeviam.apps.query.conditions.LogicalCondition;
+import com.activeviam.apps.query.conditions.MeasureCondition;
 import com.activeviam.apps.query.conditions.NotLogicalCondition;
 import com.activeviam.apps.query.conditions.OrLogicalCondition;
 import com.activeviam.apps.query.rest.CubeQueryDTO;
 import com.activeviam.tech.core.api.exceptions.ActiveViamRuntimeException;
+import com.activeviam.tech.core.api.filtering.impl.LikeCondition;
 
 import lombok.RequiredArgsConstructor;
 
@@ -73,9 +71,6 @@ public class CubeQueryService {
         activePivotManager.getActivePivots().forEach((cube, pivot) -> {
             var defaults = cubeQueryProperties.getCubeConfiguration().get(cube);
             var levelsConverter = new SingleDimensionLevelsConverter(defaults.getDefaultDimension());
-            var dateFilterLevels = defaults.getDateFilterLevels().stream()
-                    .map(levelsConverter::stringToLevelIdentifier)
-                    .collect(Collectors.toSet());
             cubeQueriers.put(
                     cube,
                     new CubeQuerier(
@@ -104,10 +99,6 @@ public class CubeQueryService {
         private final IMultiVersionActivePivot activePivot;
         private final IDataExportService dataExportService;
         Set<HierarchyIdentifier> slicingHierarchies;
-
-        LevelsConverter getLevelsConverter() {
-            return levelsConverter;
-        }
 
         public String buildMdxQuery(CubeQueryDTO dto) {
             return buildMdxQuery(CubeQuery.fromDTO(dto, levelsConverter));
@@ -266,8 +257,12 @@ public class CubeQueryService {
         private static String sortedHierarchizedLevels(
                 LevelIdentifier level, Optional<CubeQuery.Sort> sort, boolean isSlicingHierarchy) {
             var levelMembers = isSlicingHierarchy ? levelToMdxMembers(level) : hierarchizedDescendants(level);
-            return sort.map(s -> String.format("Order(%s, %s, %s)", levelMembers, sortToMdx(s), s.sortType()))
+            return sort.map(s -> orderMdx(levelMembers, sortingMeasureToMdx(s), s.sortType()))
                     .orElse(levelMembers);
+        }
+
+        private static String orderMdx(String levelMembers, String measure, String sortType) {
+            return String.format("Order(%s, %s, %s)", levelMembers, measure, sortType);
         }
 
         private static String levelToMdxMembers(LevelIdentifier level) {
@@ -284,22 +279,13 @@ public class CubeQueryService {
                 CubeQuery.TopCount topCount,
                 List<CubeQuery.Sort> sortByDefinitions) {
             var hierarchizeTemplate = new StringBuilder();
+            var crossJoinOrNot = levels.size() == 1 ? "%s" : "Crossjoin(%s)";
+            // Sort by topRank
             if (Objects.nonNull(topRankDefinition)) {
-                if (levels.size() == 1) {
-                    hierarchizeTemplate.append("Order(%s");
-                } else {
-                    hierarchizeTemplate.append("Order(Crossjoin(%s)");
-                }
-                hierarchizeTemplate
-                        .append(", ")
-                        .append(metricToMdxMeasure(topRankDefinition.metric()))
-                        .append(", BDESC)");
+                hierarchizeTemplate.append(
+                        orderMdx(crossJoinOrNot, metricToMdxMeasure(topRankDefinition.metric()), "BDESC"));
             } else {
-                if (levels.size() == 1) {
-                    hierarchizeTemplate.append("%s");
-                } else {
-                    hierarchizeTemplate.append("Crossjoin(%s) ");
-                }
+                hierarchizeTemplate.append(crossJoinOrNot);
             }
             return String.format(
                     hierarchizeTemplate.append(" ON ROWS,").toString(),
@@ -342,7 +328,7 @@ public class CubeQueryService {
             return sort.metric().equals(sort.level().getLevelName());
         }
 
-        private static String sortToMdx(CubeQuery.Sort sort) {
+        private static String sortingMeasureToMdx(CubeQuery.Sort sort) {
             return sortRequiresCalculatedMember(sort)
                     ? sortingCalculatedMeasure(sort)
                     : metricToMdxMeasure(sort.metric());
@@ -353,8 +339,7 @@ public class CubeQueryService {
         }
 
         private static String topRankSetExpression(CubeQuery.TopRank topRank) {
-            return String.format(
-                    "Order(%s,%s,BDESC)", levelToMdxMembers(topRank.level()), metricToMdxMeasure(topRank.metric()));
+            return orderMdx(levelToMdxMembers(topRank.level()), metricToMdxMeasure(topRank.metric()), "BDESC");
         }
 
         private static String topRankMemberExpression(CubeQuery.TopRank topRank) {
@@ -399,28 +384,40 @@ public class CubeQueryService {
             return switch (queryCondition) {
                 case AndLogicalCondition andLogicalCondition ->
                     // This code works with 6.1.7
-                    AndCubeRestriction.create(toListOfRestrictions(andLogicalCondition.getSubConditions()));
-                // FIXME: use this code in version > 6.1.8
-                // ICubeRestriction.and(toListOfRestrictions(andLogicalCondition.getSubConditions()));
+                    //
+                    // AndCubeRestriction.create(toListOfRestrictions(andLogicalCondition.getSubConditions()));
+                    // FIXME: use this code in version > 6.1.8
+                    ICubeRestriction.and(toListOfRestrictions(andLogicalCondition.getSubConditions()));
                 case OrLogicalCondition orLogicalCondition ->
                     // This code works with 6.1.7
-                    OrCubeRestriction.create(toListOfRestrictions(orLogicalCondition.getSubConditions()));
-                // FIXME: use this code in version > 6.1.8
-                // ICubeRestriction.or(toListOfRestrictions(orLogicalCondition.getSubConditions()));
+                    //
+                    // OrCubeRestriction.create(toListOfRestrictions(orLogicalCondition.getSubConditions()));
+                    // FIXME: use this code in version > 6.1.8
+                    ICubeRestriction.or(toListOfRestrictions(orLogicalCondition.getSubConditions()));
                 case NotLogicalCondition notLogicalCondition ->
                     // This code works with 6.1.7
-                    NotCubeRestriction.create(
-                            convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
-                // FIXME: use this code in version > 6.1.8
-                // ICubeRestriction.not(convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
+                    //                    NotCubeRestriction.create(
+                    //
+                    // convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
+                    // FIXME: use this code in version > 6.1.8
+                    ICubeRestriction.not(convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
                 case InLogicalCondition<?> inLogicalCondition ->
                     // This code works with 6.1.7
-                    InLevelRestriction.create(
-                            levelsConverter.stringToLevelIdentifier(inLogicalCondition.getField()),
-                            new HashSet<>(inLogicalCondition.getValues()));
-                // FIXME: use this code in version > 6.1.8
-                // ICubeRestriction.inPath(levelsConverter.stringToHierarchyIdentifier(inLogicalCondition.getField()),
-                // inPathValues(inLogicalCondition.getField(),inLogicalCondition.getValues()));
+                    //                    InLevelRestriction.create(
+                    //
+                    // levelsConverter.stringToLevelIdentifier(inLogicalCondition.getField()),
+                    //                            new HashSet<>(inLogicalCondition.getValues()));
+                    // FIXME: use this code in version > 6.1.8
+                    ICubeRestriction.inPath(
+                            levelsConverter.stringToHierarchyIdentifier(inLogicalCondition.getField()),
+                            inPathValues(inLogicalCondition.getField(), inLogicalCondition.getValues()));
+                case MeasureCondition measureCondition ->
+                    throw new UnsupportedOperationException(MeasureCondition.class.getSimpleName());
+                case LikeLogicalCondition likeCondition ->
+                    ICubeRestriction.equalPath(
+                            levelsConverter.stringToHierarchyIdentifier(likeCondition.getField()),
+                            ALLMEMBER,
+                            new LikeCondition(likeCondition.getMatchingCriteria()));
                 default -> ICubeRestriction.TRUE_INSTANCE;
             };
         }

@@ -12,6 +12,8 @@ query
    | LPAREN query RPAREN #priorityQuery
    | field=fieldName 'IN' LSQPAREN values=valuesList RSQPAREN #inConditionQuery
    | 'NOT' notConditition=query #notConditionQuery
+   | field=fieldName 'LIKE' criteria=criteriaType #likeConditionQuery
+   | measure=fieldName operator=('<='|'<'|'>'|'>='|'=') operand=operandType #measureConditionQuery
    ;
 
 valuesList
@@ -25,6 +27,14 @@ valuesList
 fieldName
    : IDENTIFIER
    ;
+
+criteriaType
+    : STRING
+    ;
+
+operandType
+    : NUMBER
+    ;
 
 //// Value can be a string, number, boolean, or date
 //value

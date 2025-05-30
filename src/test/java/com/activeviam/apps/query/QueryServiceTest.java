@@ -6,12 +6,8 @@
  */
 package com.activeviam.apps.query;
 
-import static com.activeviam.activepivot.core.intf.api.cube.hierarchy.IHierarchy.ALLMEMBER;
 import static com.activeviam.activepivot.server.json.api.dataexport.IJsonOutputConfiguration.FORMAT_PROPERTY;
-import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.COB_DATE_LEVEL;
-import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.COUNTERPARTY_LEVEL;
 import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.TRADE_ATTRIBUTES_DIMENSION;
-import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.TRADE_ID_LEVEL;
 import static com.activeviam.apps.cfg.pivot.datanode.Measures.MEAN;
 import static com.activeviam.apps.cfg.pivot.datanode.Measures.SUM;
 import static com.activeviam.apps.cfg.pivot.datanode.Measures.postfixMeasure;
@@ -23,7 +19,6 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
 import static com.activeviam.apps.query.CubeQueryService.CubeQuerier.levelToMdxPath;
-import static com.activeviam.apps.query.CubeQueryService.OTHERS_MEMBER;
 import static com.activeviam.apps.query.CubeQueryService.TOP_RANK_MEASURE;
 import static com.activeviam.apps.query.rest.CubeQueryController.CSV_OUTPUT_EXPORTER_CONFIG;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,6 +30,7 @@ import java.io.StringReader;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -177,352 +173,380 @@ class QueryServiceTest {
 
     static {
         TESTS.put(
-                "Count",
-                new TestInputOutput(
-                        CubeQueryDTO.builder().withMetric(COUNT_METRIC_DTO).build(),
-                        resultCells ->
-                                assertThat(resultCells.getCell().getValue()).isEqualTo(3L),
-                        List.of(new ResultColumn(COUNT_METRIC_DTO.getMetric(), new Long[] {3L}))));
-
-        TESTS.put(
-                "Notional.Sum; Levels: none, Filter: none",
+                "Filter",
                 new TestInputOutput(
                         CubeQueryDTO.builder()
-                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                                .withMetric(NOTIONAL_MEAN_METRIC_DTO)
-                                .build(),
-                        resultCells -> {
-                            assertThat(resultCells
-                                            .measure(NOTIONAL_SUM_METRIC_DTO.getMetric())
-                                            .getCell()
-                                            .getValue())
-                                    .isEqualTo(750d);
-                            assertThat(resultCells
-                                            .measure(NOTIONAL_MEAN_METRIC_DTO.getMetric())
-                                            .getCell()
-                                            .getValue())
-                                    .isEqualTo(250d);
-                        },
-                        null));
-        TESTS.put(
-                "Notional.Sum; Levels: cpty; Filter: none",
-                new TestInputOutput(
-                        CubeQueryDTO.builder()
-                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
-                                .build(),
-                        resultCells -> {
-                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
-                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
-                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 750.0);
-                        },
-                        null));
-        TESTS.put(
-                "Notional.Sum; Levels: cpty; Filter: date",
-                new TestInputOutput(
-                        CubeQueryDTO.builder()
-                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
-                                .withFiltersExpression(COB_DATE_FILTER)
-                                .build(),
-                        resultCells -> {
-                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
-                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
-                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 750.0);
-                        },
-                        null));
-
-        TESTS.put(
-                "Notional.Sum; Levels: date; Filter: none",
-                new TestInputOutput(
-                        CubeQueryDTO.builder()
-                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                                .withLevel(COB_DATE_LEVEL.getLevelName())
-                                .build(),
-                        resultCells -> {
-                            assertCellValue(resultCells, Map.of(COB_DATE_LEVEL, TEST_DATE), 750.0);
-                            assertCellValue(resultCells, Map.of(COB_DATE_LEVEL, OTHER_TEST_DATE), 7500.0);
-                        },
-                        null));
-
-        TESTS.put(
-                "Notional.Sum; Levels: cpty; Filter: cpty",
-                new TestInputOutput(
-                        CubeQueryDTO.builder()
-                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                                .withFiltersExpression(CPTY_FILTER)
-                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
-                                .build(),
-                        resultCells -> {
-                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
-                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 100.0);
-                        },
-                        null));
-
-        TESTS.put(
-                "Notional.Sum; Levels: trade; Filter: date,cpty,trade",
-                new TestInputOutput(
-                        CubeQueryDTO.builder()
-                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+                                .withMetric(COUNT_METRIC_DTO)
                                 .withFiltersExpression(
-                                        COB_DATE_FILTER + " AND " + TRADE_1_FILTER + " AND " + CPTY_FILTER)
-                                .withLevel(TRADE_ID_LEVEL.getLevelName())
+                                        "(CounterpartyID IN ['Cpty1'] AND TradeId IN ['Trade1','Trade2']) OR (CobDate NOT IN [2025-05-29])")
                                 .build(),
-                        resultCells -> {
-                            assertCellValue(resultCells, Map.of(TRADE_ID_LEVEL, ALLMEMBER), 100.0);
-                            assertCellValue(resultCells, Map.of(TRADE_ID_LEVEL, TRADE_1), 100.0);
-                        },
-                        List.of(
-                                new ResultColumn(TRADE_ID_LEVEL, new String[] {null, TRADE_1}),
-                                new ResultColumn(NOTIONAL_SUM_METRIC_DTO.getMetric(), new Double[] {100.0, 100.0}))));
-
-        TESTS.put(
-                "Notional.Sum; Levels: cpty; Filter: NOT cpty",
-                new TestInputOutput(
-                        CubeQueryDTO.builder()
-                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                                .withFiltersExpression("NOT " + CPTY_FILTER)
-                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
-                                .build(),
-                        resultCells -> {
-                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
-                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 650.0);
-                        },
-                        null));
-        TESTS.put(
-                "Notional.Sum; Levels: cpty; Filter; date AND cpty",
-                new TestInputOutput(
-                        CubeQueryDTO.builder()
-                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                                .withFiltersExpression(COB_DATE_FILTER + " AND " + CPTY_FILTER)
-                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
-                                .build(),
-                        resultCells -> {
-                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
-                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 100.0);
-                        },
-                        null));
-        TESTS.put(
-                "Notional.Sum; Levels: date,cpty; Filters: date AND cpty",
-                new TestInputOutput(
-                        CubeQueryDTO.builder()
-                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                                .withFiltersExpression(COB_DATE_FILTER + " AND " + CPTY_FILTER)
-                                .withLevel(COB_DATE_LEVEL.getLevelName())
-                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
-                                .build(),
-                        resultCells -> {
-                            assertCellValue(
-                                    resultCells, Map.of(COB_DATE_LEVEL, TEST_DATE, COUNTERPARTY_LEVEL, CPTY_1), 100.0);
-                        },
-                        null));
-        TESTS.put(
-                "Notional.Sum; Levels: date,cpty,trade; Filter: date AND (cpty OR trade)",
-                new TestInputOutput(
-                        CubeQueryDTO.builder()
-                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                                .withFiltersExpression(
-                                        COB_DATE_FILTER + " AND (" + CPTY_FILTER + " OR " + TRADE_3_FILTER + ")")
-                                .withLevel(COB_DATE_LEVEL.getLevelName())
-                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
-                                .withLevel(TRADE_ID_LEVEL.getLevelName())
-                                .build(),
-                        resultCells -> {
-                            assertCellValue(
-                                    resultCells,
-                                    Map.of(
-                                            COB_DATE_LEVEL,
-                                            TEST_DATE,
-                                            COUNTERPARTY_LEVEL,
-                                            ALLMEMBER,
-                                            TRADE_ID_LEVEL,
-                                            TRADE_1),
-                                    100.0);
-                            assertCellValue(
-                                    resultCells,
-                                    Map.of(
-                                            COB_DATE_LEVEL,
-                                            TEST_DATE,
-                                            COUNTERPARTY_LEVEL,
-                                            ALLMEMBER,
-                                            TRADE_ID_LEVEL,
-                                            TRADE_3),
-                                    300.0);
-                            assertCellValue(
-                                    resultCells,
-                                    Map.of(
-                                            COB_DATE_LEVEL,
-                                            TEST_DATE,
-                                            COUNTERPARTY_LEVEL,
-                                            CPTY_1,
-                                            TRADE_ID_LEVEL,
-                                            TRADE_1),
-                                    100.0);
-                            assertCellValue(
-                                    resultCells,
-                                    Map.of(
-                                            COB_DATE_LEVEL,
-                                            TEST_DATE,
-                                            COUNTERPARTY_LEVEL,
-                                            CPTY_2,
-                                            TRADE_ID_LEVEL,
-                                            TRADE_3),
-                                    300.0);
-                        },
-                        List.of(
-                                new ResultColumn(
-                                        COB_DATE_LEVEL, new LocalDate[] {TEST_DATE, TEST_DATE, TEST_DATE, TEST_DATE}),
-                                new ResultColumn(COUNTERPARTY_LEVEL, new String[] {null, null, CPTY_1, CPTY_2}),
-                                new ResultColumn(TRADE_ID_LEVEL, new String[] {TRADE_1, TRADE_3, TRADE_1, TRADE_3}),
-                                new ResultColumn(
-                                        NOTIONAL_SUM_METRIC_DTO.getMetric(),
-                                        new Double[] {100.0, 300.0, 100.0, 300.0}))));
-        TESTS.put(
-                "SORT Notional.Sum; Levels: cpty; Filters: no filter",
-                new TestInputOutput(
-                        CubeQueryDTO.builder()
-                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
-                                .withSortBy(CubeQueryDTO.SortDTO.builder()
-                                        .withMetric(postfixMeasure(NOTIONAL, SUM))
-                                        .withLevel(COUNTERPARTY_LEVEL.getLevelName())
-                                        .withAscending(false)
-                                        .build())
-                                .build(),
-                        resultCells -> {
-                            // we cannot check the order here with the resultCells
-                        },
-                        List.of(
-                                new ResultColumn(COUNTERPARTY_LEVEL, new String[] {null, CPTY_2, CPTY_1}),
-                                new ResultColumn(
-                                        NOTIONAL_SUM_METRIC_DTO.getMetric(), new Double[] {750.0, 650.0, 100.0}))));
-        TESTS.put(
-                "PARTITION Notional.Sum; Levels: cpty; Filters: no filter",
-                new TestInputOutput(
-                        CubeQueryDTO.builder()
-                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
-                                .withPartitionedBy(CubeQueryDTO.PartitioningDTO.builder()
-                                        .withLevel(COUNTERPARTY_LEVEL.getLevelName())
-                                        .withMetric(postfixMeasure(NOTIONAL, SUM))
-                                        .build())
-                                .build(),
-                        resultCells -> {
-                            var calculatedMember = CubeQuery.calculatedMemberDefaultName(
-                                    NOTIONAL_SUM_METRIC_DTO.getMetric(), COUNTERPARTY_LEVEL.getLevelName());
-                            assertCellValue(
-                                    resultCells.measure(NOTIONAL_SUM_METRIC_DTO.getMetric()),
-                                    Map.of(COUNTERPARTY_LEVEL, ALLMEMBER),
-                                    750.0);
-                            assertCellValue(
-                                    resultCells.measure(NOTIONAL_SUM_METRIC_DTO.getMetric()),
-                                    Map.of(COUNTERPARTY_LEVEL, CPTY_1),
-                                    100.0);
-                            assertCellValue(
-                                    resultCells.measure(NOTIONAL_SUM_METRIC_DTO.getMetric()),
-                                    Map.of(COUNTERPARTY_LEVEL, CPTY_2),
-                                    650.0);
-                            assertCellValue(
-                                    resultCells.measure(calculatedMember), Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), null);
-                            assertCellValue(
-                                    resultCells.measure(calculatedMember), Map.of(COUNTERPARTY_LEVEL, CPTY_1), 750.0);
-                            assertCellValue(
-                                    resultCells.measure(calculatedMember), Map.of(COUNTERPARTY_LEVEL, CPTY_2), 750.0);
-                        },
-                        List.of(
-                                new ResultColumn(COUNTERPARTY_LEVEL, new String[] {null, CPTY_1, CPTY_2}),
-                                new ResultColumn(
-                                        NOTIONAL_SUM_METRIC_DTO.getMetric(), new Double[] {750.0, 100.0, 650.0}),
-                                // this is a calculated measure so return value is string
-                                new ResultColumn(
-                                        NOTIONAL_SUM_METRIC_DTO.getMetric() + "@" + COUNTERPARTY_LEVEL.getLevelName(),
-                                        new String[] {null, "750.0", "750.0"}))));
-        TESTS.put(
-                "TOP RANK Notional.Sum; Levels: tradeId; Filters: no filter",
-                new TestInputOutput(
-                        CubeQueryDTO.builder()
-                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                                .withMetric(TOP_RANK_MEASURE_DTO)
-                                .withLevel(TRADE_ID_LEVEL.getLevelName())
-                                .withTopRank(CubeQueryDTO.TopRankDTO.builder()
-                                        .withLevel(TRADE_ID_LEVEL.getLevelName())
-                                        .withMetric(NOTIONAL_SUM_METRIC_DTO.getMetric())
-                                        .build())
-                                .build(),
-                        resultCells -> {
-                            assertCellValue(
-                                    resultCells.measure(NOTIONAL_SUM_METRIC_DTO.getMetric()),
-                                    Map.of(TRADE_ID_LEVEL, TRADE_1),
-                                    100.0);
-                            assertCellValue(
-                                    resultCells.measure(NOTIONAL_SUM_METRIC_DTO.getMetric()),
-                                    Map.of(TRADE_ID_LEVEL, TRADE_2),
-                                    350.0);
-                            assertCellValue(
-                                    resultCells.measure(NOTIONAL_SUM_METRIC_DTO.getMetric()),
-                                    Map.of(TRADE_ID_LEVEL, TRADE_3),
-                                    300.0);
-                            assertCellValue(
-                                    resultCells.measure(TOP_RANK_MEASURE_DTO.getMetric()),
-                                    Map.of(TRADE_ID_LEVEL, TRADE_2),
-                                    1);
-                            assertCellValue(
-                                    resultCells.measure(TOP_RANK_MEASURE_DTO.getMetric()),
-                                    Map.of(TRADE_ID_LEVEL, TRADE_3),
-                                    2);
-                            assertCellValue(
-                                    resultCells.measure(TOP_RANK_MEASURE_DTO.getMetric()),
-                                    Map.of(TRADE_ID_LEVEL, TRADE_1),
-                                    3);
-                        },
-                        List.of(
-                                new ResultColumn(TRADE_ID_LEVEL, new String[] {null, TRADE_2, TRADE_3, TRADE_1}),
-                                new ResultColumn(
-                                        NOTIONAL_SUM_METRIC_DTO.getMetric(), new Double[] {750.0, 350.0, 300.0, 100.0}),
-                                new ResultColumn(
-                                        TOP_RANK_MEASURE_DTO.getMetric(), new String[] {"0", "1", "2", "3"}))));
-        TESTS.put(
-                "TOP 2 Notional.Sum; Levels: cptyId,tradeId; Filters: no filter",
-                new TestInputOutput(
-                        CubeQueryDTO.builder()
-                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
-                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
-                                .withLevel(TRADE_ID_LEVEL.getLevelName())
-                                .withTopCounts(CubeQueryDTO.TopCountDTO.builder()
-                                        .withLevel(TRADE_ID_LEVEL.getLevelName())
-                                        .withMetric(NOTIONAL_SUM_METRIC_DTO.getMetric())
-                                        .withCount(2)
-                                        .withAggregateOthers(true)
-                                        .build())
-                                .build(),
-                        resultCells -> {
-                            assertCellValue(
-                                    resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER, TRADE_ID_LEVEL, TRADE_2), 350.0);
-                            assertCellValue(
-                                    resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER, TRADE_ID_LEVEL, TRADE_3), 300.0);
-                            assertCellValue(
-                                    resultCells,
-                                    Map.of(COUNTERPARTY_LEVEL, ALLMEMBER, TRADE_ID_LEVEL, OTHERS_MEMBER),
-                                    100.0);
-                            assertCellValue(
-                                    resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2, TRADE_ID_LEVEL, TRADE_2), 350.0);
-                            assertCellValue(
-                                    resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2, TRADE_ID_LEVEL, TRADE_3), 300.0);
-                            assertCellValue(
-                                    resultCells,
-                                    Map.of(COUNTERPARTY_LEVEL, CPTY_1, TRADE_ID_LEVEL, OTHERS_MEMBER),
-                                    100.0);
-                        },
-                        List.of(
-                                new ResultColumn(
-                                        COUNTERPARTY_LEVEL, new String[] {null, null, null, CPTY_1, CPTY_2, CPTY_2}),
-                                new ResultColumn(TRADE_ID_LEVEL, new String[] {
-                                    TRADE_2, TRADE_3, OTHERS_MEMBER, OTHERS_MEMBER, TRADE_2, TRADE_3
-                                }),
-                                new ResultColumn(
-                                        NOTIONAL_SUM_METRIC_DTO.getMetric(),
-                                        new Double[] {350.0, 300.0, 100.0, 100.0, 350.0, 300.0}))));
+                        resultCells -> {},
+                        Collections.emptyList()));
     }
+    //        TESTS.put(
+    //                "Count",
+    //                new TestInputOutput(
+    //                        CubeQueryDTO.builder().withMetric(COUNT_METRIC_DTO).build(),
+    //                        resultCells ->
+    //                                assertThat(resultCells.getCell().getValue()).isEqualTo(3L),
+    //                        List.of(new ResultColumn(COUNT_METRIC_DTO.getMetric(), new Long[] {3L}))));
+    //
+    //
+
+    //        TESTS.put(
+    //                "Notional.Sum; Levels: none, Filter: none",
+    //                new TestInputOutput(
+    //                        CubeQueryDTO.builder()
+    //                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+    //                                .withMetric(NOTIONAL_MEAN_METRIC_DTO)
+    //                                .build(),
+    //                        resultCells -> {
+    //                            assertThat(resultCells
+    //                                            .measure(NOTIONAL_SUM_METRIC_DTO.getMetric())
+    //                                            .getCell()
+    //                                            .getValue())
+    //                                    .isEqualTo(750d);
+    //                            assertThat(resultCells
+    //                                            .measure(NOTIONAL_MEAN_METRIC_DTO.getMetric())
+    //                                            .getCell()
+    //                                            .getValue())
+    //                                    .isEqualTo(250d);
+    //                        },
+    //                        null));
+    //        TESTS.put(
+    //                "Notional.Sum; Levels: cpty; Filter: none",
+    //                new TestInputOutput(
+    //                        CubeQueryDTO.builder()
+    //                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+    //                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+    //                                .build(),
+    //                        resultCells -> {
+    //                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
+    //                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
+    //                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 750.0);
+    //                        },
+    //                        null));
+    //        TESTS.put(
+    //                "Notional.Sum; Levels: cpty; Filter: date",
+    //                new TestInputOutput(
+    //                        CubeQueryDTO.builder()
+    //                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+    //                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+    //                                .withFiltersExpression(COB_DATE_FILTER)
+    //                                .build(),
+    //                        resultCells -> {
+    //                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
+    //                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
+    //                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 750.0);
+    //                        },
+    //                        null));
+    //
+    //        TESTS.put(
+    //                "Notional.Sum; Levels: date; Filter: none",
+    //                new TestInputOutput(
+    //                        CubeQueryDTO.builder()
+    //                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+    //                                .withLevel(COB_DATE_LEVEL.getLevelName())
+    //                                .build(),
+    //                        resultCells -> {
+    //                            assertCellValue(resultCells, Map.of(COB_DATE_LEVEL, TEST_DATE), 750.0);
+    //                            assertCellValue(resultCells, Map.of(COB_DATE_LEVEL, OTHER_TEST_DATE), 7500.0);
+    //                        },
+    //                        null));
+    //
+    //        TESTS.put(
+    //                "Notional.Sum; Levels: cpty; Filter: cpty",
+    //                new TestInputOutput(
+    //                        CubeQueryDTO.builder()
+    //                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+    //                                .withFiltersExpression(CPTY_FILTER)
+    //                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+    //                                .build(),
+    //                        resultCells -> {
+    //                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
+    //                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 100.0);
+    //                        },
+    //                        null));
+    //
+    //        TESTS.put(
+    //                "Notional.Sum; Levels: trade; Filter: date,cpty,trade",
+    //                new TestInputOutput(
+    //                        CubeQueryDTO.builder()
+    //                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+    //                                .withFiltersExpression(
+    //                                        COB_DATE_FILTER + " AND " + TRADE_1_FILTER + " AND " + CPTY_FILTER)
+    //                                .withLevel(TRADE_ID_LEVEL.getLevelName())
+    //                                .build(),
+    //                        resultCells -> {
+    //                            assertCellValue(resultCells, Map.of(TRADE_ID_LEVEL, ALLMEMBER), 100.0);
+    //                            assertCellValue(resultCells, Map.of(TRADE_ID_LEVEL, TRADE_1), 100.0);
+    //                        },
+    //                        List.of(
+    //                                new ResultColumn(TRADE_ID_LEVEL, new String[] {null, TRADE_1}),
+    //                                new ResultColumn(NOTIONAL_SUM_METRIC_DTO.getMetric(), new Double[] {100.0,
+    // 100.0}))));
+    //
+    //        TESTS.put(
+    //                "Notional.Sum; Levels: cpty; Filter: NOT cpty",
+    //                new TestInputOutput(
+    //                        CubeQueryDTO.builder()
+    //                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+    //                                .withFiltersExpression("NOT " + CPTY_FILTER)
+    //                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+    //                                .build(),
+    //                        resultCells -> {
+    //                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2), 650.0);
+    //                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 650.0);
+    //                        },
+    //                        null));
+    //        TESTS.put(
+    //                "Notional.Sum; Levels: cpty; Filter; date AND cpty",
+    //                new TestInputOutput(
+    //                        CubeQueryDTO.builder()
+    //                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+    //                                .withFiltersExpression(COB_DATE_FILTER + " AND " + CPTY_FILTER)
+    //                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+    //                                .build(),
+    //                        resultCells -> {
+    //                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
+    //                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 100.0);
+    //                        },
+    //                        null));
+    //        TESTS.put(
+    //                "Notional.Sum; Levels: date,cpty; Filters: date AND cpty",
+    //                new TestInputOutput(
+    //                        CubeQueryDTO.builder()
+    //                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+    //                                .withFiltersExpression(COB_DATE_FILTER + " AND " + CPTY_FILTER)
+    //                                .withLevel(COB_DATE_LEVEL.getLevelName())
+    //                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+    //                                .build(),
+    //                        resultCells -> {
+    //                            assertCellValue(
+    //                                    resultCells, Map.of(COB_DATE_LEVEL, TEST_DATE, COUNTERPARTY_LEVEL, CPTY_1),
+    // 100.0);
+    //                        },
+    //                        null));
+    //        TESTS.put(
+    //                "Notional.Sum; Levels: date,cpty,trade; Filter: date AND (cpty OR trade)",
+    //                new TestInputOutput(
+    //                        CubeQueryDTO.builder()
+    //                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+    //                                .withFiltersExpression(
+    //                                        COB_DATE_FILTER + " AND (" + CPTY_FILTER + " OR " + TRADE_3_FILTER + ")")
+    //                                .withLevel(COB_DATE_LEVEL.getLevelName())
+    //                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+    //                                .withLevel(TRADE_ID_LEVEL.getLevelName())
+    //                                .build(),
+    //                        resultCells -> {
+    //                            assertCellValue(
+    //                                    resultCells,
+    //                                    Map.of(
+    //                                            COB_DATE_LEVEL,
+    //                                            TEST_DATE,
+    //                                            COUNTERPARTY_LEVEL,
+    //                                            ALLMEMBER,
+    //                                            TRADE_ID_LEVEL,
+    //                                            TRADE_1),
+    //                                    100.0);
+    //                            assertCellValue(
+    //                                    resultCells,
+    //                                    Map.of(
+    //                                            COB_DATE_LEVEL,
+    //                                            TEST_DATE,
+    //                                            COUNTERPARTY_LEVEL,
+    //                                            ALLMEMBER,
+    //                                            TRADE_ID_LEVEL,
+    //                                            TRADE_3),
+    //                                    300.0);
+    //                            assertCellValue(
+    //                                    resultCells,
+    //                                    Map.of(
+    //                                            COB_DATE_LEVEL,
+    //                                            TEST_DATE,
+    //                                            COUNTERPARTY_LEVEL,
+    //                                            CPTY_1,
+    //                                            TRADE_ID_LEVEL,
+    //                                            TRADE_1),
+    //                                    100.0);
+    //                            assertCellValue(
+    //                                    resultCells,
+    //                                    Map.of(
+    //                                            COB_DATE_LEVEL,
+    //                                            TEST_DATE,
+    //                                            COUNTERPARTY_LEVEL,
+    //                                            CPTY_2,
+    //                                            TRADE_ID_LEVEL,
+    //                                            TRADE_3),
+    //                                    300.0);
+    //                        },
+    //                        List.of(
+    //                                new ResultColumn(
+    //                                        COB_DATE_LEVEL, new LocalDate[] {TEST_DATE, TEST_DATE, TEST_DATE,
+    // TEST_DATE}),
+    //                                new ResultColumn(COUNTERPARTY_LEVEL, new String[] {null, null, CPTY_1, CPTY_2}),
+    //                                new ResultColumn(TRADE_ID_LEVEL, new String[] {TRADE_1, TRADE_3, TRADE_1,
+    // TRADE_3}),
+    //                                new ResultColumn(
+    //                                        NOTIONAL_SUM_METRIC_DTO.getMetric(),
+    //                                        new Double[] {100.0, 300.0, 100.0, 300.0}))));
+    //        TESTS.put(
+    //                "SORT Notional.Sum; Levels: cpty; Filters: no filter",
+    //                new TestInputOutput(
+    //                        CubeQueryDTO.builder()
+    //                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+    //                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+    //                                .withSortBy(CubeQueryDTO.SortDTO.builder()
+    //                                        .withMetric(postfixMeasure(NOTIONAL, SUM))
+    //                                        .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+    //                                        .withAscending(false)
+    //                                        .build())
+    //                                .build(),
+    //                        resultCells -> {
+    //                            // we cannot check the order here with the resultCells
+    //                        },
+    //                        List.of(
+    //                                new ResultColumn(COUNTERPARTY_LEVEL, new String[] {null, CPTY_2, CPTY_1}),
+    //                                new ResultColumn(
+    //                                        NOTIONAL_SUM_METRIC_DTO.getMetric(), new Double[] {750.0, 650.0,
+    // 100.0}))));
+    //        TESTS.put(
+    //                "PARTITION Notional.Sum; Levels: cpty; Filters: no filter",
+    //                new TestInputOutput(
+    //                        CubeQueryDTO.builder()
+    //                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+    //                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+    //                                .withPartitionedBy(CubeQueryDTO.PartitioningDTO.builder()
+    //                                        .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+    //                                        .withMetric(postfixMeasure(NOTIONAL, SUM))
+    //                                        .build())
+    //                                .build(),
+    //                        resultCells -> {
+    //                            var calculatedMember = CubeQuery.calculatedMemberDefaultName(
+    //                                    NOTIONAL_SUM_METRIC_DTO.getMetric(), COUNTERPARTY_LEVEL.getLevelName());
+    //                            assertCellValue(
+    //                                    resultCells.measure(NOTIONAL_SUM_METRIC_DTO.getMetric()),
+    //                                    Map.of(COUNTERPARTY_LEVEL, ALLMEMBER),
+    //                                    750.0);
+    //                            assertCellValue(
+    //                                    resultCells.measure(NOTIONAL_SUM_METRIC_DTO.getMetric()),
+    //                                    Map.of(COUNTERPARTY_LEVEL, CPTY_1),
+    //                                    100.0);
+    //                            assertCellValue(
+    //                                    resultCells.measure(NOTIONAL_SUM_METRIC_DTO.getMetric()),
+    //                                    Map.of(COUNTERPARTY_LEVEL, CPTY_2),
+    //                                    650.0);
+    //                            assertCellValue(
+    //                                    resultCells.measure(calculatedMember), Map.of(COUNTERPARTY_LEVEL, ALLMEMBER),
+    // null);
+    //                            assertCellValue(
+    //                                    resultCells.measure(calculatedMember), Map.of(COUNTERPARTY_LEVEL, CPTY_1),
+    // 750.0);
+    //                            assertCellValue(
+    //                                    resultCells.measure(calculatedMember), Map.of(COUNTERPARTY_LEVEL, CPTY_2),
+    // 750.0);
+    //                        },
+    //                        List.of(
+    //                                new ResultColumn(COUNTERPARTY_LEVEL, new String[] {null, CPTY_1, CPTY_2}),
+    //                                new ResultColumn(
+    //                                        NOTIONAL_SUM_METRIC_DTO.getMetric(), new Double[] {750.0, 100.0, 650.0}),
+    //                                // this is a calculated measure so return value is string
+    //                                new ResultColumn(
+    //                                        NOTIONAL_SUM_METRIC_DTO.getMetric() + "@" +
+    // COUNTERPARTY_LEVEL.getLevelName(),
+    //                                        new String[] {null, "750.0", "750.0"}))));
+    //        TESTS.put(
+    //                "TOP RANK Notional.Sum; Levels: tradeId; Filters: no filter",
+    //                new TestInputOutput(
+    //                        CubeQueryDTO.builder()
+    //                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+    //                                .withMetric(TOP_RANK_MEASURE_DTO)
+    //                                .withLevel(TRADE_ID_LEVEL.getLevelName())
+    //                                .withTopRank(CubeQueryDTO.TopRankDTO.builder()
+    //                                        .withLevel(TRADE_ID_LEVEL.getLevelName())
+    //                                        .withMetric(NOTIONAL_SUM_METRIC_DTO.getMetric())
+    //                                        .build())
+    //                                .build(),
+    //                        resultCells -> {
+    //                            assertCellValue(
+    //                                    resultCells.measure(NOTIONAL_SUM_METRIC_DTO.getMetric()),
+    //                                    Map.of(TRADE_ID_LEVEL, TRADE_1),
+    //                                    100.0);
+    //                            assertCellValue(
+    //                                    resultCells.measure(NOTIONAL_SUM_METRIC_DTO.getMetric()),
+    //                                    Map.of(TRADE_ID_LEVEL, TRADE_2),
+    //                                    350.0);
+    //                            assertCellValue(
+    //                                    resultCells.measure(NOTIONAL_SUM_METRIC_DTO.getMetric()),
+    //                                    Map.of(TRADE_ID_LEVEL, TRADE_3),
+    //                                    300.0);
+    //                            assertCellValue(
+    //                                    resultCells.measure(TOP_RANK_MEASURE_DTO.getMetric()),
+    //                                    Map.of(TRADE_ID_LEVEL, TRADE_2),
+    //                                    1);
+    //                            assertCellValue(
+    //                                    resultCells.measure(TOP_RANK_MEASURE_DTO.getMetric()),
+    //                                    Map.of(TRADE_ID_LEVEL, TRADE_3),
+    //                                    2);
+    //                            assertCellValue(
+    //                                    resultCells.measure(TOP_RANK_MEASURE_DTO.getMetric()),
+    //                                    Map.of(TRADE_ID_LEVEL, TRADE_1),
+    //                                    3);
+    //                        },
+    //                        List.of(
+    //                                new ResultColumn(TRADE_ID_LEVEL, new String[] {null, TRADE_2, TRADE_3, TRADE_1}),
+    //                                new ResultColumn(
+    //                                        NOTIONAL_SUM_METRIC_DTO.getMetric(), new Double[] {750.0, 350.0, 300.0,
+    // 100.0}),
+    //                                new ResultColumn(
+    //                                        TOP_RANK_MEASURE_DTO.getMetric(), new String[] {"0", "1", "2", "3"}))));
+    //        TESTS.put(
+    //                "TOP 2 Notional.Sum; Levels: cptyId,tradeId; Filters: no filter",
+    //                new TestInputOutput(
+    //                        CubeQueryDTO.builder()
+    //                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+    //                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+    //                                .withLevel(TRADE_ID_LEVEL.getLevelName())
+    //                                .withTopCounts(CubeQueryDTO.TopCountDTO.builder()
+    //                                        .withLevel(TRADE_ID_LEVEL.getLevelName())
+    //                                        .withMetric(NOTIONAL_SUM_METRIC_DTO.getMetric())
+    //                                        .withCount(2)
+    //                                        .withAggregateOthers(true)
+    //                                        .build())
+    //                                .build(),
+    //                        resultCells -> {
+    //                            assertCellValue(
+    //                                    resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER, TRADE_ID_LEVEL, TRADE_2),
+    // 350.0);
+    //                            assertCellValue(
+    //                                    resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER, TRADE_ID_LEVEL, TRADE_3),
+    // 300.0);
+    //                            assertCellValue(
+    //                                    resultCells,
+    //                                    Map.of(COUNTERPARTY_LEVEL, ALLMEMBER, TRADE_ID_LEVEL, OTHERS_MEMBER),
+    //                                    100.0);
+    //                            assertCellValue(
+    //                                    resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2, TRADE_ID_LEVEL, TRADE_2),
+    // 350.0);
+    //                            assertCellValue(
+    //                                    resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_2, TRADE_ID_LEVEL, TRADE_3),
+    // 300.0);
+    //                            assertCellValue(
+    //                                    resultCells,
+    //                                    Map.of(COUNTERPARTY_LEVEL, CPTY_1, TRADE_ID_LEVEL, OTHERS_MEMBER),
+    //                                    100.0);
+    //                        },
+    //                        List.of(
+    //                                new ResultColumn(
+    //                                        COUNTERPARTY_LEVEL, new String[] {null, null, null, CPTY_1, CPTY_2,
+    // CPTY_2}),
+    //                                new ResultColumn(TRADE_ID_LEVEL, new String[] {
+    //                                    TRADE_2, TRADE_3, OTHERS_MEMBER, OTHERS_MEMBER, TRADE_2, TRADE_3
+    //                                }),
+    //                                new ResultColumn(
+    //                                        NOTIONAL_SUM_METRIC_DTO.getMetric(),
+    //                                        new Double[] {350.0, 300.0, 100.0, 100.0, 350.0, 300.0}))));
+    //    }
 
     private static VectorSchemaRoot buildExpectedResult(List<ResultColumn> expectedResults, RootAllocator allocator) {
         if (Objects.isNull(expectedResults)) {

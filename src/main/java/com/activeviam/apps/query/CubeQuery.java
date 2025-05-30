@@ -22,9 +22,6 @@ import lombok.Data;
 public class CubeQuery {
     private final List<Metric> metrics;
     private final List<LevelIdentifier> levels;
-    // Filters only support the AND condition
-    // private final List<Filter> filters;
-    // FiltersExpression will replace filters to support OR
     private final String filtersExpression;
     private final CubeQuery.TopCount topCounts;
     private final List<CubeQuery.Sort> sortBy;
