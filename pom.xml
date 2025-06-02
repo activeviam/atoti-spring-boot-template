@@ -11,7 +11,7 @@
 
   <groupId>com.activeviam.apps</groupId>
   <artifactId>atoti-spring-boot-template</artifactId>
-  <version>6.1.7</version>
+  <version>6.1.8</version>
   <description>Template project for Spring Boot</description>
 
   <properties>

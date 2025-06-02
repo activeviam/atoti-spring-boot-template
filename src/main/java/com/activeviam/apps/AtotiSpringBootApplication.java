@@ -6,6 +6,8 @@
  */
 package com.activeviam.apps;
 
+import static com.activeviam.tech.core.api.properties.ActiveViamProperty.THROW_ON_DIFFERENT_MEASURE_NAMES_IN_DATA_NODES;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
@@ -22,6 +24,10 @@ import io.opentelemetry.api.OpenTelemetry;
 @EnableWebMvc
 @ConfigurationPropertiesScan
 public class AtotiSpringBootApplication {
+
+    static {
+        System.setProperty(THROW_ON_DIFFERENT_MEASURE_NAMES_IN_DATA_NODES.getKey(), "false");
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(AtotiSpringBootApplication.class, args);

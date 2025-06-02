@@ -35,7 +35,7 @@ public class FieldConstants {
     public static final String IS_HOLDING_GROUP_BY_WEIGHTED_HOLDING = "IsHoldingGroupByWeightedHolding";
     public static final String HOLDING_NAME = "HoldingName";
     public static final String PRICED_SECURITY_NAME = "PricedSecurityName";
-    public static final String PROXY_SECURITY = "ProxySecurity";
+    public static final String PROXY_SECURITY = "ProxySecurityName";
     public static final String SECURITY = "Security";
     public static final String HAIRCUT = "Haircut";
     public static final String LOADING_STATUS = "LoadingStatus";

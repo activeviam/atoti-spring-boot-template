@@ -12,6 +12,13 @@ database:
   in-memory-stores:
     partition-as-of-date: true
 dlc:
+  jdbc:
+    sources:
+      Clickhouse:
+        url: "jdbc:ch://localhost:8123?jdbc_ignore_unsupported_values=true&socket_timeout=30"
+        username: test
+        password: test
+        driver-class: com.clickhouse.jdbc.ClickHouseDriver
   csv:
     local:
       sources:

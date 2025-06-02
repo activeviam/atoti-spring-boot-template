@@ -49,16 +49,6 @@ otel:
       '[service.name]': ${spring.application.name}
       '[service.version]': 1.0
 
-#dlc:
-#  csv:
-#    local:
-#      sources:
-#        test_data:
-#          root-base-dir: ${CSV_DATA_BASE_DIR}
-#    topics:
-#      Trades:
-#        file-pattern: "glob:**trades.csv"
-
 # Security configuration
 security:
   authentication:

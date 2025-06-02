@@ -8,6 +8,6 @@ otel:
 distribution:
   type: query
   cluster-id: atoti-cluster
-  protocol-path: jgroups-protocols/protocol-tcp-gossip.xml
+  protocol-path: jgroups-protocols/protocol-tcp-file-ping.xml
 database:
   type: none
