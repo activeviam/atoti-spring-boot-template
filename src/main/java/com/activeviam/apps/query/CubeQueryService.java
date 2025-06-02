@@ -185,9 +185,7 @@ public class CubeQueryService {
         }
 
         private static List<String> extractAllMetricNames(CubeQuery cubeQuery) {
-            var allMetrics = new ArrayList<>(cubeQuery.getMetrics().stream()
-                    .map(CubeQuery.Metric::getMetricName)
-                    .toList());
+            var allMetrics = new ArrayList<>(cubeQuery.getMetrics());
             // Add calculated members
             allMetrics.addAll(Optional.ofNullable(cubeQuery.getPartitionedBy()).orElse(Collections.emptyList()).stream()
                     .map(CubeQuery.Partitioning::newMetric)

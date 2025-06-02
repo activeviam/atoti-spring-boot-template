@@ -20,7 +20,7 @@ import lombok.Data;
 
 @Data
 public class CubeQuery {
-    private final List<Metric> metrics;
+    private final List<String> metrics;
     private final List<LevelIdentifier> levels;
     private final String filtersExpression;
     private final CubeQuery.TopCount topCounts;
@@ -30,16 +30,6 @@ public class CubeQuery {
 
     public static String calculatedMemberDefaultName(String metric, String level) {
         return metric + "@" + level;
-    }
-
-    public record Metric(String metric, String parameter) {
-        public String getMetricName() {
-            return ObjectUtils.isEmpty(parameter) ? metric : metric + "_" + parameter;
-        }
-
-        public static Metric fromDTO(CubeQueryDTO.MetricDTO dto) {
-            return new Metric(dto.getMetric(), dto.getParameter());
-        }
     }
 
     public record Filter(LevelIdentifier level, List<String> values, boolean exclude) {
@@ -98,9 +88,7 @@ public class CubeQuery {
 
     public static CubeQuery fromDTO(CubeQueryDTO dto, LevelsConverter levelsConverter) {
         return new CubeQuery(
-                Optional.ofNullable(dto.getMetrics()).orElse(Collections.emptyList()).stream()
-                        .map(Metric::fromDTO)
-                        .toList(),
+                Optional.ofNullable(dto.getMetrics()).orElse(Collections.emptyList()),
                 Optional.ofNullable(dto.getLevels()).orElse(Collections.emptyList()).stream()
                         .map(levelsConverter::stringToLevelIdentifier)
                         .toList(),

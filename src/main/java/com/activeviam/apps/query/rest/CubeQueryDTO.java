@@ -22,7 +22,7 @@ import lombok.Singular;
 public class CubeQueryDTO {
 
     @Singular
-    private List<MetricDTO> metrics;
+    private List<String> metrics;
 
     @Singular
     private List<String> levels;
@@ -55,18 +55,6 @@ public class CubeQueryDTO {
 
         @Builder.Default
         private boolean exclude = false;
-    }
-
-    @Data
-    @Builder(setterPrefix = "with")
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class MetricDTO {
-        @NonNull
-        private String metric;
-
-        @Builder.Default
-        private String parameter = null;
     }
 
     @Data
