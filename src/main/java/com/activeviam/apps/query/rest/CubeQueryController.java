@@ -35,21 +35,25 @@ public class CubeQueryController {
 
     @PostMapping("/mdx/{cube}")
     public String getMdxQueryforCube(@PathVariable String cube, @RequestBody CubeQueryDTO queryDTO) {
-        return cubeQueryService.getCubeQuerier(cube).buildMdxQuery(queryDTO);
+        return cubeQueryService.getCubeQuerier(cube).buildMdxQuery(queryDTO, false);
     }
 
     @PostMapping("/mdx")
     public String getMdxQueryForDefaultCube(@RequestBody CubeQueryDTO queryDTO) {
-        return cubeQueryService.getDefaultCubeQuerier().buildMdxQuery(queryDTO);
+        return cubeQueryService.getDefaultCubeQuerier().buildMdxQuery(queryDTO, false);
     }
 
     @PostMapping("/{cube}")
     public StreamingResponseBody runQueryOnCube(@PathVariable String cube, @RequestBody CubeQueryDTO queryDTO) {
-        return cubeQueryService.getCubeQuerier(cube).runQuery(queryDTO, CSV_OUTPUT_EXPORTER_CONFIG);
+        return cubeQueryService
+                .getCubeQuerier(cube)
+                .runQuery(queryDTO, CSV_OUTPUT_EXPORTER_CONFIG, queryDTO.isUseContext());
     }
 
     @PostMapping()
     public StreamingResponseBody runQueryOnDefaultCube(@RequestBody CubeQueryDTO queryDTO) {
-        return cubeQueryService.getDefaultCubeQuerier().runQuery(queryDTO, CSV_OUTPUT_EXPORTER_CONFIG);
+        return cubeQueryService
+                .getDefaultCubeQuerier()
+                .runQuery(queryDTO, CSV_OUTPUT_EXPORTER_CONFIG, queryDTO.isUseContext());
     }
 }

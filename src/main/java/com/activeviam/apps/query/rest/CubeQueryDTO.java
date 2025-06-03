@@ -41,6 +41,9 @@ public class CubeQueryDTO {
     @Singular
     private List<PartitioningDTO> partitionedBys;
 
+    @Builder.Default
+    private boolean useContext = true;
+
     @Data
     @Builder(setterPrefix = "with")
     @AllArgsConstructor

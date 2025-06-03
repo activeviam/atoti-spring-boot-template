@@ -32,14 +32,6 @@ public class CubeQuery {
         return metric + "@" + level;
     }
 
-    public record Filter(LevelIdentifier level, List<String> values, boolean exclude) {
-
-        public static Filter fromDTO(CubeQueryDTO.FilterDTO dto, LevelsConverter levelsConverter) {
-            return new Filter(
-                    levelsConverter.stringToLevelIdentifier(dto.getLevel()), dto.getValues(), dto.isExclude());
-        }
-    }
-
     public record TopCount(String metric, LevelIdentifier level, int count, boolean bottom, boolean aggregateOthers) {
 
         public static TopCount fromDTO(CubeQueryDTO.TopCountDTO dto, LevelsConverter levelsConverter) {

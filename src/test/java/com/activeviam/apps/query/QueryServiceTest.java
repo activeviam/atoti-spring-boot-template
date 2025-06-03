@@ -35,6 +35,7 @@ import java.io.StringReader;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +64,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import com.activeviam.activepivot.core.intf.api.contextvalues.IContextValue;
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IMeasureHierarchy;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
 import com.activeviam.activepivot.server.impl.private_.rest.dataexport.DataExportService;
@@ -160,6 +162,7 @@ class QueryServiceTest {
     }
 
     private static final String CPTY_FILTER = COUNTERPARTY_ID + " IN " + "['" + CPTY_1 + "']";
+    private static final String CPTY_LIKE = COUNTERPARTY_ID + " LIKE " + "'" + CPTY_1 + "'";
     private static final String TRADE_3_FILTER = TRADE_ID + " IN " + "['" + TRADE_3 + "']";
     private static final String TRADE_1_FILTER = TRADE_ID + " IN " + "['" + TRADE_1 + "']";
 
@@ -288,6 +291,19 @@ class QueryServiceTest {
                         CubeQueryDTO.builder()
                                 .withMetric(NOTIONAL_SUM_METRIC_DTO)
                                 .withFiltersExpression(COB_DATE_FILTER + " AND " + CPTY_FILTER)
+                                .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+                                .build(),
+                        resultCells -> {
+                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, CPTY_1), 100.0);
+                            assertCellValue(resultCells, Map.of(COUNTERPARTY_LEVEL, ALLMEMBER), 100.0);
+                        },
+                        null));
+        TESTS.put(
+                "Notional.Sum; Levels: cpty; Filter; date AND cpty LIKE",
+                new TestInputOutput(
+                        CubeQueryDTO.builder()
+                                .withMetric(NOTIONAL_SUM_METRIC_DTO)
+                                .withFiltersExpression(COB_DATE_FILTER + " AND " + CPTY_LIKE)
                                 .withLevel(COUNTERPARTY_LEVEL.getLevelName())
                                 .build(),
                         resultCells -> {
@@ -621,36 +637,57 @@ class QueryServiceTest {
     // To run this through the service we need an actual object of type IDataExportService
     // which is currently mocked
     @TestFactory
-    Stream<DynamicTest> queryServiceMdxTests() {
+    Stream<DynamicTest> queryServiceMdxTestsWithContext() {
+        return queryServiceMdxTests(true);
+    }
+
+    @TestFactory
+    Stream<DynamicTest> queryServiceMdxTestsPureMdx() {
+        return queryServiceMdxTests(false);
+    }
+
+    Stream<DynamicTest> queryServiceMdxTests(boolean useContext) {
         return TESTS.entrySet().stream()
                 .map(entry -> DynamicTest.dynamicTest("QueryRunner: " + entry.getKey(), () -> {
                     var queryDto = entry.getValue().dto();
                     var cubeQuerier = cubeQueryService.getCubeQuerier(CUBE_NAME);
-                    var mdxQuery = cubeQuerier.buildMdxQuery(queryDto);
-                    var cubeRestrictions = cubeQuerier.buildCubeRestrictions(queryDto);
-                    var mdxContext = cubeQuerier.buildMdxContext(queryDto);
-                    log.info("DTO:\n{}", queryDto);
-                    log.info("MDX:\n{}", mdxQuery);
+                    var mdxQuery = cubeQuerier.buildMdxQuery(queryDto, useContext);
+                    var contextValues = new ArrayList<IContextValue>();
+                    if (useContext) {
+                        contextValues.add(cubeQuerier.buildCubeRestrictions(queryDto));
+                    }
+                    contextValues.add(cubeQuerier.buildMdxContext(queryDto, useContext));
                     var cellsTester = cubeTester
                             .mdxQuery()
                             .withMdx(mdxQuery)
-                            .withContextValues(cubeRestrictions, mdxContext)
+                            .withContextValues(contextValues.toArray(new IContextValue[0]))
                             .run()
                             .show()
                             .getTester();
+                    log.info("DTO:\n{}", queryDto);
+                    log.info("MDX:\n{}", mdxQuery);
                     assertThat(cellsTester.isEmpty()).isFalse();
                     entry.getValue().resultConsumer().accept(cellsTester.findCell());
                 }));
     }
 
     @TestFactory
-    Stream<DynamicTest> queryExporterArrowTests() {
+    Stream<DynamicTest> queryExporterArrowTestsWithContext() {
+        return queryExporterArrowTests(true);
+    }
+
+    @TestFactory
+    Stream<DynamicTest> queryExporterArrowTestsPureMdx() {
+        return queryExporterArrowTests(false);
+    }
+
+    Stream<DynamicTest> queryExporterArrowTests(boolean useContext) {
         return TESTS.entrySet().stream()
                 .map(entry -> DynamicTest.dynamicTest("ArrowExporter: " + entry.getKey(), () -> {
                     var queryDto = entry.getValue().dto();
                     var querier = cubeQueryService.getCubeQuerier(CUBE_NAME);
                     var streamingResult = querier.runQuery(
-                            queryDto, Map.of(FORMAT_PROPERTY, JsonArrowOutputConfiguration.PLUGIN_KEY));
+                            queryDto, Map.of(FORMAT_PROPERTY, JsonArrowOutputConfiguration.PLUGIN_KEY), useContext);
                     try (var outputStream = new ByteArrayOutputStream()) {
                         outputStream.flush();
                         streamingResult.writeTo(outputStream);
@@ -673,13 +710,22 @@ class QueryServiceTest {
                 }));
     }
 
-    @TestFactory
-    Stream<DynamicTest> queryExporterCsvTests() {
+    // @TestFactory
+    Stream<DynamicTest> queryExporterCsvTestsWithContext() {
+        return queryExporterCsvTests(true);
+    }
+
+    // @TestFactory
+    Stream<DynamicTest> queryExporterCsvTestsPureMdx() {
+        return queryExporterCsvTests(false);
+    }
+
+    Stream<DynamicTest> queryExporterCsvTests(boolean useContext) {
         return TESTS.entrySet().stream()
                 .map(entry -> DynamicTest.dynamicTest("CSVExporter: " + entry.getKey(), () -> {
                     var queryDto = entry.getValue().dto();
                     var querier = cubeQueryService.getCubeQuerier(CUBE_NAME);
-                    var streamingResult = querier.runQuery(queryDto, CSV_OUTPUT_EXPORTER_CONFIG);
+                    var streamingResult = querier.runQuery(queryDto, CSV_OUTPUT_EXPORTER_CONFIG, useContext);
                     try (var outputStream = new ByteArrayOutputStream()) {
                         outputStream.flush();
                         streamingResult.writeTo(outputStream);
