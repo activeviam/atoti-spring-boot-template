@@ -14,4 +14,8 @@ import lombok.RequiredArgsConstructor;
 public class LikeLogicalCondition implements LogicalCondition {
     private final String field;
     private final String matchingCriteria;
+
+    public String getMatchingCriteria() {
+        return matchingCriteria.replace("'", "");
+    }
 }

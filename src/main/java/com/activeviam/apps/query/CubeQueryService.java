@@ -27,12 +27,15 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.impl.api.contextvalues.mdx.MdxContext;
+import com.activeviam.activepivot.core.impl.api.cube.hierarchy.HierarchiesUtil;
 import com.activeviam.activepivot.core.impl.internal.context.filter.QueryBasedCubeRestriction;
 import com.activeviam.activepivot.core.impl.internal.context.impl.ContextUtils;
+import com.activeviam.activepivot.core.impl.internal.contextvalues.subcube.CubeFilterUtil;
 import com.activeviam.activepivot.core.intf.api.contextvalues.IContextValue;
 import com.activeviam.activepivot.core.intf.api.contextvalues.mdx.IMdxContext;
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.cube.IMultiVersionActivePivot;
+import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IAxisHierarchy;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.HierarchyIdentifier;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
 import com.activeviam.activepivot.core.intf.internal.context.filter.ICubeRestriction;
@@ -49,7 +52,6 @@ import com.activeviam.apps.query.conditions.NotLogicalCondition;
 import com.activeviam.apps.query.conditions.OrLogicalCondition;
 import com.activeviam.apps.query.rest.CubeQueryDTO;
 import com.activeviam.tech.core.api.exceptions.ActiveViamRuntimeException;
-import com.activeviam.tech.core.api.filtering.impl.LikeCondition;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -540,13 +542,30 @@ public class CubeQueryService {
                             inPathValues(inLogicalCondition.getField(), inLogicalCondition.getValues()));
                 case MeasureCondition measureCondition ->
                     throw new UnsupportedOperationException(MeasureCondition.class.getSimpleName());
-                case LikeLogicalCondition likeCondition ->
-                    ICubeRestriction.equalPath(
+                case LikeLogicalCondition likeCondition -> {
+                    var allMembers =
+                            getMembersForLevel(levelsConverter.stringToLevelIdentifier(likeCondition.getField()));
+                    var criteria = likeCondition.getMatchingCriteria();
+                    var valuesToFilter = allMembers.stream()
+                            .filter(m -> m.contains(criteria))
+                            .toList();
+                    yield ICubeRestriction.inPath(
                             levelsConverter.stringToHierarchyIdentifier(likeCondition.getField()),
-                            ALLMEMBER,
-                            new LikeCondition(likeCondition.getMatchingCriteria()));
+                            inPathValues(likeCondition.getField(), valuesToFilter));
+                }
                 default -> ICubeRestriction.TRUE_INSTANCE;
             };
+        }
+
+        private Collection<String> getMembersForLevel(LevelIdentifier level) {
+            var hierarchy = HierarchiesUtil.getHierarchy(activePivot.getHead(), level.getHierarchy());
+            // NOTE: We assume this is a single level hierarchy!
+            return Objects.requireNonNull(CubeFilterUtil.getQueryFilters(activePivot.getContext())
+                            .getFilter())
+                    .retrieveMembers((IAxisHierarchy) hierarchy, 1)
+                    .stream()
+                    .map(m -> (String) m.getDiscriminator())
+                    .toList();
         }
 
         private String subSelectWithFilter(LogicalCondition queryCondition) {
@@ -567,18 +586,18 @@ public class CubeQueryService {
         }
 
         // Recursively build the cube restriction object
-        private MdxSubselectData convertQueryConditionToMdxSubSelectData(LogicalCondition queryCondition) {
+        private MdxSubSelectData convertQueryConditionToMdxSubSelectData(LogicalCondition queryCondition) {
             return switch (queryCondition) {
                 case AndLogicalCondition andLogicalCondition -> {
                     var subSelectData = andLogicalCondition.getSubConditions().stream()
                             .map(this::convertQueryConditionToMdxSubSelectData)
                             .toList();
-                    yield new MdxSubselectData(
+                    yield new MdxSubSelectData(
                             subSelectData.stream()
-                                    .map(MdxSubselectData::filterExpression)
+                                    .map(MdxSubSelectData::filterExpression)
                                     .collect(Collectors.joining(" AND ", "(", ")")),
                             subSelectData.stream()
-                                    .map(MdxSubselectData::levels)
+                                    .map(MdxSubSelectData::levels)
                                     .flatMap(Set::stream)
                                     .collect(Collectors.toSet()));
                 }
@@ -586,31 +605,31 @@ public class CubeQueryService {
                     var subSelectData = orLogicalCondition.getSubConditions().stream()
                             .map(this::convertQueryConditionToMdxSubSelectData)
                             .toList();
-                    yield new MdxSubselectData(
+                    yield new MdxSubSelectData(
                             subSelectData.stream()
-                                    .map(MdxSubselectData::filterExpression)
+                                    .map(MdxSubSelectData::filterExpression)
                                     .collect(Collectors.joining(" OR ", "(", ")")),
                             subSelectData.stream()
-                                    .map(MdxSubselectData::levels)
+                                    .map(MdxSubSelectData::levels)
                                     .flatMap(Set::stream)
                                     .collect(Collectors.toSet()));
                 }
                 case NotLogicalCondition notLogicalCondition -> {
                     var subSelectData = convertQueryConditionToMdxSubSelectData(notLogicalCondition.getCondition());
-                    yield new MdxSubselectData("NOT " + subSelectData.filterExpression(), subSelectData.levels());
+                    yield new MdxSubSelectData("NOT " + subSelectData.filterExpression(), subSelectData.levels());
                 }
                 case InLogicalCondition<?> inLogicalCondition -> {
                     var values = inLogicalCondition.getValues();
                     var level = levelsConverter.stringToLevelIdentifier(inLogicalCondition.getField());
                     var mdxLevelValue = levelToCurrentMemberMdx(level) + ".MEMBER_CAPTION";
-                    yield new MdxSubselectData(
+                    yield new MdxSubSelectData(
                             values.stream()
                                     .map(value -> mdxLevelValue + " = \"" + value.toString() + "\"")
                                     .collect(Collectors.joining(" OR ")),
                             Set.of(level));
                 }
                 case MeasureCondition measureCondition ->
-                    new MdxSubselectData(
+                    new MdxSubSelectData(
                             measureToMemberMdx(measureCondition.getMeasure())
                                     + measureCondition.getOperator()
                                     + measureCondition.getOperand(),
@@ -619,9 +638,8 @@ public class CubeQueryService {
                     var level = levelsConverter.stringToLevelIdentifier(likeCondition.getField());
                     var inString = String.format(
                             "InStr(1,%s.MEMBER_CAPTION,\"%s\") > 0",
-                            levelToCurrentMemberMdx(level),
-                            likeCondition.getMatchingCriteria().replace("'", ""));
-                    yield new MdxSubselectData(inString, Set.of(level));
+                            levelToCurrentMemberMdx(level), likeCondition.getMatchingCriteria());
+                    yield new MdxSubSelectData(inString, Set.of(level));
                 }
                 default -> null;
             };
@@ -642,5 +660,5 @@ public class CubeQueryService {
         }
     }
 
-    private record MdxSubselectData(String filterExpression, Set<LevelIdentifier> levels) {}
+    private record MdxSubSelectData(String filterExpression, Set<LevelIdentifier> levels) {}
 }
