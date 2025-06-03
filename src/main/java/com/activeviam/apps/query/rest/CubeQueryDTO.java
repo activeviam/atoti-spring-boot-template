@@ -27,11 +27,8 @@ public class CubeQueryDTO {
     @Singular
     private List<String> levels;
 
-    //    @Singular
-    //    private List<FilterDTO> filters;
-    // NOTE: filtersExpression will replace filters map so we can support the OR condition
     private String filtersExpression;
-    private TopCountDTO topCounts;
+    private TopCountDTO topCount;
 
     @Singular
     private List<SortDTO> sortBys;
@@ -43,22 +40,6 @@ public class CubeQueryDTO {
 
     @Builder.Default
     private boolean useContext = true;
-
-    @Data
-    @Builder(setterPrefix = "with")
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class FilterDTO {
-
-        @NonNull
-        private String level;
-
-        @NonNull
-        private List<String> values;
-
-        @Builder.Default
-        private boolean exclude = false;
-    }
 
     @Data
     @Builder(setterPrefix = "with")

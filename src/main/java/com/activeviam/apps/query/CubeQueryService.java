@@ -183,8 +183,8 @@ public class CubeQueryService {
                                     .withExpression(sortingCalculatedMemberExpression(sort))
                                     .build()));
                 }
-                if (!ObjectUtils.isEmpty(cubeQuery.getTopCounts())) {
-                    var topCounts = cubeQuery.getTopCounts();
+                if (!ObjectUtils.isEmpty(cubeQuery.getTopCount())) {
+                    var topCounts = cubeQuery.getTopCount();
                     mdxContext.addNamedSet(StartBuilding.namedSet()
                             .withName(TOP_N_SET)
                             .withExpression(topNSetExpression(topCounts))
@@ -211,7 +211,7 @@ public class CubeQueryService {
                             .toList();
             var partitionedBy = cubeQuery.getPartitionedBy();
             var topRank = cubeQuery.getTopRank();
-            var topCount = cubeQuery.getTopCounts();
+            var topCount = cubeQuery.getTopCount();
             // If any of these conditions is true, we need to add the calculated Members
             if (!ObjectUtils.isEmpty(sortByCalculatedMember)
                     || !ObjectUtils.isEmpty(partitionedBy)
@@ -304,11 +304,12 @@ public class CubeQueryService {
             var query = new StringBuilder();
             var sortBys = cubeQuery.getSortBy();
             var topRank = cubeQuery.getTopRank();
-            var topCounts = cubeQuery.getTopCounts();
+            var topCount = cubeQuery.getTopCount();
             var levels = cubeQuery.getLevels();
 
+            // If there are any calculated members and they are not added to the MDX context, add them
+            // with the statement WITH
             var calculatedMembers = buildCalculatedMembersMdx(cubeQuery);
-
             if (!ObjectUtils.isEmpty(calculatedMembers) && !useContext) {
                 query.append(calculatedMembers);
             }
@@ -317,7 +318,7 @@ public class CubeQueryService {
             query.append(System.lineSeparator());
             // Levels and top rank
             if (!ObjectUtils.isEmpty(levels)) {
-                query.append(hierarchizedLevels(levels, topRank, topCounts, sortBys));
+                query.append(hierarchizedLevels(levels, topRank, topCount, sortBys));
                 query.append(System.lineSeparator());
             }
 
@@ -330,8 +331,10 @@ public class CubeQueryService {
                 query.append(System.lineSeparator());
             }
 
+            // If we are using a subselect to add filters, add them here
             if (!ObjectUtils.isEmpty(cubeQuery.getFiltersExpression()) && !useContext) {
-                query.append(subSelectWithFilter(parseFilterExpression(cubeQuery.getFiltersExpression())));
+                var bottomLevel = cubeQuery.getLevels().getLast();
+                query.append(subSelectWithFilter(parseFilterExpression(cubeQuery.getFiltersExpression()), bottomLevel));
             } else {
                 query.append(fromCube(cube));
             }
@@ -512,31 +515,12 @@ public class CubeQueryService {
         private ICubeRestriction convertQueryConditionToCubeRestriction(LogicalCondition queryCondition) {
             return switch (queryCondition) {
                 case AndLogicalCondition andLogicalCondition ->
-                    // This code works with 6.1.7
-                    //
-                    // AndCubeRestriction.create(toListOfRestrictions(andLogicalCondition.getSubConditions()));
-                    // FIXME: use this code in version > 6.1.8
                     ICubeRestriction.and(toListOfRestrictions(andLogicalCondition.getSubConditions()));
                 case OrLogicalCondition orLogicalCondition ->
-                    // This code works with 6.1.7
-                    //
-                    // OrCubeRestriction.create(toListOfRestrictions(orLogicalCondition.getSubConditions()));
-                    // FIXME: use this code in version > 6.1.8
                     ICubeRestriction.or(toListOfRestrictions(orLogicalCondition.getSubConditions()));
                 case NotLogicalCondition notLogicalCondition ->
-                    // This code works with 6.1.7
-                    //                    NotCubeRestriction.create(
-                    //
-                    // convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
-                    // FIXME: use this code in version > 6.1.8
                     ICubeRestriction.not(convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
                 case InLogicalCondition<?> inLogicalCondition ->
-                    // This code works with 6.1.7
-                    //                    InLevelRestriction.create(
-                    //
-                    // levelsConverter.stringToLevelIdentifier(inLogicalCondition.getField()),
-                    //                            new HashSet<>(inLogicalCondition.getValues()));
-                    // FIXME: use this code in version > 6.1.8
                     ICubeRestriction.inPath(
                             levelsConverter.stringToHierarchyIdentifier(inLogicalCondition.getField()),
                             inPathValues(inLogicalCondition.getField(), inLogicalCondition.getValues()));
@@ -568,12 +552,16 @@ public class CubeQueryService {
                     .toList();
         }
 
-        private String subSelectWithFilter(LogicalCondition queryCondition) {
+        private String subSelectWithFilter(LogicalCondition queryCondition, LevelIdentifier bottomLevel) {
             var subSelectData = convertQueryConditionToMdxSubSelectData(queryCondition);
             if (ObjectUtils.isEmpty(subSelectData)) {
                 return "";
             }
-            var levels = subSelectData.levels();
+            var levels = new ArrayList<>(subSelectData.levels());
+            // Add a default level to the crossjoin
+            if (levels.isEmpty()) {
+                levels.add(bottomLevel);
+            }
             var crossJoin = String.format(
                     levels.size() == 1 ? "%s" : "Crossjoin(%s)",
                     levels.stream()
@@ -631,7 +619,7 @@ public class CubeQueryService {
                 case MeasureCondition measureCondition ->
                     new MdxSubSelectData(
                             measureToMemberMdx(measureCondition.getMeasure())
-                                    + measureCondition.getOperator()
+                                    + measureCondition.getOperator().getMdxOperator()
                                     + measureCondition.getOperand(),
                             Collections.emptySet());
                 case LikeLogicalCondition likeCondition -> {

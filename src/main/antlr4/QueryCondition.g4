@@ -13,7 +13,7 @@ query
    | field=fieldName 'IN' LSQPAREN values=valuesList RSQPAREN #inConditionQuery
    | 'NOT' notConditition=query #notConditionQuery
    | field=fieldName 'LIKE' criteria=criteriaType #likeConditionQuery
-   | measure=fieldName operator=('<='|'<'|'>'|'>='|'=') operand=operandType #measureConditionQuery
+   | measure=measureName operator=('<='|'<'|'>'|'>='|'=') operand=operandType #measureConditionQuery
    ;
 
 valuesList
@@ -26,6 +26,11 @@ valuesList
 // Key is an identifier (e.g., field name)
 fieldName
    : IDENTIFIER
+   ;
+
+// Key is an identifier (e.g., field name)
+measureName
+   : MEASURE_IDENTIFIER
    ;
 
 criteriaType
@@ -60,6 +65,10 @@ BOOL
 
 IDENTIFIER
    : [a-zA-Z_][a-zA-Z_0-9]*
+   ;
+
+MEASURE_IDENTIFIER
+   : [a-zA-Z_][a-zA-Z_0-9.]*
    ;
 
 STRING

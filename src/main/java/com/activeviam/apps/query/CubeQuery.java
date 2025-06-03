@@ -23,7 +23,7 @@ public class CubeQuery {
     private final List<String> metrics;
     private final List<LevelIdentifier> levels;
     private final String filtersExpression;
-    private final CubeQuery.TopCount topCounts;
+    private final CubeQuery.TopCount topCount;
     private final List<CubeQuery.Sort> sortBy;
     private final CubeQuery.TopRank topRank;
     private final List<CubeQuery.Partitioning> partitionedBy;
@@ -84,11 +84,8 @@ public class CubeQuery {
                 Optional.ofNullable(dto.getLevels()).orElse(Collections.emptyList()).stream()
                         .map(levelsConverter::stringToLevelIdentifier)
                         .toList(),
-                //                Optional.ofNullable(dto.getFilters()).orElse(Collections.emptyList()).stream()
-                //                        .map(filter -> Filter.fromDTO(filter, levelsConverter))
-                //                        .toList(),
                 dto.getFiltersExpression(),
-                TopCount.fromDTO(dto.getTopCounts(), levelsConverter),
+                TopCount.fromDTO(dto.getTopCount(), levelsConverter),
                 Optional.ofNullable(dto.getSortBys()).orElse(Collections.emptyList()).stream()
                         .map(s -> Sort.fromDTO(s, levelsConverter))
                         .toList(),

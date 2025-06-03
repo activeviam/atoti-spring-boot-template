@@ -21,12 +21,19 @@ public class MeasureCondition implements LogicalCondition {
     private final Operator operator;
     private final Number operand;
 
-    enum Operator {
-        EQ,
-        LS,
-        LEQ,
-        GT,
-        GEQ;
+    public enum Operator {
+        EQ("="),
+        LS("<"),
+        LEQ("<="),
+        GT(">"),
+        GEQ(">=");
+
+        @Getter
+        private final String mdxOperator;
+
+        Operator(String operator) {
+            mdxOperator = operator;
+        }
 
         public static Operator fromString(String operator) {
             return switch (operator) {

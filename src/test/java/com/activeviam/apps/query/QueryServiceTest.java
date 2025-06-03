@@ -485,7 +485,7 @@ class QueryServiceTest {
                                 .withMetric(NOTIONAL_SUM_METRIC_DTO)
                                 .withLevel(COUNTERPARTY_LEVEL.getLevelName())
                                 .withLevel(TRADE_ID_LEVEL.getLevelName())
-                                .withTopCounts(CubeQueryDTO.TopCountDTO.builder()
+                                .withTopCount(CubeQueryDTO.TopCountDTO.builder()
                                         .withLevel(TRADE_ID_LEVEL.getLevelName())
                                         .withMetric(NOTIONAL_SUM_METRIC_DTO)
                                         .withCount(2)
