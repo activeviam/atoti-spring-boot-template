@@ -16,7 +16,7 @@ import lombok.NonNull;
 import lombok.Singular;
 
 @Data
-@Builder(setterPrefix = "with")
+@Builder(setterPrefix = "with", toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class CubeQueryDTO {
@@ -38,8 +38,7 @@ public class CubeQueryDTO {
     @Singular
     private List<PartitioningDTO> partitionedBys;
 
-    @Builder.Default
-    private boolean useContext = true;
+    private Boolean useContext;
 
     @Data
     @Builder(setterPrefix = "with")

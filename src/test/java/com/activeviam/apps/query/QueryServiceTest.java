@@ -648,17 +648,26 @@ class QueryServiceTest {
         return queryServiceMdxTests(false);
     }
 
-    Stream<DynamicTest> queryServiceMdxTests(boolean useContext) {
+    @TestFactory
+    Stream<DynamicTest> queryServiceMdxTestsOptimize() {
+        return queryServiceMdxTests(null);
+    }
+
+    Stream<DynamicTest> queryServiceMdxTests(Boolean useContext) {
         return TESTS.entrySet().stream()
                 .map(entry -> DynamicTest.dynamicTest("QueryRunner: " + entry.getKey(), () -> {
-                    var queryDto = entry.getValue().dto();
+                    // Apply useContext
                     var cubeQuerier = cubeQueryService.getCubeQuerier(CUBE_NAME);
-                    var mdxQuery = cubeQuerier.buildMdxQuery(queryDto, useContext);
+                    var queryDto = entry.getValue().dto().toBuilder()
+                            .withUseContext(useContext)
+                            .build();
+                    var query = cubeQuerier.convertCubeQuery(queryDto);
+                    var mdxQuery = cubeQuerier.buildMdxQuery(query);
                     var contextValues = new ArrayList<IContextValue>();
-                    if (useContext) {
-                        contextValues.add(cubeQuerier.buildCubeRestrictions(queryDto));
+                    if (query.getUseContext()) {
+                        contextValues.add(cubeQuerier.buildCubeRestrictions(query));
                     }
-                    contextValues.add(cubeQuerier.buildMdxContext(queryDto, useContext));
+                    contextValues.add(cubeQuerier.buildMdxContext(query));
                     var cellsTester = cubeTester
                             .mdxQuery()
                             .withMdx(mdxQuery)
@@ -683,13 +692,21 @@ class QueryServiceTest {
         return queryExporterArrowTests(false);
     }
 
-    Stream<DynamicTest> queryExporterArrowTests(boolean useContext) {
+    @TestFactory
+    Stream<DynamicTest> queryExporterArrowTestsOptimize() {
+        return queryExporterArrowTests(null);
+    }
+
+    Stream<DynamicTest> queryExporterArrowTests(Boolean useContext) {
         return TESTS.entrySet().stream()
                 .map(entry -> DynamicTest.dynamicTest("ArrowExporter: " + entry.getKey(), () -> {
-                    var queryDto = entry.getValue().dto();
+                    var queryDto = entry.getValue().dto().toBuilder()
+                            .withUseContext(useContext)
+                            .build();
                     var querier = cubeQueryService.getCubeQuerier(CUBE_NAME);
                     var streamingResult = querier.runQuery(
-                            queryDto, Map.of(FORMAT_PROPERTY, JsonArrowOutputConfiguration.PLUGIN_KEY), useContext);
+                            querier.convertCubeQuery(queryDto),
+                            Map.of(FORMAT_PROPERTY, JsonArrowOutputConfiguration.PLUGIN_KEY));
                     try (var outputStream = new ByteArrayOutputStream()) {
                         outputStream.flush();
                         streamingResult.writeTo(outputStream);
@@ -722,12 +739,15 @@ class QueryServiceTest {
         return queryExporterCsvTests(false);
     }
 
-    Stream<DynamicTest> queryExporterCsvTests(boolean useContext) {
+    Stream<DynamicTest> queryExporterCsvTests(Boolean useContext) {
         return TESTS.entrySet().stream()
                 .map(entry -> DynamicTest.dynamicTest("CSVExporter: " + entry.getKey(), () -> {
-                    var queryDto = entry.getValue().dto();
+                    var queryDto = entry.getValue().dto().toBuilder()
+                            .withUseContext(useContext)
+                            .build();
                     var querier = cubeQueryService.getCubeQuerier(CUBE_NAME);
-                    var streamingResult = querier.runQuery(queryDto, CSV_OUTPUT_EXPORTER_CONFIG, useContext);
+                    var streamingResult =
+                            querier.runQuery(querier.convertCubeQuery(queryDto), CSV_OUTPUT_EXPORTER_CONFIG);
                     try (var outputStream = new ByteArrayOutputStream()) {
                         outputStream.flush();
                         streamingResult.writeTo(outputStream);

@@ -30,6 +30,7 @@ public class CubeQuery {
     private final List<CubeQuery.Sort> sortBy;
     private final CubeQuery.TopRank topRank;
     private final List<CubeQuery.Partitioning> partitionedBy;
+    private final Boolean useContext;
 
     public static String calculatedMemberDefaultName(String metric, String level) {
         return metric + "@" + level;
@@ -82,14 +83,18 @@ public class CubeQuery {
     }
 
     public static CubeQuery fromDTO(CubeQueryDTO dto, LevelsConverter levelsConverter) {
+        var filter = ObjectUtils.isEmpty(dto.getFiltersExpression())
+                ? new TrueLogicalCondition()
+                : FilterExpressionConditionVisitor.parseFilterExpression(dto.getFiltersExpression());
+        // If we dont force the use of context or not, we optimize?
+        var useContext = Optional.ofNullable(dto.getUseContext())
+                .orElse(CubeQueryService.CubeQuerier.containsMeasureFilter(filter));
         return new CubeQuery(
                 Optional.ofNullable(dto.getMetrics()).orElse(Collections.emptyList()),
                 Optional.ofNullable(dto.getLevels()).orElse(Collections.emptyList()).stream()
                         .map(levelsConverter::stringToLevelIdentifier)
                         .toList(),
-                ObjectUtils.isEmpty(dto.getFiltersExpression())
-                        ? new TrueLogicalCondition()
-                        : FilterExpressionConditionVisitor.parseFilterExpression(dto.getFiltersExpression()),
+                filter,
                 TopCount.fromDTO(dto.getTopCount(), levelsConverter),
                 Optional.ofNullable(dto.getSortBys()).orElse(Collections.emptyList()).stream()
                         .map(s -> Sort.fromDTO(s, levelsConverter))
@@ -97,6 +102,7 @@ public class CubeQuery {
                 TopRank.fromDTO(dto.getTopRank(), levelsConverter),
                 Optional.ofNullable(dto.getPartitionedBys()).orElse(Collections.emptyList()).stream()
                         .map(p -> Partitioning.fromDTO(p, levelsConverter))
-                        .toList());
+                        .toList(),
+                useContext);
     }
 }

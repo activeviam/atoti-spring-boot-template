@@ -49,6 +49,7 @@ import com.activeviam.apps.query.conditions.LogicalCondition;
 import com.activeviam.apps.query.conditions.MeasureCondition;
 import com.activeviam.apps.query.conditions.NotLogicalCondition;
 import com.activeviam.apps.query.conditions.OrLogicalCondition;
+import com.activeviam.apps.query.conditions.TrueLogicalCondition;
 import com.activeviam.apps.query.rest.CubeQueryDTO;
 import com.activeviam.tech.core.api.exceptions.ActiveViamRuntimeException;
 
@@ -114,20 +115,18 @@ public class CubeQueryService {
             levelsConverter = new SingleDimensionLevelsConverter(cubeDefaults.getDefaultDimension());
         }
 
-        public String buildMdxQuery(CubeQueryDTO dto, boolean useContext) {
-            return buildMdxQuery(CubeQuery.fromDTO(dto, levelsConverter), useContext);
+        public CubeQuery convertCubeQuery(CubeQueryDTO dto) {
+            return CubeQuery.fromDTO(dto, levelsConverter);
         }
 
-        public StreamingResponseBody runQuery(
-                CubeQueryDTO dto, Map<String, Object> exporterConfig, boolean useContext) {
-            var cubeQuery = CubeQuery.fromDTO(dto, levelsConverter);
+        public StreamingResponseBody runQuery(CubeQuery cubeQuery, Map<String, Object> exporterConfig) {
             var contextValues = new ArrayList<IContextValue>();
-            contextValues.add(buildMdxContext(cubeQuery, useContext));
-            if (useContext) {
+            contextValues.add(buildMdxContext(cubeQuery));
+            if (cubeQuery.getUseContext()) {
                 contextValues.add(buildCubeRestrictions(cubeQuery));
             }
             var contextSnapshot = ContextUtils.applyContextValues(activePivot.getContext(), contextValues, true);
-            var mdx = buildMdxQuery(cubeQuery, useContext);
+            var mdx = buildMdxQuery(cubeQuery);
             log.info("Mdx Query: {}", mdx);
             var dataExportOrder =
                     new JsonDataExportOrder(new JsonMdxQuery(mdx, Collections.emptyMap()), exporterConfig);
@@ -136,23 +135,14 @@ public class CubeQueryService {
             return output;
         }
 
-        // For tests
-        IMdxContext buildMdxContext(CubeQueryDTO dto, boolean useContext) {
-            return buildMdxContext(CubeQuery.fromDTO(dto, levelsConverter), useContext);
-        }
-
-        IQueryBasedCubeRestriction buildCubeRestrictions(CubeQueryDTO dto) {
-            return buildCubeRestrictions(CubeQuery.fromDTO(dto, levelsConverter));
-        }
-
-        private IMdxContext buildMdxContext(CubeQuery cubeQuery, boolean useContext) {
+        IMdxContext buildMdxContext(CubeQuery cubeQuery) {
             var mdxContext = new MdxContext();
             mdxContext.setHiddenSubtotals(cubeQuery.getLevels());
             // FIXME: workaround, remove once https://github.com/activeviam/activepivot/pull/12984 is merged
             mdxContext.setLightCrossJoinEnabled(false);
             mdxContext.setFormatters(extractAllMetricNames(cubeQuery).stream()
                     .collect(Collectors.toMap(Function.identity(), m -> defaultDoubleFormatter)));
-            if (useContext) {
+            if (cubeQuery.getUseContext()) {
                 // Add TopRank Set and Member
                 if (!ObjectUtils.isEmpty(cubeQuery.getTopRank())) {
                     var topRank = cubeQuery.getTopRank();
@@ -285,7 +275,7 @@ public class CubeQueryService {
             return calculatedMemberMdx(measure, topNOthersMemberExpression(topCount));
         }
 
-        private IQueryBasedCubeRestriction buildCubeRestrictions(CubeQuery cubeQuery) {
+        IQueryBasedCubeRestriction buildCubeRestrictions(CubeQuery cubeQuery) {
             return QueryBasedCubeRestriction.create(convertQueryConditionToCubeRestriction(cubeQuery.getFilter()));
         }
 
@@ -298,12 +288,13 @@ public class CubeQueryService {
             return allMetrics;
         }
 
-        private String buildMdxQuery(CubeQuery cubeQuery, boolean useContext) {
+        public String buildMdxQuery(CubeQuery cubeQuery) {
             var query = new StringBuilder();
             var sortBys = cubeQuery.getSortBy();
             var topRank = cubeQuery.getTopRank();
             var topCount = cubeQuery.getTopCount();
             var levels = cubeQuery.getLevels();
+            var useContext = cubeQuery.getUseContext();
 
             // If there are any calculated members and they are not added to the MDX context, add them
             // with the statement WITH
@@ -330,7 +321,7 @@ public class CubeQueryService {
             }
 
             // If we are using a subselect to add filters, add them here
-            if (!ObjectUtils.isEmpty(cubeQuery.getFilter()) && !useContext) {
+            if (!(cubeQuery.getFilter() instanceof TrueLogicalCondition) && !useContext) {
                 var bottomLevel = cubeQuery.getLevels().getLast();
                 query.append(subSelectWithFilter(cubeQuery.getFilter(), bottomLevel));
             } else {
