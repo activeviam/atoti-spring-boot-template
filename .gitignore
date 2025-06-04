@@ -42,3 +42,8 @@ tempo-data/
 data.zip
 
 /deployment
+!/deployment/docker/clickhouse/data/clickhouse-init.sql
+!/deployment/docker/clickhouse/data/create-user.sql
+!/deployment/docker/clickhouse/data/create-views.sql
+!/deployment/docker/clickhouse/data/create_and_load.sh
+!/deployment/docker/clickhouse/data/upload-data.sql

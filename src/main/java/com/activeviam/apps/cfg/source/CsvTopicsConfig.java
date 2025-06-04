@@ -7,7 +7,6 @@
 package com.activeviam.apps.cfg.source;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import com.activeviam.apps.annotations.ConditionalOnApplicationWithDatastore;
 import com.activeviam.apps.cfg.database.datastore.DatastoreConstants;
@@ -16,7 +15,7 @@ import com.activeviam.io.dlc.impl.description.topic.CsvTopicDescription;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Configuration
+// @Configuration
 @RequiredArgsConstructor
 @ConditionalOnApplicationWithDatastore
 @Slf4j

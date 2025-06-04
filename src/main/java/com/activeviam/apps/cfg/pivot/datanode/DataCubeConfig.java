@@ -63,7 +63,8 @@ public class DataCubeConfig {
 
         if (distributionProperties != null) {
             // In memory data nodes have the highest priority
-            var overlapPriority = databaseProperties.getType().equals(DATABASE_TYPE_DATASTORE) ? 1 : Integer.MAX_VALUE;
+            var overlapPriority =
+                    databaseProperties.getType().equals(DATABASE_TYPE_DATASTORE) ? 1 : Integer.MAX_VALUE - 1;
             return builder.asDataCube()
                     .withClusterDefinition()
                     .withClusterId(distributionProperties.getClusterId())

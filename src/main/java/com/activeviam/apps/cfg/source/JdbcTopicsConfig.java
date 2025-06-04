@@ -7,53 +7,79 @@
 package com.activeviam.apps.cfg.source;
 
 import static com.activeviam.apps.cfg.source.DlcConfig.AS_OF_DATE_SCOPE_PARAMETER;
+import static com.activeviam.apps.constants.FieldConstants.AS_OF_DATE;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import com.activeviam.apps.annotations.ConditionalOnApplicationWithDatastore;
 import com.activeviam.apps.cfg.database.datastore.DatastoreConstants;
+import com.activeviam.io.dlc.api.description.topic.channel.column.calc.ICustomFieldDescription;
 import com.activeviam.io.dlc.impl.description.topic.JdbcTopicDescription;
 import com.activeviam.io.dlc.impl.description.topic.channel.ChannelDescription;
 import com.activeviam.io.dlc.impl.description.topic.channel.column.calc.AnonymousCustomFieldDescription;
+import com.activeviam.io.dlc.impl.description.topic.channel.column.calc.CustomFieldDescription;
 import com.activeviam.io.dlc.impl.utils.NamedEntityResolverService;
+import com.activeviam.source.jdbc.api.calculator.LocalDateJdbcColumnCalculator;
 import com.activeviam.source.jdbc.api.calculator.VectorColumnCalculatorFactory;
 import com.activeviam.tech.chunks.api.types.ContentType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-// @Configuration
+@Configuration
 @RequiredArgsConstructor
 @ConditionalOnApplicationWithDatastore
 @Slf4j
 public class JdbcTopicsConfig {
 
+    private static final String AS_OF_DATE_SQL_PARSER = "asOfDateSqlParser";
+
+    @Bean
+    CustomFieldDescription cobDateJdbcParser() {
+        return CustomFieldDescription.of(AS_OF_DATE_SQL_PARSER, scope -> new LocalDateJdbcColumnCalculator(AS_OF_DATE));
+    }
+
     public static final String HOLDING_FILE_SQL = "SELECT * FROM AggUp.Holding WHERE AsOfDate = ?";
 
     @Bean
-    JdbcTopicDescription holdingTopic() {
+    JdbcTopicDescription holdingTopic(NamedEntityResolverService namedEntityResolverService) {
         return JdbcTopicDescription.builder(DatastoreConstants.HoldingStore.STORE_NAME, HOLDING_FILE_SQL)
                 .parameterOrder(List.of(AS_OF_DATE_SCOPE_PARAMETER))
+                .channel(ChannelDescription.builder(
+                                namedEntityResolverService.getTarget(DatastoreConstants.HoldingStore.STORE_NAME))
+                        .customFields(namedEntityResolverService.getCustomFields(Set.of(AS_OF_DATE_SQL_PARSER)))
+                        .build())
                 .build();
     }
 
     public static final String HOLDING_DETAIL_SQL = "SELECT * FROM AggUp.HoldingDetail WHERE AsOfDate = ?";
 
     @Bean
-    JdbcTopicDescription holdingDetailTopic() {
+    JdbcTopicDescription holdingDetailTopic(NamedEntityResolverService namedEntityResolverService) {
         return JdbcTopicDescription.builder(DatastoreConstants.HoldingDetailStore.STORE_NAME, HOLDING_DETAIL_SQL)
                 .parameterOrder(List.of(AS_OF_DATE_SCOPE_PARAMETER))
+                .channel(ChannelDescription.builder(
+                                namedEntityResolverService.getTarget(DatastoreConstants.HoldingDetailStore.STORE_NAME))
+                        .customFields(namedEntityResolverService.getCustomFields(Set.of(AS_OF_DATE_SQL_PARSER)))
+                        .build())
                 .build();
     }
 
     public static final String AS_OF_DATE_SQL = "SELECT * FROM AggUp.AsOfDate WHERE AsOfDate = ?";
 
     @Bean
-    JdbcTopicDescription asOfDateTopic() {
+    JdbcTopicDescription asOfDateTopic(NamedEntityResolverService namedEntityResolverService) {
         return JdbcTopicDescription.builder(DatastoreConstants.AsOfDateStore.STORE_NAME, AS_OF_DATE_SQL)
                 .parameterOrder(List.of(AS_OF_DATE_SCOPE_PARAMETER))
+                .channel(ChannelDescription.builder(
+                                namedEntityResolverService.getTarget(DatastoreConstants.AsOfDateStore.STORE_NAME))
+                        .customFields(namedEntityResolverService.getCustomFields(Set.of(AS_OF_DATE_SQL_PARSER)))
+                        .build())
                 .build();
     }
 
@@ -61,28 +87,31 @@ public class JdbcTopicsConfig {
 
     @Bean
     JdbcTopicDescription scaledStatResultTopic(NamedEntityResolverService namedEntityResolverService) {
+        var customFields = new HashSet<ICustomFieldDescription>(
+                namedEntityResolverService.getCustomFields(Set.of(AS_OF_DATE_SQL_PARSER)));
+        customFields.add(AnonymousCustomFieldDescription.builder()
+                .columnCalculatorFactory(scope -> VectorColumnCalculatorFactory.createForNativeRows(
+                        DatastoreConstants.ScaledStatResultStore.Fields.RESULT_VALUES_SUM,
+                        VectorColumnCalculatorFactory.ResultSetArrayFormat.JDBC_ARRAY,
+                        ContentType.DOUBLE_ARRAY))
+                .build());
+        customFields.add(AnonymousCustomFieldDescription.builder()
+                .columnCalculatorFactory(scope -> VectorColumnCalculatorFactory.createForNativeRows(
+                        DatastoreConstants.ScaledStatResultStore.Fields.RESULT_VALUES_PASSTHROUGH,
+                        VectorColumnCalculatorFactory.ResultSetArrayFormat.JDBC_ARRAY,
+                        ContentType.DOUBLE_ARRAY))
+                .build());
+        customFields.add(AnonymousCustomFieldDescription.builder()
+                .columnCalculatorFactory(scope -> VectorColumnCalculatorFactory.createForNativeRows(
+                        "AGGSVC_SIMRETURNS(1Y VS)_MONTECARLO",
+                        VectorColumnCalculatorFactory.ResultSetArrayFormat.JDBC_ARRAY,
+                        ContentType.DOUBLE_ARRAY))
+                .build());
         return JdbcTopicDescription.builder(DatastoreConstants.ScaledStatResultStore.STORE_NAME, SCALED_STAT_RESULT_SQL)
                 .parameterOrder(List.of(AS_OF_DATE_SCOPE_PARAMETER))
                 .channel(ChannelDescription.builder(namedEntityResolverService.getTarget(
                                 DatastoreConstants.ScaledStatResultStore.STORE_NAME))
-                        .customField(AnonymousCustomFieldDescription.builder()
-                                .columnCalculatorFactory(scope -> VectorColumnCalculatorFactory.createForNativeRows(
-                                        DatastoreConstants.ScaledStatResultStore.Fields.RESULT_VALUES_SUM,
-                                        VectorColumnCalculatorFactory.ResultSetArrayFormat.JDBC_ARRAY,
-                                        ContentType.DOUBLE_ARRAY))
-                                .build())
-                        .customField(AnonymousCustomFieldDescription.builder()
-                                .columnCalculatorFactory(scope -> VectorColumnCalculatorFactory.createForNativeRows(
-                                        DatastoreConstants.ScaledStatResultStore.Fields.RESULT_VALUES_PASSTHROUGH,
-                                        VectorColumnCalculatorFactory.ResultSetArrayFormat.JDBC_ARRAY,
-                                        ContentType.DOUBLE_ARRAY))
-                                .build())
-                        .customField(AnonymousCustomFieldDescription.builder()
-                                .columnCalculatorFactory(scope -> VectorColumnCalculatorFactory.createForNativeRows(
-                                        "AGGSVC_SIMRETURNS(1Y VS)_MONTECARLO",
-                                        VectorColumnCalculatorFactory.ResultSetArrayFormat.JDBC_ARRAY,
-                                        ContentType.DOUBLE_ARRAY))
-                                .build())
+                        .customFields(customFields)
                         .build())
                 .build();
     }
@@ -90,9 +119,13 @@ public class JdbcTopicsConfig {
     public static final String SECURITY_SQL = "SELECT * FROM AggUp.Security WHERE AsOfDate = ?";
 
     @Bean
-    JdbcTopicDescription securityTopic() {
+    JdbcTopicDescription securityTopic(NamedEntityResolverService namedEntityResolverService) {
         return JdbcTopicDescription.builder(DatastoreConstants.SecurityStore.STORE_NAME, SECURITY_SQL)
                 .parameterOrder(List.of(AS_OF_DATE_SCOPE_PARAMETER))
+                .channel(ChannelDescription.builder(
+                                namedEntityResolverService.getTarget(DatastoreConstants.SecurityStore.STORE_NAME))
+                        .customFields(namedEntityResolverService.getCustomFields(Set.of(AS_OF_DATE_SQL_PARSER)))
+                        .build())
                 .build();
     }
 
@@ -100,16 +133,19 @@ public class JdbcTopicsConfig {
 
     @Bean
     JdbcTopicDescription simReturnsTopic(NamedEntityResolverService namedEntityResolverService) {
+        var customFields = new HashSet<ICustomFieldDescription>(
+                namedEntityResolverService.getCustomFields(Set.of(AS_OF_DATE_SQL_PARSER)));
+        customFields.add(AnonymousCustomFieldDescription.builder()
+                .columnCalculatorFactory(scope -> VectorColumnCalculatorFactory.createForNativeRows(
+                        DatastoreConstants.SimReturnsStore.Fields.VECTOR,
+                        VectorColumnCalculatorFactory.ResultSetArrayFormat.JDBC_ARRAY,
+                        ContentType.DOUBLE_ARRAY))
+                .build());
         return JdbcTopicDescription.builder(DatastoreConstants.SimReturnsStore.STORE_NAME, SIM_RETURNS_SQL)
                 .parameterOrder(List.of(AS_OF_DATE_SCOPE_PARAMETER))
                 .channel(ChannelDescription.builder(
                                 namedEntityResolverService.getTarget(DatastoreConstants.SimReturnsStore.STORE_NAME))
-                        .customField(AnonymousCustomFieldDescription.builder()
-                                .columnCalculatorFactory(scope -> VectorColumnCalculatorFactory.createForNativeRows(
-                                        DatastoreConstants.SimReturnsStore.Fields.VECTOR,
-                                        VectorColumnCalculatorFactory.ResultSetArrayFormat.JDBC_ARRAY,
-                                        ContentType.DOUBLE_ARRAY))
-                                .build())
+                        .customFields(customFields)
                         .build())
                 .build();
     }
@@ -129,22 +165,25 @@ public class JdbcTopicsConfig {
 
     @Bean
     JdbcTopicDescription statResultsTopic(NamedEntityResolverService namedEntityResolverService) {
+        var customFields = new HashSet<ICustomFieldDescription>(
+                namedEntityResolverService.getCustomFields(Set.of(AS_OF_DATE_SQL_PARSER)));
+        customFields.add(AnonymousCustomFieldDescription.builder()
+                .columnCalculatorFactory(scope -> VectorColumnCalculatorFactory.createForNativeRows(
+                        DatastoreConstants.StatResultsStore.Fields.RESULT_VALUES_SUM,
+                        VectorColumnCalculatorFactory.ResultSetArrayFormat.JDBC_ARRAY,
+                        ContentType.DOUBLE_ARRAY))
+                .build());
+        customFields.add(AnonymousCustomFieldDescription.builder()
+                .columnCalculatorFactory(scope -> VectorColumnCalculatorFactory.createForNativeRows(
+                        DatastoreConstants.StatResultsStore.Fields.RESULT_VALUES_PASSTHROUGH,
+                        VectorColumnCalculatorFactory.ResultSetArrayFormat.JDBC_ARRAY,
+                        ContentType.DOUBLE_ARRAY))
+                .build());
         return JdbcTopicDescription.builder(DatastoreConstants.StatResultsStore.STORE_NAME, STAT_RESULTS_SQL)
                 .parameterOrder(List.of(AS_OF_DATE_SCOPE_PARAMETER))
                 .channel(ChannelDescription.builder(
                                 namedEntityResolverService.getTarget(DatastoreConstants.StatResultsStore.STORE_NAME))
-                        .customField(AnonymousCustomFieldDescription.builder()
-                                .columnCalculatorFactory(scope -> VectorColumnCalculatorFactory.createForNativeRows(
-                                        DatastoreConstants.StatResultsStore.Fields.RESULT_VALUES_SUM,
-                                        VectorColumnCalculatorFactory.ResultSetArrayFormat.JDBC_ARRAY,
-                                        ContentType.DOUBLE_ARRAY))
-                                .build())
-                        .customField(AnonymousCustomFieldDescription.builder()
-                                .columnCalculatorFactory(scope -> VectorColumnCalculatorFactory.createForNativeRows(
-                                        DatastoreConstants.StatResultsStore.Fields.RESULT_VALUES_PASSTHROUGH,
-                                        VectorColumnCalculatorFactory.ResultSetArrayFormat.JDBC_ARRAY,
-                                        ContentType.DOUBLE_ARRAY))
-                                .build())
+                        .customFields(customFields)
                         .build())
                 .build();
     }
@@ -162,7 +201,6 @@ public class JdbcTopicsConfig {
     @Bean
     JdbcTopicDescription positionDetailTopic() {
         return JdbcTopicDescription.builder(DatastoreConstants.PositionDetailStore.STORE_NAME, POSITION_DETAIL_SQL)
-                // .parameterOrder(List.of(AS_OF_DATE_SCOPE_PARAMETER))
                 .build();
     }
 

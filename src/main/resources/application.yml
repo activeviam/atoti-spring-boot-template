@@ -125,3 +125,6 @@ springdoc:
   swagger-ui:
     path: /swagger-ui
     doc-expansion: none
+logging:
+  level:
+    com.activeviam.apm.distribution: DEBUG
