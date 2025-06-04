@@ -18,7 +18,7 @@ query
 
 valuesList
    :  (STRING ARG_SEPARATOR?)*
-      | (NUMBER ARG_SEPARATOR?)*
+      | (INT ARG_SEPARATOR?)*
       | (BOOL ARG_SEPARATOR?)*
       | (DATE ARG_SEPARATOR?)*
    ;
@@ -38,7 +38,8 @@ criteriaType
     ;
 
 operandType
-    : NUMBER
+    : INT
+    | DOUBLE
     ;
 
 //// Value can be a string, number, boolean, or date
@@ -55,8 +56,18 @@ ARG_SEPARATOR
     ',';
 
 NUMBER
-   : ('0' .. '9')+
+   : ('0' .. '9')
    ;
+
+DOUBLE
+    :
+    (PLUS_MINUS)? NUMBER+ (PT NUMBER+)?
+    ;
+
+INT
+    :
+    NUMBER+
+    ;
 
 BOOL
     : 'true'
@@ -116,3 +127,12 @@ RSQPAREN
 WHITESPACES
    : [ \t\r\n]+ -> skip
    ;
+
+PT
+   : '.'
+   ;
+
+PLUS_MINUS
+    : '+'
+    | '-'
+    ;

@@ -11,12 +11,10 @@ import java.util.List;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.springframework.stereotype.Component;
 
 import com.activeviam.apps.query.grammar.QueryConditionBaseVisitor;
 import com.activeviam.apps.query.grammar.QueryConditionParser;
 
-@Component
 public class FilterExpressionConditionVisitor extends QueryConditionBaseVisitor<LogicalCondition> {
 
     public static LogicalCondition parseFilterExpression(String query) {
@@ -66,10 +64,10 @@ public class FilterExpressionConditionVisitor extends QueryConditionBaseVisitor<
                     values.STRING().stream()
                             .map(v -> v.getText().replace("'", ""))
                             .toList());
-        } else if (!values.NUMBER().isEmpty()) {
+        } else if (!values.INT().isEmpty()) {
             return new InLogicalCondition<Double>(
                     field,
-                    values.NUMBER().stream()
+                    values.INT().stream()
                             .map(v -> Double.parseDouble(v.getText()))
                             .toList());
         } else if (!values.DATE().isEmpty()) {

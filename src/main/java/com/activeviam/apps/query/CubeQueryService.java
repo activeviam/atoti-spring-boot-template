@@ -646,6 +646,21 @@ public class CubeQueryService {
                 return new Object[] {ALLMEMBER, values};
             }
         }
+
+        static boolean containsMeasureFilter(LogicalCondition queryCondition) {
+            return switch (queryCondition) {
+                case MeasureCondition measureCondition -> true;
+                case AndLogicalCondition andLogicalCondition ->
+                    andLogicalCondition.getSubConditions().stream()
+                            .anyMatch(CubeQueryService.CubeQuerier::containsMeasureFilter);
+                case OrLogicalCondition orLogicalCondition ->
+                    orLogicalCondition.getSubConditions().stream()
+                            .anyMatch(CubeQueryService.CubeQuerier::containsMeasureFilter);
+                case NotLogicalCondition notLogicalCondition ->
+                    containsMeasureFilter(notLogicalCondition.getCondition());
+                default -> false;
+            };
+        }
     }
 
     private record MdxSubSelectData(String filterExpression, Set<LevelIdentifier> levels) {}

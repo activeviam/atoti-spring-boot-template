@@ -58,6 +58,7 @@ import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.FieldType;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -71,6 +72,7 @@ import com.activeviam.activepivot.server.impl.private_.rest.dataexport.DataExpor
 import com.activeviam.activepivot.server.json.api.dataexport.JsonArrowOutputConfiguration;
 import com.activeviam.apps.cfg.pivot.ApplicationWithDatastoreConfig;
 import com.activeviam.apps.cfg.pivot.CubeTesterConfig;
+import com.activeviam.apps.query.conditions.FilterExpressionConditionVisitor;
 import com.activeviam.apps.query.rest.CubeQueryController;
 import com.activeviam.apps.query.rest.CubeQueryDTO;
 import com.activeviam.atoti.server.test.api.CubeTester;
@@ -743,4 +745,16 @@ class QueryServiceTest {
             List<ResultColumn> expectedResults) {}
 
     private record ResultColumn(Object field, Object[] data) {}
+
+    @Test
+    public void testContainsMeasureCondition() {
+        var trueLogicalCondition = FilterExpressionConditionVisitor.parseFilterExpression(COB_DATE_FILTER + " AND ("
+                + CPTY_FILTER + " OR " + TRADE_3_FILTER + ") AND " + NOTIONAL_MEAN_METRIC_DTO + " >= 1000");
+        assertThat(CubeQueryService.CubeQuerier.containsMeasureFilter(trueLogicalCondition))
+                .isTrue();
+        var falseLogicalCondition = FilterExpressionConditionVisitor.parseFilterExpression(
+                COB_DATE_FILTER + " AND (" + CPTY_FILTER + " OR " + TRADE_3_FILTER + ")");
+        assertThat(CubeQueryService.CubeQuerier.containsMeasureFilter(falseLogicalCondition))
+                .isFalse();
+    }
 }
