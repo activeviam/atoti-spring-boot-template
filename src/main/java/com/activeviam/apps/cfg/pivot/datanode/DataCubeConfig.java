@@ -12,6 +12,7 @@ import static com.activeviam.apps.constants.CubeConstants.APPLICATION_NAME;
 import static com.activeviam.apps.constants.CubeConstants.CUBE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 
+import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -78,6 +79,7 @@ public class DataCubeConfig {
         if (distributionProperties != null) {
             // In memory node has the highest priority (0)
             var overlapPriority = isInMemory ? 1 : Integer.MAX_VALUE;
+            var address = InetAddress.getLoopbackAddress().getHostAddress();
             return builder.asDataCube()
                     .withClusterDefinition()
                     .withClusterId(distributionProperties.getClusterId())
@@ -90,7 +92,7 @@ public class DataCubeConfig {
                     .end()
                     .withCubeIdentifierInCluster(isInMemory ? DATASTORE_NODE_IDENTIFIER : DIRECT_QUERY_NODE_IDENTIFIER)
                     .withPort(serverPort)
-                    .withAddress("localhost")
+                    .withAddress(address)
                     .withApplicationId(APPLICATION_NAME)
                     .withAllHierarchies()
                     .withAllMeasures()
