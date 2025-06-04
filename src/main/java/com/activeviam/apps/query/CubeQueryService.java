@@ -7,7 +7,6 @@
 package com.activeviam.apps.query;
 
 import static com.activeviam.activepivot.core.intf.api.cube.hierarchy.IHierarchy.ALLMEMBER;
-import static com.activeviam.apps.query.conditions.FilterExpressionConditionVisitor.parseFilterExpression;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -287,8 +286,7 @@ public class CubeQueryService {
         }
 
         private IQueryBasedCubeRestriction buildCubeRestrictions(CubeQuery cubeQuery) {
-            return QueryBasedCubeRestriction.create(
-                    filterExpressionToCubeRestrictions(cubeQuery.getFiltersExpression()));
+            return QueryBasedCubeRestriction.create(convertQueryConditionToCubeRestriction(cubeQuery.getFilter()));
         }
 
         private static List<String> extractAllMetricNames(CubeQuery cubeQuery) {
@@ -332,9 +330,9 @@ public class CubeQueryService {
             }
 
             // If we are using a subselect to add filters, add them here
-            if (!ObjectUtils.isEmpty(cubeQuery.getFiltersExpression()) && !useContext) {
+            if (!ObjectUtils.isEmpty(cubeQuery.getFilter()) && !useContext) {
                 var bottomLevel = cubeQuery.getLevels().getLast();
-                query.append(subSelectWithFilter(parseFilterExpression(cubeQuery.getFiltersExpression()), bottomLevel));
+                query.append(subSelectWithFilter(cubeQuery.getFilter(), bottomLevel));
             } else {
                 query.append(fromCube(cube));
             }
@@ -503,12 +501,6 @@ public class CubeQueryService {
 
         private static String topNOthersMemberName(CubeQuery.TopCount topCount) {
             return String.format("%s.[%s]", levelToMdxAllMember(topCount.level()), OTHERS_MEMBER);
-        }
-
-        private ICubeRestriction filterExpressionToCubeRestrictions(String filterExpression) {
-            return Optional.ofNullable(filterExpression)
-                    .map(f -> convertQueryConditionToCubeRestriction(parseFilterExpression(f)))
-                    .orElse(ICubeRestriction.TRUE_INSTANCE);
         }
 
         // Recursively build the cube restriction object

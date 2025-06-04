@@ -14,6 +14,9 @@ import java.util.Optional;
 import org.springframework.util.ObjectUtils;
 
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
+import com.activeviam.apps.query.conditions.FilterExpressionConditionVisitor;
+import com.activeviam.apps.query.conditions.LogicalCondition;
+import com.activeviam.apps.query.conditions.TrueLogicalCondition;
 import com.activeviam.apps.query.rest.CubeQueryDTO;
 
 import lombok.Data;
@@ -22,7 +25,7 @@ import lombok.Data;
 public class CubeQuery {
     private final List<String> metrics;
     private final List<LevelIdentifier> levels;
-    private final String filtersExpression;
+    private final LogicalCondition filter;
     private final CubeQuery.TopCount topCount;
     private final List<CubeQuery.Sort> sortBy;
     private final CubeQuery.TopRank topRank;
@@ -84,7 +87,9 @@ public class CubeQuery {
                 Optional.ofNullable(dto.getLevels()).orElse(Collections.emptyList()).stream()
                         .map(levelsConverter::stringToLevelIdentifier)
                         .toList(),
-                dto.getFiltersExpression(),
+                ObjectUtils.isEmpty(dto.getFiltersExpression())
+                        ? new TrueLogicalCondition()
+                        : FilterExpressionConditionVisitor.parseFilterExpression(dto.getFiltersExpression()),
                 TopCount.fromDTO(dto.getTopCount(), levelsConverter),
                 Optional.ofNullable(dto.getSortBys()).orElse(Collections.emptyList()).stream()
                         .map(s -> Sort.fromDTO(s, levelsConverter))
