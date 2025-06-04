@@ -1,0 +1,2 @@
+#!bin/bash
+clickhouse client --queries-file ./create-user.sql && clickhouse client --queries-file ./clickhouse-init.sql && clickhouse client --queries-file ./upload-data.sql && clickhouse client --queries-file ./create-views.sql
