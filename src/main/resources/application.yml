@@ -127,4 +127,6 @@ springdoc:
     doc-expansion: none
 logging:
   level:
+    com.activeviam.activepivot.dist: DEBUG
     com.activeviam.apm.distribution: DEBUG
+
