@@ -39,12 +39,15 @@ public class Measures implements Consumer<ICopperContext> {
                 .withAlias("Update.Timestamp")
                 .withinFolder(NATIVE_MEASURES)
                 .withFormatter(TIMESTAMP_FORMATTER));
+        var notionalSum = Copper.sum(NOTIONAL).as(postfixMeasure(NOTIONAL, SUM)).withFormatter(DOUBLE_FORMATTER);
+        copperMeasures.add(notionalSum);
+        var notionalAvg =
+                Copper.avg(NOTIONAL).as(postfixMeasure(NOTIONAL, MEAN)).withFormatter(DOUBLE_FORMATTER);
+        copperMeasures.add(notionalAvg);
         copperMeasures.add(
-                Copper.sum(NOTIONAL).as(postfixMeasure(NOTIONAL, SUM)).withFormatter(DOUBLE_FORMATTER));
+                dateToPreviousDate(notionalSum).as(postfixMeasure(NOTIONAL, SUM) + " DIFF to previous date"));
         copperMeasures.add(
-                Copper.avg(NOTIONAL).as(postfixMeasure(NOTIONAL, MEAN)).withFormatter(DOUBLE_FORMATTER));
-        copperMeasures.add(dateToPreviousDate(postfixMeasure(NOTIONAL, SUM))
-                .as(postfixMeasure(NOTIONAL, SUM) + " DIFF to previous date"));
+                dateToPreviousDate(notionalAvg).as(postfixMeasure(NOTIONAL, MEAN) + " DIFF to previous date"));
     }
 
     @Override
@@ -52,17 +55,16 @@ public class Measures implements Consumer<ICopperContext> {
         copperMeasures.forEach(m -> m.publish(context));
     }
 
-    private static CopperMeasure dateToPreviousDate(String underlying) {
-        var previous = Copper.measure(underlying)
-                .shift(Copper.levelAt(Copper.level(COB_DATE_LEVEL), date -> ((LocalDate) date).minusDays(1)));
-        return Copper.measure(underlying).minus(previous);
+    private static CopperMeasure dateToPreviousDate(CopperMeasure underlying) {
+        var previous =
+                underlying.shift(Copper.levelAt(Copper.level(COB_DATE_LEVEL), date -> ((LocalDate) date).minusDays(1)));
+        return underlying.minus(previous);
     }
 
-    private static CopperMeasure dateToPreviousEndOfQuarter(String underlying) {
-        var previous = Copper.measure(underlying)
-                .shift(Copper.levelAt(
-                        Copper.level(COB_DATE_LEVEL), date -> calculatePreviousEndOfQuarter((LocalDate) date)));
-        return Copper.measure(underlying).minus(previous);
+    private static CopperMeasure dateToPreviousEndOfQuarter(CopperMeasure underlying) {
+        var previous = underlying.shift(
+                Copper.levelAt(Copper.level(COB_DATE_LEVEL), date -> calculatePreviousEndOfQuarter((LocalDate) date)));
+        return underlying.minus(previous);
     }
 
     private static LocalDate calculatePreviousEndOfQuarter(LocalDate date) {
