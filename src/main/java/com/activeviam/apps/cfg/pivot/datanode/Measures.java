@@ -6,12 +6,14 @@
  */
 package com.activeviam.apps.cfg.pivot.datanode;
 
+import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.COB_DATE_LEVEL;
 import static com.activeviam.apps.constants.CubeConstants.DOUBLE_FORMATTER;
 import static com.activeviam.apps.constants.CubeConstants.INT_FORMATTER;
 import static com.activeviam.apps.constants.CubeConstants.NATIVE_MEASURES;
 import static com.activeviam.apps.constants.CubeConstants.TIMESTAMP_FORMATTER;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -41,10 +43,30 @@ public class Measures implements Consumer<ICopperContext> {
                 Copper.sum(NOTIONAL).as(postfixMeasure(NOTIONAL, SUM)).withFormatter(DOUBLE_FORMATTER));
         copperMeasures.add(
                 Copper.avg(NOTIONAL).as(postfixMeasure(NOTIONAL, MEAN)).withFormatter(DOUBLE_FORMATTER));
+        copperMeasures.add(dateToPreviousDate(postfixMeasure(NOTIONAL, SUM))
+                .as(postfixMeasure(NOTIONAL, SUM) + " DIFF to previous date"));
     }
 
     @Override
     public void accept(ICopperContext context) {
         copperMeasures.forEach(m -> m.publish(context));
+    }
+
+    private static CopperMeasure dateToPreviousDate(String underlying) {
+        var previous = Copper.measure(underlying)
+                .shift(Copper.levelAt(Copper.level(COB_DATE_LEVEL), date -> ((LocalDate) date).minusDays(1)));
+        return Copper.measure(underlying).minus(previous);
+    }
+
+    private static CopperMeasure dateToPreviousEndOfQuarter(String underlying) {
+        var previous = Copper.measure(underlying)
+                .shift(Copper.levelAt(
+                        Copper.level(COB_DATE_LEVEL), date -> calculatePreviousEndOfQuarter((LocalDate) date)));
+        return Copper.measure(underlying).minus(previous);
+    }
+
+    private static LocalDate calculatePreviousEndOfQuarter(LocalDate date) {
+        // This is the last day of the previous month...
+        return date.withDayOfMonth(1).minusDays(1);
     }
 }
