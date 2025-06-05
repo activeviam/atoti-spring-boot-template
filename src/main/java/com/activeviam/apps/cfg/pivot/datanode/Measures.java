@@ -45,9 +45,9 @@ public class Measures implements Consumer<ICopperContext> {
                 Copper.avg(NOTIONAL).as(postfixMeasure(NOTIONAL, MEAN)).withFormatter(DOUBLE_FORMATTER);
         copperMeasures.add(notionalAvg);
         copperMeasures.add(
-                dateToPreviousDate(notionalSum).as(postfixMeasure(NOTIONAL, SUM) + " DIFF to previous date"));
+                diffFromPreviousDate(notionalSum).as(postfixMeasure(NOTIONAL, SUM) + " DIFF to previous date"));
         copperMeasures.add(
-                dateToPreviousDate(notionalAvg).as(postfixMeasure(NOTIONAL, MEAN) + " DIFF to previous date"));
+                diffFromPreviousDate(notionalAvg).as(postfixMeasure(NOTIONAL, MEAN) + " DIFF to previous date"));
     }
 
     @Override
@@ -55,13 +55,13 @@ public class Measures implements Consumer<ICopperContext> {
         copperMeasures.forEach(m -> m.publish(context));
     }
 
-    private static CopperMeasure dateToPreviousDate(CopperMeasure underlying) {
+    private static CopperMeasure diffFromPreviousDate(CopperMeasure underlying) {
         var previous =
                 underlying.shift(Copper.levelAt(Copper.level(COB_DATE_LEVEL), date -> ((LocalDate) date).minusDays(1)));
         return underlying.minus(previous);
     }
 
-    private static CopperMeasure dateToPreviousEndOfQuarter(CopperMeasure underlying) {
+    private static CopperMeasure diffFromPreviousEndOfQuarter(CopperMeasure underlying) {
         var previous = underlying.shift(
                 Copper.levelAt(Copper.level(COB_DATE_LEVEL), date -> calculatePreviousEndOfQuarter((LocalDate) date)));
         return underlying.minus(previous);
