@@ -63,6 +63,10 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class CubeQueryService {
 
+    static {
+        System.setProperty("activeviam.feature.experimental.new_cube_restriction.enabled", "true");
+    }
+
     public static final String TOP_RANK_MEASURE = "top_rank";
     public static final String TOP_RANK_MEMBER = CubeQuerier.metricToMdxMeasure(TOP_RANK_MEASURE);
     public static final String TOP_RANK_SET = "OrderedL1";
@@ -602,7 +606,7 @@ public class CubeQueryService {
                     yield new MdxSubSelectData(
                             values.stream()
                                     .map(value -> mdxLevelValue + " = \"" + value.toString() + "\"")
-                                    .collect(Collectors.joining(" OR ")),
+                                    .collect(Collectors.joining(" OR ", "(", ")")),
                             Set.of(level));
                 }
                 case MeasureCondition measureCondition ->
