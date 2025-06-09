@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -37,8 +38,12 @@ import com.activeviam.activepivot.core.intf.api.cube.IMultiVersionActivePivot;
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IAxisHierarchy;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.HierarchyIdentifier;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
+import com.activeviam.activepivot.core.intf.internal.context.filter.AndCubeRestriction;
 import com.activeviam.activepivot.core.intf.internal.context.filter.ICubeRestriction;
 import com.activeviam.activepivot.core.intf.internal.context.filter.IQueryBasedCubeRestriction;
+import com.activeviam.activepivot.core.intf.internal.context.filter.InLevelRestriction;
+import com.activeviam.activepivot.core.intf.internal.context.filter.NotCubeRestriction;
+import com.activeviam.activepivot.core.intf.internal.context.filter.OrCubeRestriction;
 import com.activeviam.activepivot.server.intf.api.dataexport.IDataExportService;
 import com.activeviam.activepivot.server.json.api.dataexport.JsonDataExportOrder;
 import com.activeviam.activepivot.server.json.api.query.JsonMdxQuery;
@@ -498,15 +503,16 @@ public class CubeQueryService {
         private ICubeRestriction convertQueryConditionToCubeRestriction(LogicalCondition queryCondition) {
             return switch (queryCondition) {
                 case AndLogicalCondition andLogicalCondition ->
-                    ICubeRestriction.and(toListOfRestrictions(andLogicalCondition.getSubConditions()));
+                    AndCubeRestriction.create(toListOfRestrictions(andLogicalCondition.getSubConditions()));
                 case OrLogicalCondition orLogicalCondition ->
-                    ICubeRestriction.or(toListOfRestrictions(orLogicalCondition.getSubConditions()));
+                    OrCubeRestriction.create(toListOfRestrictions(orLogicalCondition.getSubConditions()));
                 case NotLogicalCondition notLogicalCondition ->
-                    ICubeRestriction.not(convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
+                    NotCubeRestriction.create(
+                            convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
                 case InLogicalCondition<?> inLogicalCondition ->
-                    ICubeRestriction.inPath(
-                            levelsConverter.stringToHierarchyIdentifier(inLogicalCondition.getField()),
-                            inPathValues(inLogicalCondition.getField(), inLogicalCondition.getValues()));
+                    InLevelRestriction.create(
+                            levelsConverter.stringToLevelIdentifier(inLogicalCondition.getField()),
+                            new HashSet<>(inLogicalCondition.getValues()));
                 case MeasureCondition measureCondition ->
                     throw new UnsupportedOperationException(MeasureCondition.class.getSimpleName());
                 case LikeLogicalCondition likeCondition -> {
@@ -516,9 +522,9 @@ public class CubeQueryService {
                     var valuesToFilter = allMembers.stream()
                             .filter(m -> m.contains(criteria))
                             .toList();
-                    yield ICubeRestriction.inPath(
-                            levelsConverter.stringToHierarchyIdentifier(likeCondition.getField()),
-                            inPathValues(likeCondition.getField(), valuesToFilter));
+                    yield InLevelRestriction.create(
+                            levelsConverter.stringToLevelIdentifier(likeCondition.getField()),
+                            new HashSet<>(valuesToFilter));
                 }
                 default -> ICubeRestriction.TRUE_INSTANCE;
             };
@@ -527,8 +533,8 @@ public class CubeQueryService {
         private Collection<String> getMembersForLevel(LevelIdentifier level) {
             var hierarchy = HierarchiesUtil.getHierarchy(activePivot.getHead(), level.getHierarchy());
             // NOTE: We assume this is a single level hierarchy!
-            return Objects.requireNonNull(CubeFilterUtil.getQueryFilters(activePivot.getContext())
-                            .getFilter())
+            return Objects.requireNonNull(
+                            CubeFilterUtil.getAll(activePivot.getContext()).getSecurityAndFilter())
                     .retrieveMembers((IAxisHierarchy) hierarchy, 1)
                     .stream()
                     .map(m -> (String) m.getDiscriminator())
