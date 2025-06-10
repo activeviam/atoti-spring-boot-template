@@ -65,6 +65,17 @@ public class RolloverService {
                         DISTRIBUTING_LEVEL,
                         DATASTORE_NODE_IDENTIFIER,
                         IEpoch.MASTER_BRANCH_NAME);
+                // delete the rest of the data
+                restClient
+                        .delete()
+                        .uri(COB_DATE_ENDPOINT + "/" + cobDateToRemove)
+                        .header(
+                                HttpHeaders.AUTHORIZATION,
+                                "Basic " + Base64.getEncoder().encodeToString(("pivot:pivot").getBytes()))
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .log()
+                        .block();
             } catch (Exception e) {
                 log.error("Failed to unload date {}", cobDateToRemove, e);
             }
