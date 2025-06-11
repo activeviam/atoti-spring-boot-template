@@ -62,9 +62,16 @@ class DatastoreUnitTests {
     @Autowired
     CobDateLoadController cobDateLoadController;
 
+    //    @BeforeEach
+    //    void loadData() {
+    //        // If the date is already loaded, this doesnt do anything
+    //        var result = cobDateLoadController.loadCobDates(Set.of(LocalDate.now()));
+    //        assertThat(result.status()).isEqualTo(DlcStatus.OK);
+    //    }
+
     @Test
     void measurementsTest() {
-        cobDateLoadController.loadCobDates(Set.of(LocalDate.now()));
+        var result = cobDateLoadController.loadCobDates(Set.of(LocalDate.now()));
         var query = datastore
                 .getQueryManager()
                 .distinctQuery()
