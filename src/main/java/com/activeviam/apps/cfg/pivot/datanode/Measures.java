@@ -14,7 +14,6 @@ import static com.activeviam.apps.constants.CubeConstants.NATIVE_MEASURES;
 import static com.activeviam.apps.constants.CubeConstants.TIMESTAMP_FORMATTER;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -45,10 +44,8 @@ public class Measures implements Consumer<ICopperContext> {
         var notionalAvg =
                 Copper.avg(NOTIONAL).as(postfixMeasure(NOTIONAL, MEAN)).withFormatter(DOUBLE_FORMATTER);
         copperMeasures.add(notionalAvg);
-        copperMeasures.add(
-                diffFromPreviousDate(notionalSum).as(postfixMeasure(NOTIONAL, SUM) + " DIFF to previous date"));
-        copperMeasures.add(
-                diffFromPreviousDate(notionalAvg).as(postfixMeasure(NOTIONAL, MEAN) + " DIFF to previous date"));
+        copperMeasures.add(diffFromShiftDate(notionalSum).as(postfixMeasure(NOTIONAL, SUM) + " DIFF to shift date"));
+        copperMeasures.add(diffFromShiftDate(notionalAvg).as(postfixMeasure(NOTIONAL, MEAN) + " DIFF to shift date"));
     }
 
     @Override
@@ -56,24 +53,12 @@ public class Measures implements Consumer<ICopperContext> {
         copperMeasures.forEach(m -> m.publish(context));
     }
 
-    private static CopperMeasure diffFromPreviousDate(CopperMeasure underlying) {
+    private static CopperMeasure diffFromShiftDate(CopperMeasure underlying) {
         var previous = underlying.shift(
                 Copper.levelsAt(List.of(Copper.level(COB_DATE_LEVEL), Copper.level(SHIFT_COB_DATE_LEVEL)), w -> {
                     var shiftCobDate = w.read(1);
                     w.write(0, shiftCobDate);
                 }));
-        // Copper.levelAt(Copper.level(COB_DATE_LEVEL), date -> ((LocalDate) date).minusDays(1)));
         return underlying.minus(previous);
-    }
-
-    private static CopperMeasure diffFromPreviousEndOfQuarter(CopperMeasure underlying) {
-        var previous = underlying.shift(
-                Copper.levelAt(Copper.level(COB_DATE_LEVEL), date -> calculatePreviousEndOfQuarter((LocalDate) date)));
-        return underlying.minus(previous);
-    }
-
-    private static LocalDate calculatePreviousEndOfQuarter(LocalDate date) {
-        // This is the last day of the previous month...
-        return date.withDayOfMonth(1).minusDays(1);
     }
 }
