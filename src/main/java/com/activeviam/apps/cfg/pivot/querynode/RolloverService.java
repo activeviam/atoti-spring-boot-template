@@ -24,6 +24,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.dist.impl.api.cube.IMultiVersionDistributedActivePivot;
 import com.activeviam.apps.cfg.source.CobDatesProperties;
+import com.activeviam.tech.core.api.exceptions.ActiveViamRuntimeException;
 import com.activeviam.tech.mvcc.api.IEpoch;
 
 import lombok.RequiredArgsConstructor;
@@ -76,7 +77,7 @@ public class RolloverService {
                         .bodyToMono(String.class)
                         .log()
                         .block();
-            } catch (Exception e) {
+            } catch (ActiveViamRuntimeException e) {
                 log.error("Failed to unload date {}", cobDateToRemove, e);
             }
         } else {

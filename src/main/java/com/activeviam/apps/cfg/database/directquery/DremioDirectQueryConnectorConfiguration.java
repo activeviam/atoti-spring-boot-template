@@ -13,6 +13,7 @@ import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import com.activeviam.database.api.IDatabaseSettings;
 import com.activeviam.database.jdbc.api.GenericJdbcDatabaseSettings;
 import com.activeviam.database.jdbc.api.SqlDialect;
 import com.activeviam.database.jdbc.dialect.dremio.internal.DremioSqlDialect;
@@ -32,6 +33,13 @@ public class DremioDirectQueryConnectorConfiguration {
     @ConfigurationProperties(prefix = DREMIO_PROPERTIES_PREFIX)
     DremioConfigurationProperties dremioJdbcProperties() {
         return new DremioConfigurationProperties();
+    }
+
+    @Bean
+    GenericJdbcDatabaseSettings genericJdbcDatabaseSettings() {
+        return GenericJdbcDatabaseSettings.builder()
+                .useClusteringFields(IDatabaseSettings.UseClusteringFields.ALWAYS)
+                .build();
     }
 
     @Bean

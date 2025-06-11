@@ -20,6 +20,7 @@ import static com.activeviam.apps.rest.EndpointConstants.CUSTOM_REST_PATH;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,6 +37,7 @@ import com.activeviam.apps.annotations.ConditionalOnApplicationWithDatastore;
 import com.activeviam.apps.cfg.source.DlcConfig;
 import com.activeviam.database.api.DatabasePrinter;
 import com.activeviam.database.datastore.api.IDatastore;
+import com.activeviam.io.dlc.api.operations.response.DlcStatus;
 import com.activeviam.io.dlc.impl.DataLoadControllerService;
 import com.activeviam.io.dlc.impl.description.topic.JdbcTopicDescription;
 import com.activeviam.io.dlc.impl.operations.request.DlcLoadRequest;
@@ -126,16 +128,24 @@ public class CobDateLoadController {
                 cobDates.stream().filter(date -> !existingDates.contains(date)).toList();
 
         // Load dates separately for now
-        var result = dataLoadControllerService
-                .execute(DlcLoadRequest.builder()
-                        // .topics(COUNTERPARTIES_SQL_TOPIC)
-                        .topicOverrides(Set.of(
-                                // overrideCounterpartiesTopic(),
-                                overrideTradeTopic(datesToLoad), overrideTradeAttributesTopic(datesToLoad)))
-                        .build())
-                .toDto();
-        DatabasePrinter.printTableSizes(datastore.getMasterHead());
-        return result;
+        if (!datesToLoad.isEmpty()) {
+            var result = dataLoadControllerService
+                    .execute(DlcLoadRequest.builder()
+                            // .topics(COUNTERPARTIES_SQL_TOPIC)
+                            .topicOverrides(Set.of(
+                                    // overrideCounterpartiesTopic(),
+                                    overrideTradeTopic(datesToLoad), overrideTradeAttributesTopic(datesToLoad)))
+                            .build())
+                    .toDto();
+            DatabasePrinter.printTableSizes(datastore.getMasterHead());
+            return result;
+        }
+        return new DlcLoadResponseDTO(
+                Collections.emptyMap(),
+                Collections.emptyMap(),
+                Collections.emptyMap(),
+                Collections.emptyMap(),
+                DlcStatus.OK);
     }
 
     @DeleteMapping({"/{cobDate}"})

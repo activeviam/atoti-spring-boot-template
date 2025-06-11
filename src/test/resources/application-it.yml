@@ -1,0 +1,17 @@
+otel:
+  logs:
+    exporter: none
+  metrics:
+    exporter: none
+  traces:
+    exporter: none
+database.type: datastore
+dlc:
+  jdbc:
+    sources:
+      local-dremio:
+        driver-class: org.apache.arrow.driver.jdbc.ArrowFlightJdbcDriver
+        url: "jdbc:arrow-flight-sql://localhost:32010/?useEncryption=false&schema=nessie"
+        username: "admin"
+        password: "admin12345"
+        accepts-topic-overrides: true

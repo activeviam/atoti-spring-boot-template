@@ -11,8 +11,10 @@ import org.springframework.context.annotation.Import;
 import com.activeviam.apps.cfg.database.DatabaseSelectionConfig;
 import com.activeviam.apps.cfg.database.datastore.datamodel.StoreDefinitionsConfig;
 
-import lombok.RequiredArgsConstructor;
-
-@Import({StoreDefinitionsConfig.class, DatastoreSchemaConfig.class, DatabaseSelectionConfig.class})
-@RequiredArgsConstructor
+@Import({
+    StoreDefinitionsConfig.class,
+    DatastoreSchemaConfig.class,
+    DatabaseSelectionConfig.class,
+    DatastoreRolloverCleanup.class
+})
 public class DatastoreConfig {}

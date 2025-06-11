@@ -8,6 +8,8 @@ package com.activeviam.apps.cfg.database.directquery.datamodel;
 
 import static com.activeviam.apps.cfg.database.datastore.datamodel.StoreDefinitionsConfig.referenceName;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTIES_STORE_NAME;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
@@ -59,12 +61,21 @@ public class TableDefinitionsConfig {
 
     @Bean
     TableDescription tradesTableDescription() {
-        return directQueryTableDiscoverer.discoverTable(sqlTableId(SCHEMA, TRADES_STORE_NAME));
+        return directQueryTableDiscoverer.discoverTable(sqlTableId(SCHEMA, TRADES_STORE_NAME)).toBuilder()
+                .clusteringFieldNames(Set.of(COB_DATE))
+                .build();
     }
 
     @Bean
     TableDescription tradeAttributesTableDescription() {
-        return directQueryTableDiscoverer.discoverTable(sqlTableId(SCHEMA, TRADE_ATTRIBUTES_STORE_NAME));
+        return directQueryTableDiscoverer.discoverTable(sqlTableId(SCHEMA, TRADE_ATTRIBUTES_STORE_NAME)).toBuilder()
+                .clusteringFieldNames(Set.of(COB_DATE))
+                .build();
+    }
+
+    @Bean
+    TableDescription counterpartyTableDescription() {
+        return directQueryTableDiscoverer.discoverTable(sqlTableId(SCHEMA, COUNTERPARTIES_STORE_NAME));
     }
 
     @Bean
@@ -76,6 +87,16 @@ public class TableDefinitionsConfig {
                 .fieldMappings(Set.of(
                         new ITableJoin.FieldMapping(COB_DATE, COB_DATE),
                         new ITableJoin.FieldMapping(TRADE_ID, TRADE_ID)))
+                .build();
+    }
+
+    @Bean
+    JoinDescription tradesToCounterpartyJoinDescription() {
+        return JoinDescription.builder()
+                .sourceTableName(TRADE_ATTRIBUTES_STORE_NAME)
+                .targetTableName(COUNTERPARTIES_STORE_NAME)
+                .name(referenceName(TRADE_ATTRIBUTES_STORE_NAME, COUNTERPARTIES_STORE_NAME))
+                .fieldMappings(Set.of(new ITableJoin.FieldMapping(COUNTERPARTY_ID, COUNTERPARTY_ID)))
                 .build();
     }
 }
