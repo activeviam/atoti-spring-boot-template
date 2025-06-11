@@ -9,13 +9,22 @@ package com.activeviam.apps.cfg.data;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 
+import java.time.LocalDate;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import com.activeviam.apps.cfg.source.DlcConfig;
+import com.activeviam.apps.cfg.source.DremioJdbcSourceConfig;
+import com.activeviam.apps.rest.CobDateLoadController;
 import com.activeviam.database.datastore.api.IDatastore;
 import com.activeviam.database.datastore.api.transaction.IOpenedTransaction;
+import com.activeviam.io.dlc.internal.config.DataLoadControllerConfig;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,7 +33,14 @@ import lombok.extern.slf4j.Slf4j;
 class DatastoreUnitTests {
 
     @TestConfiguration
-    // @Import(DlcConfig.class)
+    @Import(
+            value = {
+                DataLoadControllerConfig.class,
+                DlcConfig.class,
+                CobDateLoadController.class,
+                DremioJdbcSourceConfig.class
+            })
+    @ActiveProfiles("inmemory")
     public static class DatastoreUnitTestsConfig extends DatastoreTesterConfig {
         @Override
         public void loadData(IOpenedTransaction t) {
@@ -43,8 +59,12 @@ class DatastoreUnitTests {
     @Autowired
     IDatastore datastore;
 
+    @Autowired
+    CobDateLoadController cobDateLoadController;
+
     @Test
     void measurementsTest() {
+        cobDateLoadController.loadCobDates(Set.of(LocalDate.now()));
         var query = datastore
                 .getQueryManager()
                 .distinctQuery()
