@@ -10,9 +10,12 @@ import static com.activeviam.apps.cfg.database.datastore.datamodel.StoreDefiniti
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTIES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
+import static com.activeviam.database.api.types.ILiteralType.LOCAL_DATE;
 
 import java.util.Set;
 
@@ -20,6 +23,8 @@ import org.springframework.context.annotation.Bean;
 
 import com.activeviam.apps.cfg.database.directquery.DremioConfigurationProperties;
 import com.activeviam.database.api.schema.ITableJoin;
+import com.activeviam.database.datastore.api.description.IStoreDescription;
+import com.activeviam.database.datastore.api.description.impl.StoreDescription;
 import com.activeviam.database.sql.api.schema.SqlTableId;
 import com.activeviam.database.sql.internal.jdbc.JdbcDiscoverer;
 import com.activeviam.database.sql.internal.jdbc.connection.IJdbcConfiguration;
@@ -97,6 +102,15 @@ public class TableDefinitionsConfig {
                 .targetTableName(COUNTERPARTIES_STORE_NAME)
                 .name(referenceName(TRADE_ATTRIBUTES_STORE_NAME, COUNTERPARTIES_STORE_NAME))
                 .fieldMappings(Set.of(new ITableJoin.FieldMapping(COUNTERPARTY_ID, COUNTERPARTY_ID)))
+                .build();
+    }
+
+    @Bean
+    public IStoreDescription shiftCobDateStoreDescription() {
+        return StoreDescription.builder()
+                .withStoreName(SHIFT_COB_DATE_STORE_NAME)
+                .withField(SHIFT_COB_DATE, LOCAL_DATE)
+                .asKeyField()
                 .build();
     }
 }

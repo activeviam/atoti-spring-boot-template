@@ -10,6 +10,8 @@ import static com.activeviam.activepivot.core.intf.api.description.IAxisHierarch
 import static com.activeviam.activepivot.core.intf.api.description.IAxisHierarchyDescription.AUTO_CONTRIBUTE_UNKNOWN_MEMBER_PROPERTY;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
 
@@ -34,6 +36,9 @@ public class Dimensions implements ICanStartBuildingDimensions.DimensionsAdder {
     public static final LevelIdentifier TRADE_ID_LEVEL =
             new LevelIdentifier(TRADE_ATTRIBUTES_DIMENSION, TRADE_ID, TRADE_ID);
 
+    public static final LevelIdentifier SHIFT_COB_DATE_LEVEL =
+            new LevelIdentifier(TRADE_ATTRIBUTES_DIMENSION, SHIFT_COB_DATE, SHIFT_COB_DATE);
+
     @Override
     public ICanBuildCubeDescription<IActivePivotInstanceDescription> apply(ICanStartBuildingDimensions builder) {
         return builder.withDimension(TRADE_ATTRIBUTES_DIMENSION)
@@ -49,6 +54,12 @@ public class Dimensions implements ICanStartBuildingDimensions.DimensionsAdder {
                 .slicing()
                 .withLevelOfSameName()
                 .withType(ILevelInfo.LevelType.TIME)
+                .withComparator(IComparator.DESCENDING_NATURAL_ORDER_PLUGIN_KEY)
+                .withHierarchy(SHIFT_COB_DATE)
+                .slicing()
+                .fromStore(SHIFT_COB_DATE_STORE_NAME)
+                .withLevel(SHIFT_COB_DATE)
+                .withFieldName(SHIFT_COB_DATE)
                 .withComparator(IComparator.DESCENDING_NATURAL_ORDER_PLUGIN_KEY);
     }
 }

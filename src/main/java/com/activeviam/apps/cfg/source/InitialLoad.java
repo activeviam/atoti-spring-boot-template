@@ -6,6 +6,11 @@
  */
 package com.activeviam.apps.cfg.source;
 
+import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
+
+import java.time.LocalDate;
+import java.util.stream.IntStream;
+
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -32,6 +37,14 @@ public class InitialLoad {
     @EventListener(value = ApplicationStartedEvent.class)
     void onApplicationReady() {
         log.info("ApplicationReadyEvent triggered");
+        // Fill the SHIFT cob dates
+        applicationWithDatastore.getDatastore().edit(t -> {
+            t.addAll(
+                    SHIFT_COB_DATE_STORE_NAME,
+                    IntStream.range(1, 100)
+                            .mapToObj(x -> new Object[] {LocalDate.now().minusDays(x)})
+                            .toList());
+        });
         startDistributionMessenger(applicationWithDatastore.getManager());
         //        initialInMemoryLoad();
     }

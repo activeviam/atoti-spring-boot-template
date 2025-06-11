@@ -11,6 +11,8 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTIE
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_DATE;
@@ -64,6 +66,15 @@ public class StoreDefinitionsConfig {
                 .withField(COUNTERPARTY_ID, STRING)
                 .asKeyField()
                 .withField(COUNTERPARTY_NAME, STRING)
+                .build();
+    }
+
+    @Bean
+    public IStoreDescription shiftCobDateStoreDescription() {
+        return StoreDescription.builder()
+                .withStoreName(SHIFT_COB_DATE_STORE_NAME)
+                .withField(SHIFT_COB_DATE, LOCAL_DATE)
+                .asKeyField()
                 .build();
     }
 

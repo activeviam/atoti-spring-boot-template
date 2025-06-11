@@ -26,6 +26,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.activeviam.apps.AtotiSpringBootApplication;
 import com.activeviam.apps.rest.CobDateLoadController;
+import com.activeviam.database.datastore.api.IDatastore;
 import com.activeviam.io.dlc.api.operations.response.DlcStatus;
 
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +48,9 @@ class QueryServiceIntegrationTest {
 
     @Autowired
     private CobDateLoadController cobDateLoadController;
+
+    @Autowired
+    IDatastore datastore;
 
     private static final AtomicReference<LoadStatus> LOAD_STATUS = new AtomicReference<>(LoadStatus.NOT_LOADED);
 

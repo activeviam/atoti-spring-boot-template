@@ -7,6 +7,7 @@
 package com.activeviam.apps.cfg.pivot.datanode;
 
 import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.COB_DATE_LEVEL;
+import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.SHIFT_COB_DATE_LEVEL;
 import static com.activeviam.apps.constants.CubeConstants.DOUBLE_FORMATTER;
 import static com.activeviam.apps.constants.CubeConstants.INT_FORMATTER;
 import static com.activeviam.apps.constants.CubeConstants.NATIVE_MEASURES;
@@ -56,8 +57,12 @@ public class Measures implements Consumer<ICopperContext> {
     }
 
     private static CopperMeasure diffFromPreviousDate(CopperMeasure underlying) {
-        var previous =
-                underlying.shift(Copper.levelAt(Copper.level(COB_DATE_LEVEL), date -> ((LocalDate) date).minusDays(1)));
+        var previous = underlying.shift(
+                Copper.levelsAt(List.of(Copper.level(COB_DATE_LEVEL), Copper.level(SHIFT_COB_DATE_LEVEL)), w -> {
+                    var shiftCobDate = w.read(1);
+                    w.write(0, shiftCobDate);
+                }));
+        // Copper.levelAt(Copper.level(COB_DATE_LEVEL), date -> ((LocalDate) date).minusDays(1)));
         return underlying.minus(previous);
     }
 
