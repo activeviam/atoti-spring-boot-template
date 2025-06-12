@@ -29,6 +29,7 @@ import com.activeviam.database.datastore.api.description.impl.ReferenceDescripti
 import com.activeviam.database.datastore.api.description.impl.StoreDescription;
 
 public class StoreDefinitionsConfig {
+    public static int DATASTORE_PARTITIONING_MODULO = Runtime.getRuntime().availableProcessors();
 
     public static String referenceName(String from, String to) {
         return String.format("%s_to_%s", from, to);
@@ -43,6 +44,7 @@ public class StoreDefinitionsConfig {
                 .withField(TRADE_ID, STRING)
                 .asKeyField()
                 .withField(NOTIONAL, DOUBLE)
+                .withModuloPartitioning(DATASTORE_PARTITIONING_MODULO, COB_DATE, TRADE_ID)
                 .build();
     }
 

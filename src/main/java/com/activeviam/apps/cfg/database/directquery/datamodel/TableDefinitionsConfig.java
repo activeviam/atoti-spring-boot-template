@@ -67,15 +67,13 @@ public class TableDefinitionsConfig {
     @Bean
     TableDescription tradesTableDescription() {
         return directQueryTableDiscoverer.discoverTable(sqlTableId(SCHEMA, TRADES_STORE_NAME)).toBuilder()
-                .clusteringFieldNames(Set.of(COB_DATE))
+                .clusteringFieldNames(Set.of(COB_DATE, TRADE_ID))
                 .build();
     }
 
     @Bean
     TableDescription tradeAttributesTableDescription() {
-        return directQueryTableDiscoverer.discoverTable(sqlTableId(SCHEMA, TRADE_ATTRIBUTES_STORE_NAME)).toBuilder()
-                .clusteringFieldNames(Set.of(COB_DATE))
-                .build();
+        return directQueryTableDiscoverer.discoverTable(sqlTableId(SCHEMA, TRADE_ATTRIBUTES_STORE_NAME));
     }
 
     @Bean

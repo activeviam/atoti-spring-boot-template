@@ -39,6 +39,7 @@ public class DremioDirectQueryConnectorConfiguration {
     GenericJdbcDatabaseSettings genericJdbcDatabaseSettings() {
         return GenericJdbcDatabaseSettings.builder()
                 .useClusteringFields(IDatabaseSettings.UseClusteringFields.ALWAYS)
+                .maxSubQueriesAllowedInMultiStepQuery(20)
                 .build();
     }
 

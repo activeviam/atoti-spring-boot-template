@@ -6,11 +6,13 @@
  */
 package com.activeviam.apps.cfg.pivot.datanode;
 
+import static com.activeviam.apps.cfg.database.datastore.datamodel.StoreDefinitionsConfig.DATASTORE_PARTITIONING_MODULO;
 import static com.activeviam.apps.cfg.pivot.datanode.Measures.SUM;
 import static com.activeviam.apps.cfg.pivot.querynode.QueryCubeConfig.DISTRIBUTING_LEVEL;
 import static com.activeviam.apps.constants.CubeConstants.APPLICATION_NAME;
 import static com.activeviam.apps.constants.CubeConstants.CUBE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
 
 import java.net.InetAddress;
 import java.util.List;
@@ -56,7 +58,9 @@ public class DataCubeConfig {
                 StartBuilding.cube(CUBE_NAME).withCalculations(calculations).withDimensions(dimensions);
 
         if (isInMemory) {
-            builder = builder.withAggregateProvider().leaf();
+            builder = builder.withAggregateProvider()
+                    .leaf()
+                    .withModuloPartitioning(DATASTORE_PARTITIONING_MODULO, TRADE_ID);
         } else {
             builder = builder.withAggregateProvider()
                     .jit()

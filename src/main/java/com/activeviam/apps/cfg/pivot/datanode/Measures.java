@@ -30,6 +30,10 @@ public class Measures implements Consumer<ICopperContext> {
         return String.join(".", base, measure);
     }
 
+    public static String deltaPostfixMeasure(String base, String measure) {
+        return String.format("Delta %s", postfixMeasure(base, measure));
+    }
+
     public static final String SUM = "Sum";
     public static final String MEAN = "Mean";
 
@@ -45,8 +49,8 @@ public class Measures implements Consumer<ICopperContext> {
         var notionalAvg =
                 Copper.avg(NOTIONAL).as(postfixMeasure(NOTIONAL, MEAN)).withFormatter(DOUBLE_FORMATTER);
         copperMeasures.add(notionalAvg);
-        copperMeasures.add(diffFromShiftDate(notionalSum).as(postfixMeasure(NOTIONAL, SUM) + " DIFF to shift date"));
-        copperMeasures.add(diffFromShiftDate(notionalAvg).as(postfixMeasure(NOTIONAL, MEAN) + " DIFF to shift date"));
+        copperMeasures.add(diffFromShiftDate(notionalSum).as(deltaPostfixMeasure(NOTIONAL, SUM)));
+        copperMeasures.add(diffFromShiftDate(notionalAvg).as(deltaPostfixMeasure(NOTIONAL, MEAN)));
     }
 
     @Override
@@ -60,13 +64,17 @@ public class Measures implements Consumer<ICopperContext> {
                     var shiftCobDate = w.read(1);
                     w.write(0, shiftCobDate);
                 }));
+
+        underlying.minus(previous);
+
         return Copper.combine(underlying, previous)
                 .map(
                         (r, w) -> {
                             if (r.isNull(0) || r.isNull(1)) {
                                 w.writeNull();
+                            } else {
+                                w.write(r.readDouble(0) - r.readDouble(1));
                             }
-                            w.write(r.readDouble(0) - r.readDouble(1));
                         },
                         ILiteralType.DOUBLE);
     }
