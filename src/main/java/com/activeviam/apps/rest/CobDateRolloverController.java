@@ -33,13 +33,13 @@ public class CobDateRolloverController {
 
     @PostMapping
     public String rollOver() {
-        rolloverService.rolloverDates(LocalDate.now());
+        rolloverService.rollover(LocalDate.now());
         return "ok";
     }
 
     @PostMapping("/{rolloverDate}")
     public String rollOver(@PathVariable LocalDate rolloverDate) {
-        rolloverService.rolloverDates(rolloverDate);
+        rolloverService.rollover(rolloverDate);
         return "ok";
     }
 

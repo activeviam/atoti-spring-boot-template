@@ -15,6 +15,7 @@ import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 
+import com.activeviam.apps.annotations.ConditionalOnDataNode;
 import com.activeviam.database.datastore.api.IDatastore;
 
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnDataNode
 public class InitStandaloneStores {
 
     private final IDatastore datastore;

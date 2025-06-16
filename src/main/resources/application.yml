@@ -138,4 +138,6 @@ cube-query-service:
           date-filter-levels: CobDate
           default-dimension: "Trade Attributes"
 logging.level.atoti.server.directquery.driver_manager: OFF
+cob-dates:
+  days-in-memory: 1
 

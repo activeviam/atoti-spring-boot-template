@@ -21,12 +21,14 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
-import org.apache.commons.lang3.stream.Streams;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -63,6 +65,26 @@ public class CobDateLoadController {
     private final DataLoadControllerService dataLoadControllerService;
 
     private final IDatastore datastore;
+
+    public List<LocalDate> getCobDates() {
+        var query = datastore
+                .getQueryManager()
+                .distinctQuery()
+                .forTable(TRADES_STORE_NAME)
+                .withoutCondition()
+                .withTableFields(COB_DATE)
+                .toQuery();
+        return StreamSupport.stream(
+                        datastore
+                                .getMasterHead()
+                                .getQueryRunner()
+                                .distinctQuery(query)
+                                .run()
+                                .spliterator(),
+                        false)
+                .map(r -> (LocalDate) r.read(COB_DATE))
+                .toList();
+    }
 
     private static String injectCobDates(String query, Collection<LocalDate> cobDates) {
         return query.replace(
@@ -107,23 +129,7 @@ public class CobDateLoadController {
     public DlcLoadResponseDTO loadCobDates(@RequestBody Collection<LocalDate> cobDates) {
         // Workaround: we need to override the parameterized topics because Dremio does not support
         // parameterized queries yet (it will from v. 26)
-        var existingDatesQuery = datastore
-                .getMasterHead()
-                .getQueryManager()
-                .distinctQuery()
-                .forTable(TRADES_STORE_NAME)
-                .withoutCondition()
-                .withTableFields(COB_DATE)
-                .compile();
-        var existingDates = Streams.of(datastore
-                        .getMasterHead()
-                        .getQueryRunner()
-                        .distinctQuery(existingDatesQuery)
-                        .withoutParameters()
-                        .run()
-                        .iterator())
-                .map(r -> (LocalDate) r.read(COB_DATE))
-                .toList();
+        var existingDates = getCobDates();
         var datesToLoad =
                 cobDates.stream().filter(date -> !existingDates.contains(date)).toList();
 
@@ -146,6 +152,11 @@ public class CobDateLoadController {
                 Collections.emptyMap(),
                 Collections.emptyMap(),
                 DlcStatus.OK);
+    }
+
+    @GetMapping
+    public List<LocalDate> getLoadedDates() {
+        return getCobDates();
     }
 
     @DeleteMapping({"/{cobDate}"})
