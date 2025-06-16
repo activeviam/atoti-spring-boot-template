@@ -40,7 +40,7 @@ public class RolloverService {
 
     private final IActivePivotManager activePivotManager;
     private final CobDatesProperties cobDatesProperties;
-    private static String AUTH_HEADER = "Basic " + Base64.getEncoder().encodeToString(("pivot:pivot").getBytes());
+    private static final String AUTH_HEADER = "Basic " + Base64.getEncoder().encodeToString(("pivot:pivot").getBytes());
 
     private static Optional<WebClient> restClient(IMultiVersionDistributedActivePivot activePivot) {
         var datastoreNodeAddress = activePivot.getClusterMembersRestAddresses().get(DATASTORE_NODE_IDENTIFIER);
@@ -50,7 +50,7 @@ public class RolloverService {
         return Optional.empty();
     }
 
-    public void removeAndLoadDates(Collection<LocalDate> cobDatesToLoad, Collection<LocalDate> cobDatesToRemove) {
+    private void loadAndRemoveDates(Collection<LocalDate> cobDatesToLoad, Collection<LocalDate> cobDatesToRemove) {
         var activePivot = (IMultiVersionDistributedActivePivot) activePivotManager.getActivePivot(CUBE_NAME);
         restClient(activePivot)
                 .ifPresentOrElse(
@@ -119,7 +119,7 @@ public class RolloverService {
                                     .block();
                             var requiredDates = cobDatesProperties.computeInMemoryDates(lastDate);
                             if (ObjectUtils.isEmpty(existingDates)) {
-                                removeAndLoadDates(requiredDates, Collections.emptyList());
+                                loadAndRemoveDates(requiredDates, Collections.emptyList());
                             } else {
                                 var datesToRemove = existingDates.stream()
                                         .filter(d -> !requiredDates.contains(d))
@@ -127,7 +127,7 @@ public class RolloverService {
                                 var datesToLoad = requiredDates.stream()
                                         .filter(d -> !existingDates.contains(d))
                                         .toList();
-                                removeAndLoadDates(datesToLoad, datesToRemove);
+                                loadAndRemoveDates(datesToLoad, datesToRemove);
                             }
                         },
                         () -> log.warn("Could not retrieve REST address for {}", COB_DATE_ENDPOINT));
