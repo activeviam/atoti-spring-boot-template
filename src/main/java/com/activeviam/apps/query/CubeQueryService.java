@@ -35,6 +35,7 @@ import com.activeviam.activepivot.core.intf.api.contextvalues.mdx.IMdxContext;
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.cube.IMultiVersionActivePivot;
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IAxisHierarchy;
+import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IMeasureHierarchy;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.HierarchyIdentifier;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
 import com.activeviam.activepivot.core.intf.internal.context.filter.ICubeRestriction;
@@ -116,10 +117,12 @@ public class CubeQueryService {
         }
 
         public CubeQuery convertCubeQuery(CubeQueryDTO dto) {
+            assertIsReady();
             return CubeQuery.fromDTO(dto, levelsConverter);
         }
 
         public StreamingResponseBody runQuery(CubeQuery cubeQuery, Map<String, Object> exporterConfig) {
+            assertIsReady();
             var contextValues = new ArrayList<IContextValue>();
             contextValues.add(buildMdxContext(cubeQuery));
             if (cubeQuery.getUseContext()) {
@@ -289,6 +292,7 @@ public class CubeQueryService {
         }
 
         public String buildMdxQuery(CubeQuery cubeQuery) {
+            assertIsReady();
             var query = new StringBuilder();
             var sortBys = cubeQuery.getSortBy();
             var topRank = cubeQuery.getTopRank();
@@ -335,12 +339,23 @@ public class CubeQueryService {
             return String.format("FROM [%s]", cube);
         }
 
+        private void assertIsReady() {
+            var hierarchies = activePivot.getHead().getHierarchies().stream()
+                    .filter(hierarchy -> !(hierarchy instanceof IMeasureHierarchy))
+                    .toList();
+            if (hierarchies.isEmpty()) {
+                throw new ActiveViamRuntimeException("Cube has no hierarchies");
+            }
+        }
+
         private boolean isSlicingHierarchy(HierarchyIdentifier hierarchyIdentifier) {
             // Cache
             if (Objects.isNull(slicingHierarchies)) {
-                slicingHierarchies = activePivot.getDescription().getAxisDimensions().getValues().stream()
-                        .flatMap(dimension -> dimension.getHierarchies().stream())
-                        .filter(hierarchy -> !hierarchy.isAllMembersEnabled())
+                var hierarchies = activePivot.getHead().getHierarchies().stream()
+                        .filter(hierarchy -> !(hierarchy instanceof IMeasureHierarchy))
+                        .toList();
+                slicingHierarchies = hierarchies.stream()
+                        .filter(HierarchiesUtil::isSlicing)
                         .map(hierarchy -> levelsConverter.stringToHierarchyIdentifier(hierarchy.getName()))
                         .collect(Collectors.toSet());
             }
