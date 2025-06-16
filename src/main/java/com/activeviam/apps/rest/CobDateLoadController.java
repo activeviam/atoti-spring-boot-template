@@ -165,6 +165,7 @@ public class CobDateLoadController {
                 .execute(DlcUnloadRequest.builder()
                         .topics(COB_DATE_UNLOAD_TOPIC)
                         .scope(DlcScope.of(DlcConfig.COB_DATE_SCOPE_PARAMETER, cobDate)) // FIXME: do we need to format?
+                        .performGcOnCompletion(true)
                         .build())
                 .toDto();
         DatabasePrinter.printTableSizes(datastore.getMasterHead());
