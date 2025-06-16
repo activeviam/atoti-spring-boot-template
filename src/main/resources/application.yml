@@ -72,6 +72,7 @@ dlc:
 # Security configuration
 security:
   authentication:
+    mode: saml
     in-memory:
       users:
         - username: admin
@@ -80,11 +81,14 @@ security:
             - ROLE_USER
             - ROLE_ADMIN
             - ROLE_CS_ROOT
-  tech-user:
-    passwords:
-      pivot: "{bcrypt}$2a$10$87iR319r7HvSvs5k9.jutuDzjuKqO6riilSjl/9u2LGDpn4/7.1he"
-      sba: "{bcrypt}$2a$10$QX8Im2Qh3s/qS9ypLlpEnuaVXtQTUz1XNS7goa9Ya7ofcZyuo2IdW"
-
+        - username: pivot
+          password: "{bcrypt}$2a$10$87iR319r7HvSvs5k9.jutuDzjuKqO6riilSjl/9u2LGDpn4/7.1he"
+          authorities:
+            - ROLE_TECH
+        - username: sba
+          password: "{bcrypt}$2a$10$QX8Im2Qh3s/qS9ypLlpEnuaVXtQTUz1XNS7goa9Ya7ofcZyuo2IdW"
+          authorities:
+            - ROLE_ACTUATOR
 
 # Properties used to configure the authentication based on JWT.
 # You can execute JwtUtil to generate new keys.

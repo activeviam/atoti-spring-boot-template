@@ -1,17 +1,18 @@
 /*
- * Copyright (C) ActiveViam 2024
+ * Copyright (C) ActiveViam 2024-2025
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
 package com.activeviam.apps.cfg.security.filter;
 
+import static com.activeviam.springboot.atoti.server.starter.api.AtotiSecurityProperties.ROLE_ADMIN;
 import static com.activeviam.springboot.atoti.server.starter.api.AtotiSecurityProperties.ROLE_USER;
 import static com.activeviam.web.core.api.IUrlBuilder.url;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springdoc.core.properties.SwaggerUiConfigProperties;
 import org.springdoc.core.utils.Constants;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.h2.H2ConsoleProperties;
 import org.springframework.context.annotation.Bean;
@@ -61,14 +62,26 @@ public class CustomWebSecurityFiltersConfig {
     @Bean
     @Order(5)
     public SecurityFilterChain swaggerUiSecurityFilterChain(
-            HttpSecurity http, HumanToMachineSecurityDsl dsl, SwaggerUiConfigProperties swaggerUiConfigProperties)
+            HttpSecurity http,
+            HumanToMachineSecurityDsl dsl,
+            @Autowired(required = false) SwaggerUiConfigProperties swaggerUiConfigProperties)
             throws Exception {
+        var path = url(
+                swaggerUiConfigProperties != null && swaggerUiConfigProperties.getPath() != null
+                        ? swaggerUiConfigProperties.getPath()
+                        : Constants.SWAGGER_UI_PREFIX,
+                WILDCARD);
         return http.with(dsl, c -> c.requestLogin(LoginLogoutUrls.LOGIN_PAGE_URL))
-                .securityMatcher(
-                        StringUtils.defaultIfBlank(
-                                swaggerUiConfigProperties.getPath(), Constants.DEFAULT_SWAGGER_UI_PATH),
-                        Constants.SWAGGER_UI_PREFIX + Constants.ALL_PATTERN)
-                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                .securityMatcher(path)
+                .authorizeHttpRequests(auth -> auth.anyRequest().hasAnyAuthority(ROLE_ADMIN))
+                .build();
+    }
+
+    @Bean
+    @Order(6)
+    public SecurityFilterChain managementFilterChain(HttpSecurity http) throws Exception {
+        return http.securityMatcher(url("/actuator", WILDCARD))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .build();
     }
 

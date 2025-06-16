@@ -57,6 +57,31 @@
     </dependency>
 
     <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-oauth2-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-saml2-service-provider</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opensaml</groupId>
+      <artifactId>opensaml-core</artifactId>
+      <version>4.3.2</version>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-thymeleaf</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>com.activeviam.io</groupId>
       <artifactId>data-load-controller</artifactId>
       <version>${dlc.version}</version>
@@ -142,8 +167,16 @@
       <version>${atoti-server.version}</version>
       <scope>test</scope>
     </dependency>
-
   </dependencies>
+
+  <repositories>
+    <!-- Required for OpenSAML libraries -->
+    <!-- https://shibboleth.atlassian.net/wiki/spaces/DEV/pages/1123844333/Use+of+Maven+Central#Publishing-to-Maven-Central -->
+    <repository>
+      <id>shibboleth-releases</id>
+      <url>https://build.shibboleth.net/nexus/content/repositories/releases/</url>
+    </repository>
+  </repositories>
 
   <build>
     <finalName>atoti-spring-boot-template</finalName>

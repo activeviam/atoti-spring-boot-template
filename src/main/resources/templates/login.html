@@ -1,0 +1,181 @@
+<!--
+  ~ Copyright (C) ActiveViam 2025
+  ~ ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
+  ~ property of ActiveViam Limited. Any unauthorized use,
+  ~ reproduction or transfer of this material is strictly prohibited
+  -->
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Login Page</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: "Roboto", sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 4.5fr 6fr;
+            grid-template-areas: "image login";
+        }
+
+        .logo-section {
+            max-height: 100vh;
+            grid-area: image;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(
+                    to right,
+                    rgb(109, 47, 89),
+                    rgb(41, 26, 64)
+            );
+        }
+
+        .form-section {
+            grid-area: login;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #fff;
+        }
+
+        .form-container {
+            box-shadow: rgba(0, 0, 0, 0.05) 4px 4px 4px 0px,
+            rgba(0, 0, 0, 0.05) -4px -4px 4px 0px;
+            border-radius: 2px;
+            width: 496px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .form-container .login-header {
+            display: flex;
+            justify-content: center;
+            font-size: 14px;
+            line-height: 22px;
+            font-weight: 600;
+            padding: 10px 16px;
+        }
+
+        .form-container form {
+            display: flex;
+            flex-direction: column;
+            width: 458px;
+            margin-block: 16px;
+        }
+
+        .form-container form label {
+            font-size: 12px;
+            line-height: 20px;
+            font-weight: 400;
+        }
+
+        .form-container .form-item {
+            margin-bottom: 16px;
+        }
+
+        .form-container .form-input-container {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            border: 1px solid rgb(217, 217, 217);
+            border-radius: 2px;
+            box-sizing: border-box;
+            min-height: 28px;
+        }
+
+        .form-container .input-icon {
+            font-size: 12px;
+            margin-right: 4px;
+        }
+
+        .form-container form input {
+            padding: 0px;
+            font-size: 12px;
+            border: none;
+            border-radius: 0px;
+            width: 100%;
+            outline: none;
+        }
+
+        .form-container form .login-button-container {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 10px 16px;
+            gap: 8px;
+            box-shadow: rgb(240, 240, 240) 0px 1px 0px 0px inset;
+        }
+
+        .form-container form button {
+            height: 28px;
+            padding: 3px 11px;
+            border: none;
+            font-family: inherit;
+            border-radius: 2px;
+            cursor: pointer;
+            color: #fff;
+            background-color: #7391d9;
+            box-shadow: 0 0px 0 rgba(5, 122, 255, 0.06);
+        }
+
+        .error-message {
+            color: red;
+        }
+
+        .centered-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100px; /* Set width as needed */
+            height: 100px; /* Set height as needed */
+        }
+
+        .centered-image a {
+            padding: 10px;
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="logo-section">
+        <img
+                alt="atoti-logo"
+                style="flex-grow: 1"
+                th:src="@{'/logo-login'}"
+        />
+    </div>
+    <div class="form-section">
+        <div class="form-container">
+            <div class="login-header"><span>Log in</span></div>
+            <div class="error-message" th:if="${error}">
+                <p>Could not log in the user. Contact the support team.</p>
+            </div>
+            <span class="form-input-container centered-image" th:each="registrationId : ${registrationIds}">
+                <a th:href="@{${authUri} + '/' + ${registrationId}}">
+                    <img
+                            style="flex-grow: 1"
+                            th:alt="@{${registrationId} + '-logo'}"
+                            th:src="@{'/logo-sso/' + ${registrationId}}"
+                    />
+                </a>
+            </span>
+        </div>
+    </div>
+</div>
+</body>
+</html>
