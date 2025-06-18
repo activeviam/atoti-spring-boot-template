@@ -7,6 +7,7 @@
 package com.activeviam.apps.query.rest;
 
 import static com.activeviam.activepivot.server.json.api.dataexport.IJsonOutputConfiguration.FORMAT_PROPERTY;
+import static com.activeviam.apps.rest.EndpointConstants.CUSTOM_REST_PATH;
 
 import java.util.Map;
 
@@ -28,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 public class CubeQueryController {
     private final CubeQueryService cubeQueryService;
 
-    public static final String QUERY_ENDPOINT = "/cube_query";
+    public static final String QUERY_ENDPOINT = CUSTOM_REST_PATH + "/cube_query";
 
     public static final Map<String, Object> CSV_OUTPUT_EXPORTER_CONFIG =
             Map.of(FORMAT_PROPERTY, JsonCsvPivotTableOutputConfiguration.PLUGIN_KEY);
