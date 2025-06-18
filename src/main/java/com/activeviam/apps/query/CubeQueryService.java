@@ -140,6 +140,7 @@ public class CubeQueryService {
 
         IMdxContext buildMdxContext(CubeQuery cubeQuery) {
             var mdxContext = new MdxContext();
+            // These context values can only be added to the mdxContext, not as pure MDX!
             mdxContext.setHiddenSubtotals(cubeQuery.getLevels());
             // FIXME: workaround, remove once https://github.com/activeviam/activepivot/pull/12984 is merged
             mdxContext.setLightCrossJoinEnabled(false);
@@ -298,13 +299,15 @@ public class CubeQueryService {
             var topRank = cubeQuery.getTopRank();
             var topCount = cubeQuery.getTopCount();
             var levels = cubeQuery.getLevels();
-            var useContext = cubeQuery.getUseContext();
+            var fullMdxQuery = !cubeQuery.getUseContext();
 
             // If there are any calculated members and they are not added to the MDX context, add them
             // with the statement WITH
-            var calculatedMembers = buildCalculatedMembersMdx(cubeQuery);
-            if (!ObjectUtils.isEmpty(calculatedMembers) && !useContext) {
-                query.append(calculatedMembers);
+            if (fullMdxQuery) {
+                var calculatedMembers = buildCalculatedMembersMdx(cubeQuery);
+                if (!ObjectUtils.isEmpty(calculatedMembers)) {
+                    query.append(calculatedMembers);
+                }
             }
 
             query.append("SELECT NON EMPTY");
@@ -325,7 +328,7 @@ public class CubeQueryService {
             }
 
             // If we are using a subselect to add filters, add them here
-            if (!(cubeQuery.getFilter() instanceof TrueLogicalCondition) && !useContext) {
+            if (!(cubeQuery.getFilter() instanceof TrueLogicalCondition) && fullMdxQuery) {
                 var bottomLevel = cubeQuery.getLevels().getLast();
                 query.append(subSelectWithFilter(cubeQuery.getFilter(), bottomLevel));
             } else {

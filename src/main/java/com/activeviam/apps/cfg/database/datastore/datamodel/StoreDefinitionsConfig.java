@@ -31,6 +31,8 @@ import com.activeviam.database.datastore.api.description.impl.StoreDescription;
 public class StoreDefinitionsConfig {
     public static int DATASTORE_PARTITIONING_MODULO = Runtime.getRuntime().availableProcessors();
 
+    public static final String SHIFT_COB_DATES_STORE_BEAN = "shiftCobDateStoreDescription";
+
     public static String referenceName(String from, String to) {
         return String.format("%s_to_%s", from, to);
     }
@@ -71,7 +73,7 @@ public class StoreDefinitionsConfig {
                 .build();
     }
 
-    @Bean
+    @Bean(name = SHIFT_COB_DATES_STORE_BEAN)
     public IStoreDescription shiftCobDateStoreDescription() {
         return StoreDescription.builder()
                 .withStoreName(SHIFT_COB_DATE_STORE_NAME)

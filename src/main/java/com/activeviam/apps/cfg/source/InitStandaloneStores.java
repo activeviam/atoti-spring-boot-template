@@ -6,16 +6,17 @@
  */
 package com.activeviam.apps.cfg.source;
 
+import static com.activeviam.apps.cfg.database.datastore.datamodel.StoreDefinitionsConfig.SHIFT_COB_DATES_STORE_BEAN;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
 
 import java.time.LocalDate;
 import java.util.stream.IntStream;
 
-import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 
-import com.activeviam.apps.annotations.ConditionalOnDataNode;
 import com.activeviam.database.datastore.api.IDatastore;
 
 import lombok.RequiredArgsConstructor;
@@ -24,12 +25,12 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
-@ConditionalOnDataNode
+@ConditionalOnBean(name = SHIFT_COB_DATES_STORE_BEAN)
 public class InitStandaloneStores {
 
     private final IDatastore datastore;
 
-    @EventListener(value = ApplicationStartedEvent.class)
+    @EventListener(value = ApplicationReadyEvent.class)
     void onApplicationReady() {
         log.info("ApplicationReadyEvent triggered");
         // Fill the SHIFT cob dates

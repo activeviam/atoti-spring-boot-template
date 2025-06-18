@@ -21,7 +21,6 @@ import java.util.function.Consumer;
 import com.activeviam.activepivot.copper.api.Copper;
 import com.activeviam.activepivot.copper.api.CopperMeasure;
 import com.activeviam.activepivot.core.intf.api.copper.ICopperContext;
-import com.activeviam.database.api.types.ILiteralType;
 
 public class Measures implements Consumer<ICopperContext> {
     private final List<CopperMeasure> copperMeasures = new ArrayList<>();
@@ -59,23 +58,12 @@ public class Measures implements Consumer<ICopperContext> {
     }
 
     private static CopperMeasure diffFromShiftDate(CopperMeasure underlying) {
-        var previous = underlying.shift(
+        var shifted = underlying.shift(
                 Copper.levelsAt(List.of(Copper.level(COB_DATE_LEVEL), Copper.level(SHIFT_COB_DATE_LEVEL)), w -> {
                     var shiftCobDate = w.read(1);
                     w.write(0, shiftCobDate);
                 }));
 
-        underlying.minus(previous);
-
-        return Copper.combine(underlying, previous)
-                .map(
-                        (r, w) -> {
-                            if (r.isNull(0) || r.isNull(1)) {
-                                w.writeNull();
-                            } else {
-                                w.write(r.readDouble(0) - r.readDouble(1));
-                            }
-                        },
-                        ILiteralType.DOUBLE);
+        return underlying.minus(shifted);
     }
 }
