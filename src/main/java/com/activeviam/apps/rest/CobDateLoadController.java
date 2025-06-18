@@ -137,10 +137,9 @@ public class CobDateLoadController {
         if (!datesToLoad.isEmpty()) {
             var result = dataLoadControllerService
                     .execute(DlcLoadRequest.builder()
-                            // .topics(COUNTERPARTIES_SQL_TOPIC)
-                            .topicOverrides(Set.of(
-                                    // overrideCounterpartiesTopic(),
-                                    overrideTradeTopic(datesToLoad), overrideTradeAttributesTopic(datesToLoad)))
+                            .topics(COUNTERPARTIES_SQL_TOPIC)
+                            .topicOverrides(
+                                    Set.of(overrideTradeTopic(datesToLoad), overrideTradeAttributesTopic(datesToLoad)))
                             .build())
                     .toDto();
             DatabasePrinter.printTableSizes(datastore.getMasterHead());
