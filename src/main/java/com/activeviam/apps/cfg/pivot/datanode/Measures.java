@@ -65,5 +65,17 @@ public class Measures implements Consumer<ICopperContext> {
                 }));
 
         return underlying.minus(shifted);
+
+        // alternative with combine to avoid writing zeros when one of the two values is null
+        //        return Copper.combine(underlying, shifted)
+        //                .map(
+        //                        (r, w) -> {
+        //                            if (r.isNull(0) || r.isNull(1)) {
+        //                                w.writeNull();
+        //                            } else {
+        //                                w.write(r.readDouble(0) - r.readDouble(1));
+        //                            }
+        //                        },
+        //                        ILiteralType.DOUBLE);
     }
 }
