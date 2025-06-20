@@ -12,6 +12,7 @@ import static com.activeviam.apps.rest.EndpointConstants.CUSTOM_REST_PATH;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.activeviam.apps.cfg.source.AsOfDateLoadedEvent;
+import com.activeviam.apps.cfg.source.AsOfDateUnloadedEvent;
 import com.activeviam.apps.cfg.source.DlcConfig;
 import com.activeviam.database.api.DatabasePrinter;
 import com.activeviam.database.datastore.api.IDatastore;
@@ -46,6 +49,8 @@ public class AsOfDateDataController {
 
     private final IDatastore datastore;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     private static DlcScope asOfDateScope(LocalDate date) {
         return DlcScope.of(AS_OF_DATE_SCOPE_PARAMETER, date.format(DATE_FORMATTER));
     }
@@ -59,6 +64,7 @@ public class AsOfDateDataController {
                         .build())
                 .toDto();
         DatabasePrinter.printTableSizes(datastore.getMasterHead());
+        eventPublisher.publishEvent(new AsOfDateLoadedEvent(this, asOfDate, result));
         return result;
     }
 
@@ -71,6 +77,7 @@ public class AsOfDateDataController {
                         .build())
                 .toDto();
         DatabasePrinter.printTableSizes(datastore.getMasterHead());
+        eventPublisher.publishEvent(new AsOfDateUnloadedEvent(this, asOfDate, result));
         return result;
     }
 }
