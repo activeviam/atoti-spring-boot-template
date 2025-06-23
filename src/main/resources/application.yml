@@ -48,7 +48,8 @@ otel:
   resource:
     attributes:
       '[service.name]': ${spring.application.name}
-      '[service.version]': 1.0
+      # Getting the version from the Maven properties
+      '[service.version]': @project.version@
   instrumentation:
     logback-appender:
       experimental:
