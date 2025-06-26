@@ -130,7 +130,7 @@ content-service:
       hbm2ddl.auto: update
       # Connection Provider
       connection:
-        provider_class: org.hibernate.hikaricp.internal.HikariCPConnectionProvider
+        provider_class: hikaricp
         autocommit: false
       hikari:
         maximumPoolSize: 10
