@@ -11,15 +11,15 @@
 
   <groupId>com.activeviam.apps</groupId>
   <artifactId>atoti-spring-boot-template</artifactId>
-  <version>6.1.8</version>
+  <version>6.1.9</version>
   <description>Template project for Spring Boot</description>
 
   <properties>
     <java.version>21</java.version>
     <spring-boot.version>${project.parent.version}</spring-boot.version>
-    <atoti-server.version>6.1.8</atoti-server.version>
+    <atoti-server.version>6.1.9</atoti-server.version>
     <springdoc.version>2.8.9</springdoc.version>
-    <dlc.version>5.0.5</dlc.version>
+    <dlc.version>5.0.7</dlc.version>
 
     <opentelemetry.version>1.50.0</opentelemetry.version>
     <opentelemetry-instrumentation.version>2.16.0</opentelemetry-instrumentation.version>
