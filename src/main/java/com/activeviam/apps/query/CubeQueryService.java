@@ -6,8 +6,6 @@
  */
 package com.activeviam.apps.query;
 
-import static com.activeviam.activepivot.core.intf.api.cube.hierarchy.IHierarchy.ALLMEMBER;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -152,11 +150,12 @@ public class CubeQueryService {
             var mdxContext = new MdxContext();
             // These context values can only be added to the mdxContext, not as pure MDX!
             mdxContext.setHiddenSubtotals(cubeQuery.getLevels());
+            mdxContext.setHiddenGrandTotals(new int[] {1, 0});
             // FIXME: workaround, remove once https://github.com/activeviam/activepivot/pull/12984 is merged
-            mdxContext.setLightCrossJoinEnabled(false);
             mdxContext.setFormatters(extractAllMetricNames(cubeQuery).stream()
                     .collect(Collectors.toMap(Function.identity(), m -> defaultDoubleFormatter)));
             if (cubeQuery.getUseContext()) {
+                mdxContext.setLightCrossJoinEnabled(false);
                 // Add TopRank Set and Member
                 if (!ObjectUtils.isEmpty(cubeQuery.getTopRank())) {
                     var topRank = cubeQuery.getTopRank();
@@ -339,8 +338,7 @@ public class CubeQueryService {
 
             // If we are using a subselect to add filters, add them here
             if (!(cubeQuery.getFilter() instanceof TrueLogicalCondition) && fullMdxQuery) {
-                var bottomLevel = cubeQuery.getLevels().getLast();
-                query.append(subSelectWithFilter(cubeQuery.getFilter(), bottomLevel));
+                query.append(subSelectWithFilter(cubeQuery.getFilter(), cubeQuery.getLevels()));
             } else {
                 query.append(fromCube(cube));
             }
@@ -402,6 +400,10 @@ public class CubeQueryService {
             return isSlicingHierarchy ? levelToMdxMembers(level) : hierarchizedDescendantsMembers(level);
         }
 
+        private static String hierarchizedMembersForFilter(LevelIdentifier level, boolean isSlicingHierarchy) {
+            return isSlicingHierarchy ? levelToMdxMembers(level) : hierarchizedDescendantsMembersForFilter(level);
+        }
+
         private static String orderMdx(String levelMembers, String measure, String sortType) {
             return String.format("Order(%s, %s, %s)", levelMembers, measure, sortType);
         }
@@ -416,6 +418,10 @@ public class CubeQueryService {
 
         private static String hierarchizedDescendantsMembers(LevelIdentifier level) {
             return String.format("Hierarchize(Descendants({%s},1,SELF_AND_BEFORE))", levelToMdxMembers(level));
+        }
+
+        private static String hierarchizedDescendantsMembersForFilter(LevelIdentifier level) {
+            return String.format("Hierarchize(Descendants({%s}))", levelToMdxMembers(level));
         }
 
         private String hierarchizedLevels(
@@ -564,20 +570,21 @@ public class CubeQueryService {
                     .toList();
         }
 
-        private String subSelectWithFilter(LogicalCondition queryCondition, LevelIdentifier bottomLevel) {
+        private String subSelectWithFilter(LogicalCondition queryCondition, List<LevelIdentifier> allLevels) {
             var subSelectData = convertQueryConditionToMdxSubSelectData(queryCondition);
             if (ObjectUtils.isEmpty(subSelectData)) {
                 return "";
             }
-            var levels = new ArrayList<>(subSelectData.levels());
+            var levels = new HashSet<>(subSelectData.levels());
             // Add a default level to the crossjoin
-            if (levels.isEmpty()) {
-                levels.add(bottomLevel);
+            if (levels.isEmpty() || containsMeasureFilter(queryCondition)) {
+                levels.add(allLevels.getLast());
             }
+
             var crossJoin = String.format(
                     levels.size() == 1 ? "%s" : "Crossjoin(%s)",
                     levels.stream()
-                            .map(l -> hierarchizedMembers(l, isSlicingHierarchy(l.getHierarchy())))
+                            .map(l -> hierarchizedMembersForFilter(l, isSlicingHierarchy(l.getHierarchy())))
                             .collect(Collectors.joining(",")));
 
             return String.format(
