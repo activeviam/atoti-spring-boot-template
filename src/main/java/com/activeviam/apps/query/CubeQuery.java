@@ -86,9 +86,9 @@ public class CubeQuery {
         var filter = ObjectUtils.isEmpty(dto.getFiltersExpression())
                 ? new TrueLogicalCondition()
                 : FilterExpressionConditionVisitor.parseFilterExpression(dto.getFiltersExpression());
-        // If we dont force the use of context or not, we optimize?
+        // If we dont force the use of context or not, we always use context unless there is a measure filter
         var useContext = Optional.ofNullable(dto.getUseContext())
-                .orElse(CubeQueryService.CubeQuerier.containsMeasureFilter(filter));
+                .orElse(!CubeQueryService.CubeQuerier.containsMeasureFilter(filter));
         return new CubeQuery(
                 Optional.ofNullable(dto.getMetrics()).orElse(Collections.emptyList()),
                 Optional.ofNullable(dto.getLevels()).orElse(Collections.emptyList()).stream()

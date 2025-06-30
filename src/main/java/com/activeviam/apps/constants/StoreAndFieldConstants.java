@@ -18,11 +18,18 @@ public class StoreAndFieldConstants {
 
     public static final String COUNTERPARTIES_STORE_NAME = "Counterparties";
 
+    public static final String SHIFT_COB_DATE_STORE_NAME = "CobDates";
+
     /********************* Stores fields ***********************/
     public static final String COB_DATE = "CobDate";
 
+    public static final String SHIFT_COB_DATE = "ShiftCobDate";
+
     public static final String TRADE_ID = "TradeID";
     public static final String NOTIONAL = "Notional";
+
+    public static final String DESK = "Desk";
+    public static final String PORTFOLIO = "Portfolio";
 
     public static final String TEST_DECIMAL = "TestDecimal";
 

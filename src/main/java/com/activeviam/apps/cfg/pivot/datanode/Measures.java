@@ -7,13 +7,13 @@
 package com.activeviam.apps.cfg.pivot.datanode;
 
 import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.COB_DATE_LEVEL;
+import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.SHIFT_COB_DATE_LEVEL;
 import static com.activeviam.apps.constants.CubeConstants.DOUBLE_FORMATTER;
 import static com.activeviam.apps.constants.CubeConstants.INT_FORMATTER;
 import static com.activeviam.apps.constants.CubeConstants.NATIVE_MEASURES;
 import static com.activeviam.apps.constants.CubeConstants.TIMESTAMP_FORMATTER;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -27,6 +27,10 @@ public class Measures implements Consumer<ICopperContext> {
 
     public static String postfixMeasure(String base, String measure) {
         return String.join(".", base, measure);
+    }
+
+    public static String deltaPostfixMeasure(String base, String measure) {
+        return String.format("Delta %s", postfixMeasure(base, measure));
     }
 
     public static final String SUM = "Sum";
@@ -44,10 +48,8 @@ public class Measures implements Consumer<ICopperContext> {
         var notionalAvg =
                 Copper.avg(NOTIONAL).as(postfixMeasure(NOTIONAL, MEAN)).withFormatter(DOUBLE_FORMATTER);
         copperMeasures.add(notionalAvg);
-        copperMeasures.add(
-                diffFromPreviousDate(notionalSum).as(postfixMeasure(NOTIONAL, SUM) + " DIFF to previous date"));
-        copperMeasures.add(
-                diffFromPreviousDate(notionalAvg).as(postfixMeasure(NOTIONAL, MEAN) + " DIFF to previous date"));
+        copperMeasures.add(diffFromShiftDate(notionalSum).as(deltaPostfixMeasure(NOTIONAL, SUM)));
+        copperMeasures.add(diffFromShiftDate(notionalAvg).as(deltaPostfixMeasure(NOTIONAL, MEAN)));
     }
 
     @Override
@@ -55,20 +57,25 @@ public class Measures implements Consumer<ICopperContext> {
         copperMeasures.forEach(m -> m.publish(context));
     }
 
-    private static CopperMeasure diffFromPreviousDate(CopperMeasure underlying) {
-        var previous =
-                underlying.shift(Copper.levelAt(Copper.level(COB_DATE_LEVEL), date -> ((LocalDate) date).minusDays(1)));
-        return underlying.minus(previous);
-    }
+    private static CopperMeasure diffFromShiftDate(CopperMeasure underlying) {
+        var shifted = underlying.shift(
+                Copper.levelsAt(List.of(Copper.level(COB_DATE_LEVEL), Copper.level(SHIFT_COB_DATE_LEVEL)), w -> {
+                    var shiftCobDate = w.read(1);
+                    w.write(0, shiftCobDate);
+                }));
 
-    private static CopperMeasure diffFromPreviousEndOfQuarter(CopperMeasure underlying) {
-        var previous = underlying.shift(
-                Copper.levelAt(Copper.level(COB_DATE_LEVEL), date -> calculatePreviousEndOfQuarter((LocalDate) date)));
-        return underlying.minus(previous);
-    }
+        return underlying.minus(shifted);
 
-    private static LocalDate calculatePreviousEndOfQuarter(LocalDate date) {
-        // This is the last day of the previous month...
-        return date.withDayOfMonth(1).minusDays(1);
+        // alternative with combine to avoid writing zeros when one of the two values is null
+        //        return Copper.combine(underlying, shifted)
+        //                .map(
+        //                        (r, w) -> {
+        //                            if (r.isNull(0) || r.isNull(1)) {
+        //                                w.writeNull();
+        //                            } else {
+        //                                w.write(r.readDouble(0) - r.readDouble(1));
+        //                            }
+        //                        },
+        //                        ILiteralType.DOUBLE);
     }
 }

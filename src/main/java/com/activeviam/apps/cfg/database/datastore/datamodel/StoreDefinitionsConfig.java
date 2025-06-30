@@ -10,7 +10,11 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTIES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_NAME;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.DESK;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.PORTFOLIO;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_DATE;
@@ -27,6 +31,9 @@ import com.activeviam.database.datastore.api.description.impl.ReferenceDescripti
 import com.activeviam.database.datastore.api.description.impl.StoreDescription;
 
 public class StoreDefinitionsConfig {
+    public static int DATASTORE_PARTITIONING_MODULO = Runtime.getRuntime().availableProcessors();
+
+    public static final String SHIFT_COB_DATES_STORE_BEAN = "shiftCobDateStoreDescription";
 
     public static String referenceName(String from, String to) {
         return String.format("%s_to_%s", from, to);
@@ -41,6 +48,7 @@ public class StoreDefinitionsConfig {
                 .withField(TRADE_ID, STRING)
                 .asKeyField()
                 .withField(NOTIONAL, DOUBLE)
+                .withModuloPartitioning(DATASTORE_PARTITIONING_MODULO, COB_DATE, TRADE_ID)
                 .build();
     }
 
@@ -54,6 +62,8 @@ public class StoreDefinitionsConfig {
                 .asKeyField()
                 .withField(TRADE_DATE, LOCAL_DATE)
                 .withField(COUNTERPARTY_ID, STRING)
+                .withField(DESK, STRING)
+                .withField(PORTFOLIO, STRING)
                 .build();
     }
 
@@ -64,6 +74,15 @@ public class StoreDefinitionsConfig {
                 .withField(COUNTERPARTY_ID, STRING)
                 .asKeyField()
                 .withField(COUNTERPARTY_NAME, STRING)
+                .build();
+    }
+
+    @Bean(name = SHIFT_COB_DATES_STORE_BEAN)
+    public IStoreDescription shiftCobDateStoreDescription() {
+        return StoreDescription.builder()
+                .withStoreName(SHIFT_COB_DATE_STORE_NAME)
+                .withField(SHIFT_COB_DATE, LOCAL_DATE)
+                .asKeyField()
                 .build();
     }
 

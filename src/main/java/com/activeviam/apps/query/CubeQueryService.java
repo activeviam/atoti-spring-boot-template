@@ -36,6 +36,7 @@ import com.activeviam.activepivot.core.intf.api.contextvalues.mdx.IMdxContext;
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.cube.IMultiVersionActivePivot;
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IAxisHierarchy;
+import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IMeasureHierarchy;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.HierarchyIdentifier;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
 import com.activeviam.activepivot.core.intf.internal.context.filter.AndCubeRestriction;
@@ -125,14 +126,17 @@ public class CubeQueryService {
         }
 
         public CubeQuery convertCubeQuery(CubeQueryDTO dto) {
+            assertIsReady();
             return CubeQuery.fromDTO(dto, levelsConverter);
         }
 
         public StreamingResponseBody runQuery(CubeQuery cubeQuery, Map<String, Object> exporterConfig) {
+            assertIsReady();
             var contextValues = new ArrayList<IContextValue>();
             contextValues.add(buildMdxContext(cubeQuery));
             if (cubeQuery.getUseContext()) {
-                contextValues.add(buildCubeRestrictions(cubeQuery));
+                var cubeRestrictions = buildCubeRestrictions(cubeQuery);
+                contextValues.add(cubeRestrictions);
             }
             var contextSnapshot = ContextUtils.applyContextValues(activePivot.getContext(), contextValues, true);
             var mdx = buildMdxQuery(cubeQuery);
@@ -146,6 +150,7 @@ public class CubeQueryService {
 
         IMdxContext buildMdxContext(CubeQuery cubeQuery) {
             var mdxContext = new MdxContext();
+            // These context values can only be added to the mdxContext, not as pure MDX!
             mdxContext.setHiddenSubtotals(cubeQuery.getLevels());
             // FIXME: workaround, remove once https://github.com/activeviam/activepivot/pull/12984 is merged
             mdxContext.setLightCrossJoinEnabled(false);
@@ -298,18 +303,21 @@ public class CubeQueryService {
         }
 
         public String buildMdxQuery(CubeQuery cubeQuery) {
+            assertIsReady();
             var query = new StringBuilder();
             var sortBys = cubeQuery.getSortBy();
             var topRank = cubeQuery.getTopRank();
             var topCount = cubeQuery.getTopCount();
             var levels = cubeQuery.getLevels();
-            var useContext = cubeQuery.getUseContext();
+            var fullMdxQuery = !cubeQuery.getUseContext();
 
             // If there are any calculated members and they are not added to the MDX context, add them
             // with the statement WITH
-            var calculatedMembers = buildCalculatedMembersMdx(cubeQuery);
-            if (!ObjectUtils.isEmpty(calculatedMembers) && !useContext) {
-                query.append(calculatedMembers);
+            if (fullMdxQuery) {
+                var calculatedMembers = buildCalculatedMembersMdx(cubeQuery);
+                if (!ObjectUtils.isEmpty(calculatedMembers)) {
+                    query.append(calculatedMembers);
+                }
             }
 
             query.append("SELECT NON EMPTY");
@@ -330,7 +338,7 @@ public class CubeQueryService {
             }
 
             // If we are using a subselect to add filters, add them here
-            if (!(cubeQuery.getFilter() instanceof TrueLogicalCondition) && !useContext) {
+            if (!(cubeQuery.getFilter() instanceof TrueLogicalCondition) && fullMdxQuery) {
                 var bottomLevel = cubeQuery.getLevels().getLast();
                 query.append(subSelectWithFilter(cubeQuery.getFilter(), bottomLevel));
             } else {
@@ -344,12 +352,23 @@ public class CubeQueryService {
             return String.format("FROM [%s]", cube);
         }
 
+        private void assertIsReady() {
+            var hierarchies = activePivot.getHead().getHierarchies().stream()
+                    .filter(hierarchy -> !(hierarchy instanceof IMeasureHierarchy))
+                    .toList();
+            if (hierarchies.isEmpty()) {
+                throw new ActiveViamRuntimeException("Cube has no hierarchies");
+            }
+        }
+
         private boolean isSlicingHierarchy(HierarchyIdentifier hierarchyIdentifier) {
             // Cache
             if (Objects.isNull(slicingHierarchies)) {
-                slicingHierarchies = activePivot.getDescription().getAxisDimensions().getValues().stream()
-                        .flatMap(dimension -> dimension.getHierarchies().stream())
-                        .filter(hierarchy -> !hierarchy.isAllMembersEnabled())
+                var hierarchies = activePivot.getHead().getHierarchies().stream()
+                        .filter(hierarchy -> !(hierarchy instanceof IMeasureHierarchy))
+                        .toList();
+                slicingHierarchies = hierarchies.stream()
+                        .filter(HierarchiesUtil::isSlicing)
                         .map(hierarchy -> levelsConverter.stringToHierarchyIdentifier(hierarchy.getName()))
                         .collect(Collectors.toSet());
             }

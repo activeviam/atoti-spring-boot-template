@@ -6,6 +6,7 @@
  */
 package com.activeviam.apps.cfg.source;
 
+import static com.activeviam.apps.cfg.source.DlcConfig.COB_DATE_SCOPE_PARAMETER;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTIES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
@@ -20,10 +21,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.activeviam.apps.annotations.ConditionalOnApplicationWithDatastore;
-import com.activeviam.database.api.conditions.BaseConditions;
-import com.activeviam.database.api.schema.FieldPath;
 import com.activeviam.io.dlc.impl.description.topic.JdbcTopicDescription;
-import com.activeviam.io.dlc.impl.description.topic.UnloadTopicDescription;
 import com.activeviam.io.dlc.impl.description.topic.channel.ChannelDescription;
 import com.activeviam.io.dlc.impl.description.topic.channel.column.calc.CustomFieldDescription;
 import com.activeviam.io.dlc.impl.utils.NamedEntityResolverService;
@@ -38,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DremioJdbcSourceConfig {
     public static final String DREMIO_TOPICS = "DremioTopics";
-    public static final String DREMIO_UNLOAD_TOPIC = "DremioUnloadTopic";
 
     public static final String TRADES_SQL_TOPIC = TRADES_STORE_NAME;
     public static final String TRADE_ATTRIBUTES_SQL_TOPIC = TRADE_ATTRIBUTES_STORE_NAME;
@@ -64,8 +61,6 @@ public class DremioJdbcSourceConfig {
             SELECT *
             FROM Counterparties
             """;
-
-    public static final String COB_DATE_SCOPE_PARAMETER = "cobDate";
 
     @Bean
     CustomFieldDescription cobDateJdbcParser() {
@@ -101,18 +96,6 @@ public class DremioJdbcSourceConfig {
                 .channel(ChannelDescription.builder(namedEntityResolverService.getTarget(TRADE_ATTRIBUTES_STORE_NAME))
                         .customFields(customFields)
                         .build())
-                .build();
-    }
-
-    @Bean
-    UnloadTopicDescription unloadTopicDescription() {
-        return UnloadTopicDescription.builder()
-                .name(DREMIO_UNLOAD_TOPIC)
-                .stores(Set.of(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME))
-                .removalConditionFactory((storeDescription, scope) -> {
-                    assert scope.containsKey(COB_DATE_SCOPE_PARAMETER);
-                    return BaseConditions.equal(FieldPath.of(COB_DATE), scope.get(COB_DATE_SCOPE_PARAMETER));
-                })
                 .build();
     }
 }

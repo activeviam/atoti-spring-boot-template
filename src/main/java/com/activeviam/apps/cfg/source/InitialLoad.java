@@ -6,6 +6,12 @@
  */
 package com.activeviam.apps.cfg.source;
 
+import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
+
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.stream.IntStream;
+
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -32,14 +38,24 @@ public class InitialLoad {
     @EventListener(value = ApplicationStartedEvent.class)
     void onApplicationReady() {
         log.info("ApplicationReadyEvent triggered");
+        // Fill the SHIFT cob dates
+        applicationWithDatastore.getDatastore().edit(t -> {
+            t.addAll(
+                    SHIFT_COB_DATE_STORE_NAME,
+                    IntStream.range(1, 100)
+                            .mapToObj(x -> new Object[] {LocalDate.now().minusDays(x)})
+                            .toList());
+        });
         startDistributionMessenger(applicationWithDatastore.getManager());
-        //        initialInMemoryLoad();
+        initialInMemoryLoad();
     }
 
     private void initialInMemoryLoad() {
         log.info("Initial data load started...");
+        var datesToLoad = new HashSet<LocalDate>(cobDatesProperties.getFixedCobDates());
+        datesToLoad.addAll(cobDatesProperties.computeInMemoryDates());
         try {
-            cobDateLoadController.loadCobDates(cobDatesProperties.computeInMemoryDates());
+            cobDateLoadController.loadCobDates(datesToLoad);
             log.info("Initial data load completed");
             DatabasePrinter.printTableSizes(
                     applicationWithDatastore.getDatastore().getMasterHead());

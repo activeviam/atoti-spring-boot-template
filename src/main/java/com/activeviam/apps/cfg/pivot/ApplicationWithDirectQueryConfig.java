@@ -25,6 +25,7 @@ import com.activeviam.apps.cfg.pivot.datanode.DataCubeConfig;
 import com.activeviam.apps.cfg.pivot.datanode.DataNodeActivePivotManagerConfig;
 import com.activeviam.database.api.IDatabase;
 import com.activeviam.database.datastore.api.IDatastore;
+import com.activeviam.database.jdbc.api.GenericJdbcDatabaseSettings;
 import com.activeviam.directquery.api.DirectQueryConnector;
 import com.activeviam.directquery.api.schema.SchemaDescription;
 import com.activeviam.directquery.application.api.Application;
@@ -43,12 +44,14 @@ public class ApplicationWithDirectQueryConfig implements IActivePivotConfig, IDa
     private final SchemaDescription schemaDescription;
     private final IActivePivotManagerDescription activePivotManagerDescription;
     private final IEpochManagementPolicy epochManagementPolicy;
-    private final DirectQueryConnector<?> directQueryConnector;
+    private final DirectQueryConnector<GenericJdbcDatabaseSettings> directQueryConnector;
+    private final GenericJdbcDatabaseSettings databaseSettings;
 
     @Bean
     Application applicationWithDirectQuery() {
         return Application.builder(directQueryConnector)
                 .managerDescription(activePivotManagerDescription)
+                .databaseSettings(databaseSettings)
                 .schema(schemaDescription)
                 .epochPolicy(epochManagementPolicy)
                 .build();

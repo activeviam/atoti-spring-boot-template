@@ -19,6 +19,10 @@ public class CobDatesProperties {
 
     private int daysInMemory = 7;
 
+    private List<LocalDate> fixedCobDates = new ArrayList<>();
+
+    private String source = "local-dremio";
+
     public List<LocalDate> computeInMemoryDates() {
         return computeInMemoryDates(LocalDate.now());
     }
