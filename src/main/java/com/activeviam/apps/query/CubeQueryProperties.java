@@ -25,6 +25,7 @@ public class CubeQueryProperties {
     @Data
     public static class CubeDefaults {
         List<String> dateFilterLevels;
+        List<String> analysisHierarchies;
         String defaultDimension;
     }
 }

@@ -26,12 +26,14 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.impl.api.contextvalues.mdx.MdxContext;
+import com.activeviam.activepivot.core.impl.api.contextvalues.subcube.CubeFilter;
 import com.activeviam.activepivot.core.impl.api.cube.hierarchy.HierarchiesUtil;
 import com.activeviam.activepivot.core.impl.internal.context.filter.QueryBasedCubeRestriction;
 import com.activeviam.activepivot.core.impl.internal.context.impl.ContextUtils;
 import com.activeviam.activepivot.core.impl.internal.contextvalues.subcube.CubeFilterUtil;
 import com.activeviam.activepivot.core.intf.api.contextvalues.IContextValue;
 import com.activeviam.activepivot.core.intf.api.contextvalues.mdx.IMdxContext;
+import com.activeviam.activepivot.core.intf.api.contextvalues.subcube.ICubeFilter;
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.cube.IMultiVersionActivePivot;
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IAxisHierarchy;
@@ -101,7 +103,9 @@ public class CubeQueryService {
         private final String defaultDoubleFormatter;
         private final IMultiVersionActivePivot activePivot;
         private final IDataExportService dataExportService;
+        private final CubeQueryProperties.CubeDefaults cubeDefaults;
         Set<HierarchyIdentifier> slicingHierarchies;
+        Set<HierarchyIdentifier> cubeFilterHierarchies;
 
         private CubeQuerier(
                 String cube,
@@ -113,6 +117,7 @@ public class CubeQueryService {
             this.defaultDoubleFormatter = defaultDoubleFormatter;
             this.activePivot = activePivot;
             this.dataExportService = dataExportService;
+            this.cubeDefaults = cubeDefaults;
             levelsConverter = new SingleDimensionLevelsConverter(cubeDefaults.getDefaultDimension());
         }
 
@@ -128,6 +133,8 @@ public class CubeQueryService {
             if (cubeQuery.getUseContext()) {
                 var cubeRestrictions = buildCubeRestrictions(cubeQuery);
                 contextValues.add(cubeRestrictions);
+                var cubeFilter = buildCubeFilter(cubeQuery);
+                contextValues.add(cubeFilter);
             }
             var contextSnapshot = ContextUtils.applyContextValues(activePivot.getContext(), contextValues, true);
             var mdx = buildMdxQuery(cubeQuery);
@@ -137,6 +144,37 @@ public class CubeQueryService {
             var output = dataExportService.streamMdxQuery(dataExportOrder);
             ContextUtils.replaceContextValues(activePivot.getContext(), contextSnapshot);
             return output;
+        }
+
+        private ICubeFilter buildCubeFilter(CubeQuery cubeQuery) {
+            if (Objects.isNull(cubeFilterHierarchies)) {
+                initCubeFilterHierarchies();
+            }
+            // Add all members of all slicing hierarchies
+            var slicingHierarchyFilter = new HashMap<HierarchyIdentifier, Collection<?>>();
+            for (var h : cubeFilterHierarchies) {
+                var members = getMembersForLevel(h);
+                slicingHierarchyFilter.put(h, members);
+            }
+            //                if (cubeQuery.getFilter()  instanceof InLogicalCondition<?> inLogicalCondition) {
+            //                        var hierarchyIdentifier =
+            // levelsConverter.stringToHierarchyIdentifier(inLogicalCondition.getField());
+            //                        if (slicingHierarchies.contains(hierarchyIdentifier)) {
+            //
+            // slicingHierarchyFilter.put(hierarchyIdentifier,inLogicalCondition.getValues());
+            //                        }
+            //                    }
+            if (slicingHierarchyFilter.isEmpty()) {
+                return CubeFilter.NO_FILTER;
+            } else {
+                var builder = CubeFilter.builder();
+                for (var entry : slicingHierarchyFilter.entrySet()) {
+                    builder = builder.includeMembers(
+                            entry.getKey(),
+                            entry.getValue().stream().map(Object::toString).toList());
+                }
+                return builder.build();
+            }
         }
 
         IMdxContext buildMdxContext(CubeQuery cubeQuery) {
@@ -352,16 +390,28 @@ public class CubeQueryService {
             }
         }
 
-        private boolean isSlicingHierarchy(HierarchyIdentifier hierarchyIdentifier) {
-            // Cache
+        private void initSlicingHierarchies() {
+            var hierarchies = activePivot.getHead().getHierarchies().stream()
+                    .filter(hierarchy -> !(hierarchy instanceof IMeasureHierarchy))
+                    .toList();
+            slicingHierarchies = hierarchies.stream()
+                    .filter(HierarchiesUtil::isSlicing)
+                    .map(hierarchy -> levelsConverter.stringToHierarchyIdentifier(hierarchy.getName()))
+                    .collect(Collectors.toSet());
+        }
+
+        private void initCubeFilterHierarchies() {
             if (Objects.isNull(slicingHierarchies)) {
-                var hierarchies = activePivot.getHead().getHierarchies().stream()
-                        .filter(hierarchy -> !(hierarchy instanceof IMeasureHierarchy))
-                        .toList();
-                slicingHierarchies = hierarchies.stream()
-                        .filter(HierarchiesUtil::isSlicing)
-                        .map(hierarchy -> levelsConverter.stringToHierarchyIdentifier(hierarchy.getName()))
-                        .collect(Collectors.toSet());
+                initSlicingHierarchies();
+            }
+            cubeFilterHierarchies = slicingHierarchies.stream()
+                    .filter(h -> !cubeDefaults.getAnalysisHierarchies().contains(h.getHierarchyName()))
+                    .collect(Collectors.toSet());
+        }
+
+        private boolean isSlicingHierarchy(HierarchyIdentifier hierarchyIdentifier) {
+            if (Objects.isNull(slicingHierarchies)) {
+                initSlicingHierarchies();
             }
             return slicingHierarchies.contains(hierarchyIdentifier);
         }
@@ -529,8 +579,9 @@ public class CubeQueryService {
                 case MeasureCondition measureCondition ->
                     throw new UnsupportedOperationException(MeasureCondition.class.getSimpleName());
                 case LikeLogicalCondition likeCondition -> {
-                    var allMembers =
-                            getMembersForLevel(levelsConverter.stringToLevelIdentifier(likeCondition.getField()));
+                    var allMembers = getMembersForLevel(levelsConverter
+                            .stringToLevelIdentifier(likeCondition.getField())
+                            .getHierarchy());
                     var criteria = likeCondition.getMatchingCriteria();
                     var valuesToFilter = allMembers.stream()
                             .filter(m -> m.contains(criteria))
@@ -543,14 +594,14 @@ public class CubeQueryService {
             };
         }
 
-        private Collection<String> getMembersForLevel(LevelIdentifier level) {
-            var hierarchy = HierarchiesUtil.getHierarchy(activePivot.getHead(), level.getHierarchy());
+        private Collection<String> getMembersForLevel(HierarchyIdentifier hierarchyIdentifier) {
+            var hierarchy = HierarchiesUtil.getHierarchy(activePivot.getHead(), hierarchyIdentifier);
             // NOTE: We assume this is a single level hierarchy!
             return Objects.requireNonNull(CubeFilterUtil.getQueryFilters(activePivot.getContext())
                             .getFilter())
-                    .retrieveMembers((IAxisHierarchy) hierarchy, 1)
+                    .retrieveMembers((IAxisHierarchy) hierarchy, isSlicingHierarchy(hierarchyIdentifier) ? 0 : 1)
                     .stream()
-                    .map(m -> (String) m.getDiscriminator())
+                    .map(m -> m.getDiscriminator().toString())
                     .toList();
         }
 
