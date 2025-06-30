@@ -535,7 +535,7 @@ public class CubeQueryService {
                 case InLogicalCondition<?> inLogicalCondition ->
                     InLevelRestriction.create(
                             levelsConverter.stringToLevelIdentifier(inLogicalCondition.getField()),
-                            new HashSet<>(inLogicalCondition.getValues()));
+                            inPathValues(inLogicalCondition.getField(), inLogicalCondition.getValues()));
                 case MeasureCondition measureCondition ->
                     throw new UnsupportedOperationException(MeasureCondition.class.getSimpleName());
                 case LikeLogicalCondition likeCondition -> {
@@ -547,7 +547,7 @@ public class CubeQueryService {
                             .toList();
                     yield InLevelRestriction.create(
                             levelsConverter.stringToLevelIdentifier(likeCondition.getField()),
-                            new HashSet<>(valuesToFilter));
+                            inPathValues(likeCondition.getField(), valuesToFilter));
                 }
                 default -> ICubeRestriction.TRUE_INSTANCE;
             };
@@ -651,12 +651,8 @@ public class CubeQueryService {
                     .toList();
         }
 
-        private Object[] inPathValues(String hierarchy, Collection<?> values) {
-            if (isSlicingHierarchy(levelsConverter.stringToHierarchyIdentifier(hierarchy))) {
-                return new Object[] {values};
-            } else {
-                return new Object[] {ALLMEMBER, values};
-            }
+        private Set<?> inPathValues(String hierarchy, Collection<?> values) {
+            return new HashSet<>(values);
         }
 
         static boolean containsMeasureFilter(LogicalCondition queryCondition) {
