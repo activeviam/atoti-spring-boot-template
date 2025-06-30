@@ -10,6 +10,8 @@ import static com.activeviam.activepivot.core.intf.api.description.IAxisHierarch
 import static com.activeviam.activepivot.core.intf.api.description.IAxisHierarchyDescription.AUTO_CONTRIBUTE_UNKNOWN_MEMBER_PROPERTY;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.DESK;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.PORTFOLIO;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_DATE;
@@ -42,7 +44,7 @@ public class Dimensions implements ICanStartBuildingDimensions.DimensionsAdder {
     @Override
     public ICanBuildCubeDescription<IActivePivotInstanceDescription> apply(ICanStartBuildingDimensions builder) {
         return builder.withDimension(TRADE_ATTRIBUTES_DIMENSION)
-                .withSingleLevelHierarchies(TRADE_ID, COUNTERPARTY_ID)
+                .withSingleLevelHierarchies(TRADE_ID, COUNTERPARTY_ID, DESK, PORTFOLIO)
                 .withSingleLevelHierarchy(TRADE_DATE)
                 .withType(ILevelInfo.LevelType.TIME)
                 // Make the AsOfDate hierarchy slicing - we do not aggregate across dates

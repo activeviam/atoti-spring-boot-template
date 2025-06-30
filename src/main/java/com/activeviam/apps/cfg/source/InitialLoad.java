@@ -9,6 +9,7 @@ package com.activeviam.apps.cfg.source;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.stream.IntStream;
 
 import org.springframework.boot.context.event.ApplicationStartedEvent;
@@ -46,13 +47,15 @@ public class InitialLoad {
                             .toList());
         });
         startDistributionMessenger(applicationWithDatastore.getManager());
-        //        initialInMemoryLoad();
+        initialInMemoryLoad();
     }
 
     private void initialInMemoryLoad() {
         log.info("Initial data load started...");
+        var datesToLoad = new HashSet<LocalDate>(cobDatesProperties.getFixedCobDates());
+        datesToLoad.addAll(cobDatesProperties.computeInMemoryDates());
         try {
-            cobDateLoadController.loadCobDates(cobDatesProperties.computeInMemoryDates());
+            cobDateLoadController.loadCobDates(datesToLoad);
             log.info("Initial data load completed");
             DatabasePrinter.printTableSizes(
                     applicationWithDatastore.getDatastore().getMasterHead());

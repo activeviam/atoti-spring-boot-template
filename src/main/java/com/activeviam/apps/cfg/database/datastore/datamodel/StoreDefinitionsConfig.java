@@ -10,7 +10,9 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTIES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_NAME;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.DESK;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.PORTFOLIO;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
@@ -60,6 +62,8 @@ public class StoreDefinitionsConfig {
                 .asKeyField()
                 .withField(TRADE_DATE, LOCAL_DATE)
                 .withField(COUNTERPARTY_ID, STRING)
+                .withField(DESK, STRING)
+                .withField(PORTFOLIO, STRING)
                 .build();
     }
 

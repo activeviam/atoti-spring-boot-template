@@ -126,7 +126,8 @@ public class CubeQueryService {
             var contextValues = new ArrayList<IContextValue>();
             contextValues.add(buildMdxContext(cubeQuery));
             if (cubeQuery.getUseContext()) {
-                contextValues.add(buildCubeRestrictions(cubeQuery));
+                var cubeRestrictions = buildCubeRestrictions(cubeQuery);
+                contextValues.add(cubeRestrictions);
             }
             var contextSnapshot = ContextUtils.applyContextValues(activePivot.getContext(), contextValues, true);
             var mdx = buildMdxQuery(cubeQuery);
@@ -614,7 +615,7 @@ public class CubeQueryService {
                     yield new MdxSubSelectData(
                             values.stream()
                                     .map(value -> mdxLevelValue + " = \"" + value.toString() + "\"")
-                                    .collect(Collectors.joining(" OR ")),
+                                    .collect(Collectors.joining(" OR ", "(", ")")),
                             Set.of(level));
                 }
                 case MeasureCondition measureCondition ->

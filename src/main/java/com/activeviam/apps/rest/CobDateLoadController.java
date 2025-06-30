@@ -6,6 +6,7 @@
  */
 package com.activeviam.apps.rest;
 
+import static com.activeviam.apps.cfg.source.CsvSourceConfig.CSV_TOPICS;
 import static com.activeviam.apps.cfg.source.DlcConfig.COB_DATE_UNLOAD_TOPIC;
 import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.COUNTERPARTIES_SQL_QUERY;
 import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.COUNTERPARTIES_SQL_TOPIC;
@@ -36,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.activeviam.apps.annotations.ConditionalOnApplicationWithDatastore;
+import com.activeviam.apps.cfg.source.CobDatesProperties;
 import com.activeviam.apps.cfg.source.DlcConfig;
 import com.activeviam.database.api.DatabasePrinter;
 import com.activeviam.database.datastore.api.IDatastore;
@@ -65,6 +67,8 @@ public class CobDateLoadController {
     private final DataLoadControllerService dataLoadControllerService;
 
     private final IDatastore datastore;
+
+    private final CobDatesProperties cobDatesProperties;
 
     public List<LocalDate> getCobDates() {
         var query = datastore
@@ -132,18 +136,30 @@ public class CobDateLoadController {
         var existingDates = getCobDates();
         var datesToLoad =
                 cobDates.stream().filter(date -> !existingDates.contains(date)).toList();
-
+        var dataSource = cobDatesProperties.getSource();
         // Load dates separately for now
         if (!datesToLoad.isEmpty()) {
-            var result = dataLoadControllerService
-                    .execute(DlcLoadRequest.builder()
-                            .topics(COUNTERPARTIES_SQL_TOPIC)
-                            .topicOverrides(
-                                    Set.of(overrideTradeTopic(datesToLoad), overrideTradeAttributesTopic(datesToLoad)))
-                            .build())
-                    .toDto();
-            DatabasePrinter.printTableSizes(datastore.getMasterHead());
-            return result;
+            if (dataSource.equals("default")) {
+                var result = dataLoadControllerService
+                        .execute(DlcLoadRequest.builder()
+                                .topics(CSV_TOPICS)
+                                .sourceName(dataSource)
+                                .build())
+                        .toDto();
+                DatabasePrinter.printTableSizes(datastore.getMasterHead());
+                return result;
+            } else {
+                var result = dataLoadControllerService
+                        .execute(DlcLoadRequest.builder()
+                                .topics(COUNTERPARTIES_SQL_TOPIC)
+                                .topicOverrides(Set.of(
+                                        overrideTradeTopic(datesToLoad), overrideTradeAttributesTopic(datesToLoad)))
+                                .sourceName(dataSource)
+                                .build())
+                        .toDto();
+                DatabasePrinter.printTableSizes(datastore.getMasterHead());
+                return result;
+            }
         }
         return new DlcLoadResponseDTO(
                 Collections.emptyMap(),

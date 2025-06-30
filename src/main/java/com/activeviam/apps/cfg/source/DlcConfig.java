@@ -6,6 +6,9 @@
  */
 package com.activeviam.apps.cfg.source;
 
+import static com.activeviam.apps.cfg.source.CsvSourceConfig.CSV_TOPICS;
+import static com.activeviam.apps.cfg.source.CsvSourceConfig.TRADES_CSV_TOPIC;
+import static com.activeviam.apps.cfg.source.CsvSourceConfig.TRADE_ATTRIBUTES_CSV_TOPIC;
 import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.COUNTERPARTIES_SQL_TOPIC;
 import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.DREMIO_TOPICS;
 import static com.activeviam.apps.cfg.source.DremioJdbcSourceConfig.TRADES_SQL_TOPIC;
@@ -34,8 +37,11 @@ public class DlcConfig {
 
     @Bean
     AliasesDescription aliases() {
-        return new AliasesDescription(
-                Map.of(DREMIO_TOPICS, Set.of(TRADES_SQL_TOPIC, TRADE_ATTRIBUTES_SQL_TOPIC, COUNTERPARTIES_SQL_TOPIC)));
+        return new AliasesDescription(Map.of(
+                DREMIO_TOPICS,
+                Set.of(TRADES_SQL_TOPIC, TRADE_ATTRIBUTES_SQL_TOPIC, COUNTERPARTIES_SQL_TOPIC),
+                CSV_TOPICS,
+                Set.of(TRADE_ATTRIBUTES_CSV_TOPIC, TRADES_CSV_TOPIC)));
     }
 
     @Bean

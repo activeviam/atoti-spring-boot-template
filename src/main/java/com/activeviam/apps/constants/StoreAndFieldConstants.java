@@ -28,6 +28,9 @@ public class StoreAndFieldConstants {
     public static final String TRADE_ID = "TradeID";
     public static final String NOTIONAL = "Notional";
 
+    public static final String DESK = "Desk";
+    public static final String PORTFOLIO = "Portfolio";
+
     public static final String TEST_DECIMAL = "TestDecimal";
 
     public static final String TRADE_DATE = "TradeDate";

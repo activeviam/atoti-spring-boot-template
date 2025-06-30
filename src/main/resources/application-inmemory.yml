@@ -9,6 +9,12 @@ server:
   port: 9091
 database.type: datastore
 dlc:
+  csv:
+    local:
+      sources:
+        default:
+          root-base-dir: ./src/main/resources/data/#{COB_DATE}
+
   jdbc:
     sources:
       local-dremio:
@@ -18,4 +24,6 @@ dlc:
         password: "admin12345"
         accepts-topic-overrides: true
 cob-dates:
-  days-in-memory: 1
+  source: default
+  days-in-memory: 0
+  fixed-cob-dates: 2019-01-01,2019-01-02
