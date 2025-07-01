@@ -15,6 +15,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.activeviam.activepivot.core.intf.api.mdx.MdxException;
+import com.google.common.base.Throwables;
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -24,5 +27,14 @@ public class GlobalExceptionHandler {
                 .getFieldErrors()
                 .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MdxException.class)
+    public ResponseEntity<Object> handleMdxQueryException(MdxException ex) {
+        return new ResponseEntity<>(
+                String.format(
+                        "%s%nRoot cause: %s",
+                        ex.getMessage(), Throwables.getRootCause(ex).getMessage()),
+                HttpStatus.BAD_REQUEST);
     }
 }

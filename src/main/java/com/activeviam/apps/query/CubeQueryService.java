@@ -132,7 +132,7 @@ public class CubeQueryService {
             assertIsReady();
             var contextValues = new ArrayList<IContextValue>();
             contextValues.add(buildMdxContext(cubeQuery));
-            if (cubeQuery.getUseContext()) {
+            if (cubeQuery.isUseContext()) {
                 var cubeRestrictions = buildCubeRestrictions(cubeQuery);
                 contextValues.add(cubeRestrictions);
             }
@@ -331,7 +331,7 @@ public class CubeQueryService {
             var topRank = cubeQuery.getTopRank();
             var topCount = cubeQuery.getTopCount();
             var levels = cubeQuery.getLevels();
-            var fullMdxQuery = !cubeQuery.getUseContext();
+            var fullMdxQuery = !cubeQuery.isUseContext();
 
             // If there are any calculated members and they are not added to the MDX context, add them
             // with the statement WITH

@@ -116,6 +116,9 @@ public class CubeQuery {
                         .map(p -> Partitioning.fromDTO(p, levelsConverter))
                         .toList(),
                 useContext,
-                HideTotals.fromDTO(dto.getHideTotals(), levelsConverter));
+                HideTotals.fromDTO(
+                        Optional.ofNullable(dto.getHideTotals())
+                                .orElse(CubeQueryDTO.HideTotalsDTO.builder().build()),
+                        levelsConverter));
     }
 }
