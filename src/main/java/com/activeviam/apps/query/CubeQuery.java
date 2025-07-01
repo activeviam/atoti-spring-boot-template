@@ -30,7 +30,7 @@ public class CubeQuery {
     private final List<CubeQuery.Sort> sortBy;
     private final CubeQuery.TopRank topRank;
     private final List<CubeQuery.Partitioning> partitionedBy;
-    private final Boolean useContext;
+    private final boolean useContext;
     private final HideTotals hideTotals;
 
     public static String calculatedMemberDefaultName(String metric, String level) {

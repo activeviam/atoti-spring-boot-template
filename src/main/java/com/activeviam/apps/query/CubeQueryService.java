@@ -146,68 +146,83 @@ public class CubeQueryService {
             return output;
         }
 
-        IMdxContext buildMdxContext(CubeQuery cubeQuery) {
-            var mdxContext = new MdxContext();
+        private void applyHideTotals(
+                CubeQuery.HideTotals hideTotals, List<LevelIdentifier> allLevels, MdxContext mdxContext) {
             // These context values can only be added to the mdxContext, not as pure MDX!
-            var hideTotals = cubeQuery.getHideTotals();
             if (hideTotals.all() || hideTotals.grandTotal()) {
                 mdxContext.setHiddenGrandTotals(new int[] {1, 0});
             }
             if (hideTotals.all()) {
-                mdxContext.setHiddenSubtotals(cubeQuery.getLevels()); // these are all the levels
+                mdxContext.setHiddenSubtotals(allLevels); // these are all the levels
             } else if (!hideTotals.levels().isEmpty()) {
                 mdxContext.setHiddenSubtotals(hideTotals.levels()); // these are only
             }
+        }
 
+        private void applyFullContext(CubeQuery cubeQuery, MdxContext mdxContext) {
             // FIXME: workaround, remove once https://github.com/activeviam/activepivot/pull/12984 is merged
-            mdxContext.setFormatters(extractAllMetricNames(cubeQuery).stream()
-                    .collect(Collectors.toMap(Function.identity(), m -> defaultDoubleFormatter)));
-            if (cubeQuery.getUseContext()) {
-                mdxContext.setLightCrossJoinEnabled(false);
-                // Add TopRank Set and Member
-                if (!ObjectUtils.isEmpty(cubeQuery.getTopRank())) {
-                    var topRank = cubeQuery.getTopRank();
-                    mdxContext.addNamedSet(StartBuilding.namedSet()
-                            .withName(TOP_RANK_SET)
-                            .withExpression(topRankSetExpression(topRank))
-                            .build());
+            mdxContext.setLightCrossJoinEnabled(false);
+            // Add TopRank Set and Member
+            if (!ObjectUtils.isEmpty(cubeQuery.getTopRank())) {
+                var topRank = cubeQuery.getTopRank();
+                mdxContext.addNamedSet(StartBuilding.namedSet()
+                        .withName(TOP_RANK_SET)
+                        .withExpression(topRankSetExpression(topRank))
+                        .build());
+                mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
+                        .withName(TOP_RANK_MEMBER)
+                        .withExpression(topRankMemberExpression(topRank))
+                        .build());
+            }
+            if (!ObjectUtils.isEmpty(cubeQuery.getPartitionedBy())) {
+                cubeQuery
+                        .getPartitionedBy()
+                        .forEach(p -> mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
+                                .withName(metricToMdxMeasure(p.newMetric()))
+                                .withExpression(partitioningCalculatedMemberExpression(p))
+                                .build()));
+            }
+            if (!ObjectUtils.isEmpty(cubeQuery.getSortBy())) {
+                // Create calculated members for sorting that requires it
+                cubeQuery.getSortBy().stream()
+                        .filter(CubeQuerier::sortRequiresCalculatedMember)
+                        .forEach(sort -> mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
+                                .withName(sortingCalculatedMeasure(sort))
+                                .withExpression(sortingCalculatedMemberExpression(sort))
+                                .build()));
+            }
+            if (!ObjectUtils.isEmpty(cubeQuery.getTopCount())) {
+                var topCounts = cubeQuery.getTopCount();
+                mdxContext.addNamedSet(StartBuilding.namedSet()
+                        .withName(TOP_N_SET)
+                        .withExpression(topNSetExpression(topCounts))
+                        .build());
+                // Create the Others member
+                if (topCounts.aggregateOthers()) {
                     mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
-                            .withName(TOP_RANK_MEMBER)
-                            .withExpression(topRankMemberExpression(topRank))
+                            .withName(topNOthersMemberName(topCounts))
+                            .withExpression(topNOthersMemberExpression(topCounts))
                             .build());
-                }
-                if (!ObjectUtils.isEmpty(cubeQuery.getPartitionedBy())) {
-                    cubeQuery
-                            .getPartitionedBy()
-                            .forEach(p -> mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
-                                    .withName(metricToMdxMeasure(p.newMetric()))
-                                    .withExpression(partitioningCalculatedMemberExpression(p))
-                                    .build()));
-                }
-                if (!ObjectUtils.isEmpty(cubeQuery.getSortBy())) {
-                    // Create calculated members for sorting that requires it
-                    cubeQuery.getSortBy().stream()
-                            .filter(CubeQuerier::sortRequiresCalculatedMember)
-                            .forEach(sort -> mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
-                                    .withName(sortingCalculatedMeasure(sort))
-                                    .withExpression(sortingCalculatedMemberExpression(sort))
-                                    .build()));
-                }
-                if (!ObjectUtils.isEmpty(cubeQuery.getTopCount())) {
-                    var topCounts = cubeQuery.getTopCount();
-                    mdxContext.addNamedSet(StartBuilding.namedSet()
-                            .withName(TOP_N_SET)
-                            .withExpression(topNSetExpression(topCounts))
-                            .build());
-                    // Create the Others member
-                    if (topCounts.aggregateOthers()) {
-                        mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
-                                .withName(topNOthersMemberName(topCounts))
-                                .withExpression(topNOthersMemberExpression(topCounts))
-                                .build());
-                    }
                 }
             }
+        }
+
+        private void applyFormatters(CubeQuery cubeQuery, MdxContext mdxContext) {
+            mdxContext.setFormatters(extractAllMetricNames(cubeQuery).stream()
+                    .collect(Collectors.toMap(Function.identity(), m -> defaultDoubleFormatter)));
+        }
+
+        IMdxContext buildMdxContext(CubeQuery cubeQuery) {
+            var mdxContext = new MdxContext();
+
+            applyFormatters(cubeQuery, mdxContext);
+
+            applyHideTotals(cubeQuery.getHideTotals(), cubeQuery.getLevels(), mdxContext);
+
+            if (cubeQuery.isUseContext()) {
+                applyFullContext(cubeQuery, mdxContext);
+            }
+
             return mdxContext;
         }
 
