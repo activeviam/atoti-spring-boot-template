@@ -149,8 +149,16 @@ public class CubeQueryService {
         IMdxContext buildMdxContext(CubeQuery cubeQuery) {
             var mdxContext = new MdxContext();
             // These context values can only be added to the mdxContext, not as pure MDX!
-            mdxContext.setHiddenSubtotals(cubeQuery.getLevels());
-            mdxContext.setHiddenGrandTotals(new int[] {1, 0});
+            var hideTotals = cubeQuery.getHideTotals();
+            if (hideTotals.hideAll() || hideTotals.hideGrandTotal()) {
+                mdxContext.setHiddenGrandTotals(new int[] {1, 0});
+            }
+            if (hideTotals.hideAll()) {
+                mdxContext.setHiddenSubtotals(cubeQuery.getLevels()); // these are all the levels
+            } else if (!hideTotals.hideLevels().isEmpty()) {
+                mdxContext.setHiddenSubtotals(hideTotals.hideLevels()); // these are only
+            }
+
             // FIXME: workaround, remove once https://github.com/activeviam/activepivot/pull/12984 is merged
             mdxContext.setFormatters(extractAllMetricNames(cubeQuery).stream()
                     .collect(Collectors.toMap(Function.identity(), m -> defaultDoubleFormatter)));
@@ -203,7 +211,7 @@ public class CubeQueryService {
             return mdxContext;
         }
 
-        private static String buildCalculatedMembersMdx(CubeQuery cubeQuery) {
+        private String buildCalculatedMembersMdx(CubeQuery cubeQuery) {
             var query = new StringBuilder();
             var sortBy = cubeQuery.getSortBy();
             var sortByCalculatedMember = ObjectUtils.isEmpty(sortBy)
@@ -283,7 +291,7 @@ public class CubeQueryService {
             return calculatedMemberMdx(TOP_RANK_MEASURE, topRankMemberExpression(topRank));
         }
 
-        private static String topCountOthersCalculatedMeasureMdx(CubeQuery.TopCount topCount) {
+        private String topCountOthersCalculatedMeasureMdx(CubeQuery.TopCount topCount) {
             var measure = topNOthersMemberName(topCount);
             return calculatedMemberMdx(measure, topNOthersMemberExpression(topCount));
         }
@@ -386,7 +394,9 @@ public class CubeQueryService {
                     TOP_N_SET,
                     topCount.aggregateOthers()
                             ? topNOthersMemberName(topCount)
-                            : levelToMdxAllMember(topCount.level()));
+                            : (isSlicingHierarchy(topCount.level().getHierarchy())
+                                    ? levelToMdxAll(topCount.level())
+                                    : levelToMdxAllMember(topCount.level())));
         }
 
         private static String sortedHierarchizedLevels(
@@ -396,9 +406,9 @@ public class CubeQueryService {
                     .orElse(levelMembers);
         }
 
-        private static String hierarchizedMembers(LevelIdentifier level, boolean isSlicingHierarchy) {
-            return isSlicingHierarchy ? levelToMdxMembers(level) : hierarchizedDescendantsMembers(level);
-        }
+        //        private static String hierarchizedMembers(LevelIdentifier level, boolean isSlicingHierarchy) {
+        //            return isSlicingHierarchy ? levelToMdxMembers(level) : hierarchizedDescendantsMembers(level);
+        //        }
 
         private static String hierarchizedMembersForFilter(LevelIdentifier level, boolean isSlicingHierarchy) {
             return isSlicingHierarchy ? levelToMdxMembers(level) : hierarchizedDescendantsMembersForFilter(level);
@@ -416,9 +426,10 @@ public class CubeQueryService {
             return String.format("Hierarchize(Descendants({%s},1,SELF_AND_BEFORE))", levelToMdxAllMember(level));
         }
 
-        private static String hierarchizedDescendantsMembers(LevelIdentifier level) {
-            return String.format("Hierarchize(Descendants({%s},1,SELF_AND_BEFORE))", levelToMdxMembers(level));
-        }
+        //        private static String hierarchizedDescendantsMembers(LevelIdentifier level) {
+        //            return String.format("Hierarchize(Descendants({%s},1,SELF_AND_BEFORE))",
+        // levelToMdxMembers(level));
+        //        }
 
         private static String hierarchizedDescendantsMembersForFilter(LevelIdentifier level) {
             return String.format("Hierarchize(Descendants({%s}))", levelToMdxMembers(level));
@@ -459,6 +470,11 @@ public class CubeQueryService {
                     levelIdentifier.getDimensionName(),
                     levelIdentifier.getHierarchyName(),
                     levelIdentifier.getLevelName());
+        }
+
+        private static String levelToMdxAll(LevelIdentifier levelIdentifier) {
+            return String.format(
+                    "[%s].[%s].[ALL]", levelIdentifier.getDimensionName(), levelIdentifier.getHierarchyName());
         }
 
         private static String levelToMdxAllMember(LevelIdentifier levelIdentifier) {
@@ -524,8 +540,11 @@ public class CubeQueryService {
             return String.format("Aggregate(%s - [%s])", levelToMdxMembers(topCount.level()), TOP_N_SET);
         }
 
-        private static String topNOthersMemberName(CubeQuery.TopCount topCount) {
-            return String.format("%s.[%s]", levelToMdxAllMember(topCount.level()), OTHERS_MEMBER);
+        private String topNOthersMemberName(CubeQuery.TopCount topCount) {
+            var level = topCount.level();
+            var levelMembers =
+                    isSlicingHierarchy(level.getHierarchy()) ? levelToMdxAll(level) : levelToMdxAllMember(level);
+            return String.format("%s.[%s]", levelMembers, OTHERS_MEMBER);
         }
 
         // Recursively build the cube restriction object

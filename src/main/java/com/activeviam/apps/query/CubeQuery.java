@@ -31,6 +31,7 @@ public class CubeQuery {
     private final CubeQuery.TopRank topRank;
     private final List<CubeQuery.Partitioning> partitionedBy;
     private final Boolean useContext;
+    private final HideTotals hideTotals;
 
     public static String calculatedMemberDefaultName(String metric, String level) {
         return metric + "@" + level;
@@ -82,6 +83,17 @@ public class CubeQuery {
         }
     }
 
+    public record HideTotals(boolean hideAll, boolean hideGrandTotal, List<LevelIdentifier> hideLevels) {
+        public static HideTotals fromDTO(CubeQueryDTO.HideTotalsDTO dto, LevelsConverter levelsConverter) {
+            return new HideTotals(
+                    dto.isHideAll(),
+                    dto.isHideGrandTotal(),
+                    dto.getHideLevels().stream()
+                            .map(levelsConverter::stringToLevelIdentifier)
+                            .toList());
+        }
+    }
+
     public static CubeQuery fromDTO(CubeQueryDTO dto, LevelsConverter levelsConverter) {
         var filter = ObjectUtils.isEmpty(dto.getFiltersExpression())
                 ? new TrueLogicalCondition()
@@ -103,6 +115,7 @@ public class CubeQuery {
                 Optional.ofNullable(dto.getPartitionedBys()).orElse(Collections.emptyList()).stream()
                         .map(p -> Partitioning.fromDTO(p, levelsConverter))
                         .toList(),
-                useContext);
+                useContext,
+                HideTotals.fromDTO(dto.getHideTotals(), levelsConverter));
     }
 }

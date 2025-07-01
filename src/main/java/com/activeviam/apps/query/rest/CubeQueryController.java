@@ -21,6 +21,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import com.activeviam.activepivot.server.json.api.dataexport.JsonCsvPivotTableOutputConfiguration;
 import com.activeviam.apps.query.CubeQueryService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -35,25 +36,25 @@ public class CubeQueryController {
             Map.of(FORMAT_PROPERTY, JsonCsvPivotTableOutputConfiguration.PLUGIN_KEY);
 
     @PostMapping("/mdx/{cube}")
-    public String getMdxQueryforCube(@PathVariable String cube, @RequestBody CubeQueryDTO queryDTO) {
+    public String getMdxQueryforCube(@PathVariable String cube, @RequestBody @Valid CubeQueryDTO queryDTO) {
         var querier = cubeQueryService.getCubeQuerier(cube);
         return querier.buildMdxQuery(querier.convertCubeQuery(queryDTO));
     }
 
     @PostMapping("/mdx")
-    public String getMdxQueryForDefaultCube(@RequestBody CubeQueryDTO queryDTO) {
+    public String getMdxQueryForDefaultCube(@RequestBody @Valid CubeQueryDTO queryDTO) {
         var querier = cubeQueryService.getDefaultCubeQuerier();
         return querier.buildMdxQuery(querier.convertCubeQuery(queryDTO));
     }
 
     @PostMapping("/{cube}")
-    public StreamingResponseBody runQueryOnCube(@PathVariable String cube, @RequestBody CubeQueryDTO queryDTO) {
+    public StreamingResponseBody runQueryOnCube(@PathVariable String cube, @RequestBody @Valid CubeQueryDTO queryDTO) {
         var querier = cubeQueryService.getCubeQuerier(cube);
         return querier.runQuery(querier.convertCubeQuery(queryDTO), CSV_OUTPUT_EXPORTER_CONFIG);
     }
 
     @PostMapping()
-    public StreamingResponseBody runQueryOnDefaultCube(@RequestBody CubeQueryDTO queryDTO) {
+    public StreamingResponseBody runQueryOnDefaultCube(@RequestBody @Valid CubeQueryDTO queryDTO) {
         var querier = cubeQueryService.getDefaultCubeQuerier();
         return querier.runQuery(querier.convertCubeQuery(queryDTO), CSV_OUTPUT_EXPORTER_CONFIG);
     }

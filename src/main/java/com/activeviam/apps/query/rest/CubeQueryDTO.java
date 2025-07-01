@@ -6,8 +6,11 @@
  */
 package com.activeviam.apps.query.rest;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,17 +31,22 @@ public class CubeQueryDTO {
     private List<String> levels;
 
     private String filtersExpression;
+
+    @Valid
     private TopCountDTO topCount;
 
     @Singular
-    private List<SortDTO> sortBys;
+    private List<@Valid SortDTO> sortBys;
 
+    @Valid
     private TopRankDTO topRank;
 
     @Singular
-    private List<PartitioningDTO> partitionedBys;
+    private List<@Valid PartitioningDTO> partitionedBys;
 
     private Boolean useContext;
+
+    private HideTotalsDTO hideTotals;
 
     @Data
     @Builder(setterPrefix = "with")
@@ -46,9 +54,11 @@ public class CubeQueryDTO {
     @NoArgsConstructor
     public static class TopCountDTO {
         @NonNull
+        @NotBlank
         private String metric;
 
         @NonNull
+        @NotBlank
         private String level;
 
         @Builder.Default
@@ -67,9 +77,11 @@ public class CubeQueryDTO {
     @NoArgsConstructor
     public static class SortDTO {
         @NonNull
+        @NotBlank
         private String metric;
 
         @NonNull
+        @NotBlank
         String level;
 
         @Builder.Default
@@ -82,9 +94,11 @@ public class CubeQueryDTO {
     @NoArgsConstructor
     public static class TopRankDTO {
         @NonNull
+        @NotBlank
         private String metric;
 
         @NonNull
+        @NotBlank
         private String level;
     }
 
@@ -96,9 +110,28 @@ public class CubeQueryDTO {
         private String newMetric;
 
         @NonNull
+        @NotBlank
         private String metric;
 
         @NonNull
+        @NotBlank
         private String level;
+    }
+
+    @Data
+    @Builder(setterPrefix = "with")
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class HideTotalsDTO {
+
+        @Builder.Default
+        private boolean hideAll = true;
+
+        @Builder.Default
+        private boolean hideGrandTotal = true;
+
+        @NonNull
+        @Singular
+        private List<String> hideLevels = new ArrayList<>();
     }
 }
