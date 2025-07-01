@@ -83,12 +83,12 @@ public class CubeQuery {
         }
     }
 
-    public record HideTotals(boolean hideAll, boolean hideGrandTotal, List<LevelIdentifier> hideLevels) {
+    public record HideTotals(boolean all, boolean grandTotal, List<LevelIdentifier> levels) {
         public static HideTotals fromDTO(CubeQueryDTO.HideTotalsDTO dto, LevelsConverter levelsConverter) {
             return new HideTotals(
-                    dto.isHideAll(),
-                    dto.isHideGrandTotal(),
-                    dto.getHideLevels().stream()
+                    dto.isAll(),
+                    dto.isGrandTotal(),
+                    dto.getLevels().stream()
                             .map(levelsConverter::stringToLevelIdentifier)
                             .toList());
         }

@@ -125,13 +125,13 @@ public class CubeQueryDTO {
     public static class HideTotalsDTO {
 
         @Builder.Default
-        private boolean hideAll = true;
+        private boolean all = true;
 
         @Builder.Default
-        private boolean hideGrandTotal = true;
+        private boolean grandTotal = true;
 
         @NonNull
         @Singular
-        private List<String> hideLevels = new ArrayList<>();
+        private List<String> levels = new ArrayList<>();
     }
 }

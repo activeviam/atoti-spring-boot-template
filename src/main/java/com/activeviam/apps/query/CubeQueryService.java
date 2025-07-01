@@ -150,13 +150,13 @@ public class CubeQueryService {
             var mdxContext = new MdxContext();
             // These context values can only be added to the mdxContext, not as pure MDX!
             var hideTotals = cubeQuery.getHideTotals();
-            if (hideTotals.hideAll() || hideTotals.hideGrandTotal()) {
+            if (hideTotals.all() || hideTotals.grandTotal()) {
                 mdxContext.setHiddenGrandTotals(new int[] {1, 0});
             }
-            if (hideTotals.hideAll()) {
+            if (hideTotals.all()) {
                 mdxContext.setHiddenSubtotals(cubeQuery.getLevels()); // these are all the levels
-            } else if (!hideTotals.hideLevels().isEmpty()) {
-                mdxContext.setHiddenSubtotals(hideTotals.hideLevels()); // these are only
+            } else if (!hideTotals.levels().isEmpty()) {
+                mdxContext.setHiddenSubtotals(hideTotals.levels()); // these are only
             }
 
             // FIXME: workaround, remove once https://github.com/activeviam/activepivot/pull/12984 is merged
