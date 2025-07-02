@@ -12,20 +12,6 @@
   <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
   <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
 
-  <!-- Proxy the console appender to take care of the tracing MDC -->
-  <appender name="CONSOLE_OTEL" class="io.opentelemetry.instrumentation.logback.mdc.v1_0.OpenTelemetryAppender">
-    <appender-ref ref="CONSOLE"/>
-  </appender>
-
-  <!-- Appender to send the logs to OpenTelemetry -->
-  <appender name="OpenTelemetry"
-            class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
-    <captureExperimentalAttributes>true</captureExperimentalAttributes>
-    <captureCodeAttributes>true</captureCodeAttributes>
-    <captureMarkerAttribute>true</captureMarkerAttribute>
-    <captureMdcAttributes>*</captureMdcAttributes>
-  </appender>
-
   <!-- ############################################################################# -->
   <!-- # Explicit configuration of the various loggers (core and custom)           # -->
   <!-- #                                                                           # -->
@@ -44,8 +30,7 @@
   <!--          level="DEBUG"/>-->
 
   <root level="INFO">
-    <appender-ref ref="CONSOLE_OTEL"/>
-    <appender-ref ref="OpenTelemetry"/>
+    <appender-ref ref="CONSOLE"/>
   </root>
 
   <!--

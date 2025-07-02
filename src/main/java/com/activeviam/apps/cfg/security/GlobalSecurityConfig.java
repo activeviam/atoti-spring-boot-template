@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2024
+ * Copyright (C) ActiveViam 2024-2025
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -32,7 +32,7 @@ public class GlobalSecurityConfig {
     private final UserDetailsService inMemoryUserDetailsService;
 
     @Bean
-    public AuthenticationManager globalAuthenticationManager(List<AuthenticationProvider> authenticationProviders) {
+    public AuthenticationManager authenticationManager(List<AuthenticationProvider> authenticationProviders) {
         var authenticationManager = new ProviderManager(authenticationProviders);
         authenticationManager.setEraseCredentialsAfterAuthentication(false);
         return authenticationManager;

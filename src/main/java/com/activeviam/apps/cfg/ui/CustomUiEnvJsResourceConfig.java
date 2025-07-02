@@ -6,6 +6,8 @@
  */
 package com.activeviam.apps.cfg.ui;
 
+import static com.activeviam.tech.core.api.version.Versions.VERSION;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,7 +32,6 @@ import lombok.NoArgsConstructor;
 @Configuration
 @NoArgsConstructor
 public class CustomUiEnvJsResourceConfig {
-    private static final String VERSION = "6.1.7";
     // Here we are using the same env.js content for both, however in case of remote CS we would have a different
     // content.
     private static final String ENV_JS =
@@ -60,8 +61,7 @@ public class CustomUiEnvJsResourceConfig {
 
     @Bean
     public AtotiUiEnvJs atotiUiEnvJs(AtotiUiProperties properties) {
-        return () -> new EnvJsResource(
-                String.format(ENV_JS, AtotiUiContentServiceUtil.PATH_TO_UI_FOLDER, VERSION));
+        return () -> new EnvJsResource(String.format(ENV_JS, AtotiUiContentServiceUtil.PATH_TO_UI_FOLDER, VERSION));
     }
 
     @Bean
