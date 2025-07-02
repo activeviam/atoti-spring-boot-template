@@ -28,7 +28,7 @@ import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.impl.api.contextvalues.mdx.MdxContext;
 import com.activeviam.activepivot.core.impl.api.contextvalues.subcube.CubeFilter;
 import com.activeviam.activepivot.core.impl.api.cube.hierarchy.HierarchiesUtil;
-import com.activeviam.activepivot.core.impl.internal.context.filter.QueryBasedCubeRestriction;
+import com.activeviam.activepivot.core.impl.api.experimental.context.filter.QueryBasedCubeRestriction;
 import com.activeviam.activepivot.core.impl.internal.context.impl.ContextUtils;
 import com.activeviam.activepivot.core.impl.internal.contextvalues.subcube.CubeFilterUtil;
 import com.activeviam.activepivot.core.intf.api.contextvalues.IContextValue;
@@ -40,8 +40,8 @@ import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IAxisHierarchy;
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IMeasureHierarchy;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.HierarchyIdentifier;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
-import com.activeviam.activepivot.core.intf.internal.context.filter.ICubeRestriction;
-import com.activeviam.activepivot.core.intf.internal.context.filter.IQueryBasedCubeRestriction;
+import com.activeviam.activepivot.core.intf.api.experimental.context.filter.ICubeRestriction;
+import com.activeviam.activepivot.core.intf.api.experimental.context.filter.IQueryBasedCubeRestriction;
 import com.activeviam.activepivot.server.intf.api.dataexport.IDataExportService;
 import com.activeviam.activepivot.server.json.api.dataexport.JsonDataExportOrder;
 import com.activeviam.activepivot.server.json.api.query.JsonMdxQuery;
@@ -590,7 +590,7 @@ public class CubeQueryService {
                             levelsConverter.stringToHierarchyIdentifier(likeCondition.getField()),
                             inPathValues(likeCondition.getField(), valuesToFilter));
                 }
-                default -> ICubeRestriction.TRUE_INSTANCE;
+                default -> ICubeRestriction.trueRestriction();
             };
         }
 

@@ -11,11 +11,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-import com.activeviam.apps.annotations.ConditionalOnOtelJavaAgent;
-
-import io.opentelemetry.api.GlobalOpenTelemetry;
-import io.opentelemetry.api.OpenTelemetry;
-
 @SpringBootApplication
 @EnableWebMvc
 @ConfigurationPropertiesScan

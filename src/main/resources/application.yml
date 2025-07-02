@@ -150,3 +150,13 @@ atoti:
         detailed.logging: true
         log.memory.stats: true
 
+cube-query-service:
+  default-cube: "Cube"
+  cube-configuration:
+    Cube:
+      date-filter-levels: CobDate
+      analysis-hierarchies: ShiftCobDate
+      default-dimension: "Trade Attributes"
+logging.level.atoti.server.directquery.driver_manager: OFF
+cob-dates:
+  days-in-memory: 1
