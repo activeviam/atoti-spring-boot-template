@@ -6,6 +6,7 @@
  */
 package com.activeviam.apps.query;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -47,6 +48,7 @@ import com.activeviam.activepivot.server.intf.api.dataexport.IDataExportService;
 import com.activeviam.activepivot.server.json.api.dataexport.JsonDataExportOrder;
 import com.activeviam.activepivot.server.json.api.query.JsonMdxQuery;
 import com.activeviam.apps.query.conditions.AndLogicalCondition;
+import com.activeviam.apps.query.conditions.BetweenLogicalCondition;
 import com.activeviam.apps.query.conditions.InLogicalCondition;
 import com.activeviam.apps.query.conditions.LikeLogicalCondition;
 import com.activeviam.apps.query.conditions.LogicalCondition;
@@ -517,7 +519,11 @@ public class CubeQueryService {
         }
 
         private static String sortingCalculatedMemberExpression(CubeQuery.Sort sort) {
-            return String.format("%s.MEMBER_VALUE", levelToCurrentMemberMdx(sort.level()));
+            return levelToCurrentMemberValue(sort.level());
+        }
+
+        private static String levelToCurrentMemberValue(LevelIdentifier level) {
+            return String.format("%s.MemberValue", levelToCurrentMemberMdx(level));
         }
 
         private static String topRankSetExpression(CubeQuery.TopRank topRank) {
@@ -610,10 +616,19 @@ public class CubeQueryService {
                 return "";
             }
             var levels = new HashSet<>(subSelectData.levels());
+            var measureFilterLevels = getMeasureFilterLevels(queryCondition);
+            if (!measureFilterLevels.isEmpty()) {
+                // Add the required levels for the measure filter
+                levels.addAll(measureFilterLevels.stream()
+                        .map(levelsConverter::stringToLevelIdentifier)
+                        .filter(l -> !levels.contains(l))
+                        .toList());
+            }
             // Add a default level to the crossjoin
-            if (levels.isEmpty() || containsMeasureFilter(queryCondition)) {
+            if (levels.isEmpty()) {
                 levels.add(allLevels.getLast());
             }
+            // FIXME: if we dont have any levels?
 
             var crossJoin = String.format(
                     levels.size() == 1 ? "%s" : "Crossjoin(%s)",
@@ -662,12 +677,43 @@ public class CubeQueryService {
                 case InLogicalCondition<?> inLogicalCondition -> {
                     var values = inLogicalCondition.getValues();
                     var level = levelsConverter.stringToLevelIdentifier(inLogicalCondition.getField());
-                    var mdxLevelValue = levelToCurrentMemberMdx(level) + ".MEMBER_CAPTION";
+                    var mdxLevelValue = levelToCurrentMemberValue(level);
                     yield new MdxSubSelectData(
                             values.stream()
-                                    .map(value -> mdxLevelValue + " = \"" + value.toString() + "\"")
+                                    .map(value -> mdxLevelValue + " = "
+                                            + (value instanceof LocalDate localDate
+                                                    ? formatLocalDate(localDate)
+                                                    : value.toString()))
                                     .collect(Collectors.joining(" OR ", "(", ")")),
                             Set.of(level));
+                }
+                case BetweenLogicalCondition<?> betweenDatesLogicalCondition -> {
+                    var left = betweenDatesLogicalCondition.getLeft();
+                    var right = betweenDatesLogicalCondition.getRight();
+                    var level = levelsConverter.stringToLevelIdentifier(betweenDatesLogicalCondition.getField());
+                    var mdxMemberValue = levelToCurrentMemberValue(level);
+                    var subConditions = new ArrayList<String>();
+                    if (Objects.isNull(left) && Objects.isNull(right)) {
+                        throw new ActiveViamRuntimeException("Left and right must not be null");
+                    }
+                    if ((Objects.nonNull(left) && left instanceof LocalDate)
+                            || (Objects.nonNull(right) && right instanceof LocalDate)) {
+                        subConditions.add(String.format("IsDate(%s)", mdxMemberValue));
+                    }
+                    if (Objects.nonNull(left)) {
+                        subConditions.add(String.format(
+                                "%s >= %s",
+                                mdxMemberValue,
+                                left instanceof LocalDate localDate ? formatLocalDate(localDate) : left.toString()));
+                    }
+                    if (Objects.nonNull(right)) {
+                        subConditions.add(String.format(
+                                "%s <= %s",
+                                mdxMemberValue,
+                                right instanceof LocalDate ? String.format("CDate(\"%s\")", right) : right.toString()));
+                    }
+                    yield new MdxSubSelectData(
+                            subConditions.stream().collect(Collectors.joining(" AND ", "(", ")")), Set.of(level));
                 }
                 case MeasureCondition measureCondition ->
                     new MdxSubSelectData(
@@ -692,7 +738,7 @@ public class CubeQueryService {
                     .toList();
         }
 
-        private Set<?> inPathValues(String hierarchy, Collection<?> values) {
+        private static Set<?> inPathValues(String hierarchy, Collection<?> values) {
             return new HashSet<>(values);
         }
 
@@ -709,6 +755,29 @@ public class CubeQueryService {
                     containsMeasureFilter(notLogicalCondition.getCondition());
                 default -> false;
             };
+        }
+
+        static Set<String> getMeasureFilterLevels(LogicalCondition queryCondition) {
+            return switch (queryCondition) {
+                case MeasureCondition measureCondition -> Set.of(measureCondition.getAtLevel());
+                case AndLogicalCondition andLogicalCondition ->
+                    andLogicalCondition.getSubConditions().stream()
+                            .map(CubeQueryService.CubeQuerier::getMeasureFilterLevels)
+                            .flatMap(Collection::stream)
+                            .collect(Collectors.toSet());
+                case OrLogicalCondition orLogicalCondition ->
+                    orLogicalCondition.getSubConditions().stream()
+                            .map(CubeQueryService.CubeQuerier::getMeasureFilterLevels)
+                            .flatMap(Collection::stream)
+                            .collect(Collectors.toSet());
+                case NotLogicalCondition notLogicalCondition ->
+                    getMeasureFilterLevels(notLogicalCondition.getCondition());
+                default -> Collections.emptySet();
+            };
+        }
+
+        private static String formatLocalDate(LocalDate localDate) {
+            return String.format("CDate(\"%s\")", localDate);
         }
     }
 

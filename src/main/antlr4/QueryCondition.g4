@@ -13,7 +13,8 @@ query
    | field=fieldName 'IN' LSQPAREN values=valuesList RSQPAREN #inConditionQuery
    | 'NOT' notConditition=query #notConditionQuery
    | field=fieldName 'LIKE' criteria=criteriaType #likeConditionQuery
-   | measure=measureName operator=('<='|'<'|'>'|'>='|'=') operand=operandType #measureConditionQuery
+   | field=fieldName 'BETWEEN' LSQPAREN left=betweenArg ARG_SEPARATOR right=betweenArg RSQPAREN #betweenConditionQuery
+   | measure=measureName 'AT' field=fieldName operator=('<='|'<'|'>'|'>='|'=') operand=operandType #measureConditionQuery
    ;
 
 valuesList
@@ -22,6 +23,12 @@ valuesList
       | (BOOL ARG_SEPARATOR?)*
       | (DATE ARG_SEPARATOR?)*
    ;
+
+betweenArg
+    : DATE
+    | INT
+    | SEMICOL
+    ;
 
 // Key is an identifier (e.g., field name)
 fieldName
@@ -72,6 +79,10 @@ INT
 BOOL
     : 'true'
     | 'false'
+    ;
+
+SEMICOL
+    : ':'
     ;
 
 IDENTIFIER

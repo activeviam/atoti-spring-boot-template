@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.activeviam.activepivot.core.intf.api.mdx.MdxException;
+import com.activeviam.tech.core.api.exceptions.ActiveViamRuntimeException;
 import com.google.common.base.Throwables;
 
 @ControllerAdvice
@@ -31,6 +32,20 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MdxException.class)
     public ResponseEntity<Object> handleMdxQueryException(MdxException ex) {
+        return buildBadRequestResponseEntity(ex);
+    }
+
+    @ExceptionHandler(ActiveViamRuntimeException.class)
+    public ResponseEntity<Object> handleActiveViamRuntimeException(ActiveViamRuntimeException ex) {
+        return buildBadRequestResponseEntity(ex);
+    }
+
+    @ExceptionHandler(UnsupportedOperationException.class)
+    public ResponseEntity<Object> handleUnsupportedOperationException(UnsupportedOperationException ex) {
+        return buildBadRequestResponseEntity(ex);
+    }
+
+    private static ResponseEntity<Object> buildBadRequestResponseEntity(Exception ex) {
         return new ResponseEntity<>(
                 String.format(
                         "%s%nRoot cause: %s",

@@ -12,6 +12,7 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.DESK;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.NUMERIC;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.PORTFOLIO;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
@@ -20,6 +21,7 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBU
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
 import static com.activeviam.database.api.types.ILiteralType.DOUBLE;
+import static com.activeviam.database.api.types.ILiteralType.INT;
 import static com.activeviam.database.api.types.ILiteralType.LOCAL_DATE;
 import static com.activeviam.database.api.types.ILiteralType.STRING;
 
@@ -64,6 +66,7 @@ public class StoreDefinitionsConfig {
                 .withField(COUNTERPARTY_ID, STRING)
                 .withField(DESK, STRING)
                 .withField(PORTFOLIO, STRING)
+                .withField(NUMERIC, INT)
                 .build();
     }
 

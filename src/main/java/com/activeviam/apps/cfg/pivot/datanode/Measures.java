@@ -7,6 +7,8 @@
 package com.activeviam.apps.cfg.pivot.datanode;
 
 import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.COB_DATE_LEVEL;
+import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.COUNTERPARTY_LEVEL;
+import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.PORTFOLIO_LEVEL;
 import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.SHIFT_COB_DATE_LEVEL;
 import static com.activeviam.apps.constants.CubeConstants.DOUBLE_FORMATTER;
 import static com.activeviam.apps.constants.CubeConstants.INT_FORMATTER;
@@ -50,6 +52,16 @@ public class Measures implements Consumer<ICopperContext> {
         copperMeasures.add(notionalAvg);
         copperMeasures.add(diffFromShiftDate(notionalSum).as(deltaPostfixMeasure(NOTIONAL, SUM)));
         copperMeasures.add(diffFromShiftDate(notionalAvg).as(deltaPostfixMeasure(NOTIONAL, MEAN)));
+        copperMeasures.add(Copper.count()
+                .mapToInt(r -> 1)
+                .per(Copper.level(PORTFOLIO_LEVEL))
+                .sum()
+                .as("Portfolio count"));
+        copperMeasures.add(Copper.count()
+                .mapToInt(r -> 1)
+                .per(Copper.level(COUNTERPARTY_LEVEL))
+                .sum()
+                .as("Cpty count"));
     }
 
     @Override

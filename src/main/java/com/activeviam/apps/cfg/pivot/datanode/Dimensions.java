@@ -11,6 +11,7 @@ import static com.activeviam.activepivot.core.intf.api.description.IAxisHierarch
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.DESK;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.NUMERIC;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.PORTFOLIO;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
@@ -35,6 +36,9 @@ public class Dimensions implements ICanStartBuildingDimensions.DimensionsAdder {
     public static final LevelIdentifier COUNTERPARTY_LEVEL =
             new LevelIdentifier(TRADE_ATTRIBUTES_DIMENSION, COUNTERPARTY_ID, COUNTERPARTY_ID);
 
+    public static final LevelIdentifier PORTFOLIO_LEVEL =
+            new LevelIdentifier(TRADE_ATTRIBUTES_DIMENSION, PORTFOLIO, PORTFOLIO);
+
     public static final LevelIdentifier TRADE_ID_LEVEL =
             new LevelIdentifier(TRADE_ATTRIBUTES_DIMENSION, TRADE_ID, TRADE_ID);
 
@@ -44,7 +48,7 @@ public class Dimensions implements ICanStartBuildingDimensions.DimensionsAdder {
     @Override
     public ICanBuildCubeDescription<IActivePivotInstanceDescription> apply(ICanStartBuildingDimensions builder) {
         return builder.withDimension(TRADE_ATTRIBUTES_DIMENSION)
-                .withSingleLevelHierarchies(TRADE_ID, COUNTERPARTY_ID, DESK, PORTFOLIO)
+                .withSingleLevelHierarchies(TRADE_ID, COUNTERPARTY_ID, DESK, PORTFOLIO, NUMERIC)
                 .withSingleLevelHierarchy(TRADE_DATE)
                 .withType(ILevelInfo.LevelType.TIME)
                 // Make the AsOfDate hierarchy slicing - we do not aggregate across dates
