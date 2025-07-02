@@ -138,7 +138,7 @@ class QueryServiceTest {
                     var query = cubeQuerier.convertCubeQuery(queryDto);
                     var mdxQuery = cubeQuerier.buildMdxQuery(query);
                     var contextValues = new ArrayList<IContextValue>();
-                    if (query.getUseContext()) {
+                    if (query.isUseContext()) {
                         contextValues.add(cubeQuerier.buildCubeRestrictions(query));
                     }
                     contextValues.add(cubeQuerier.buildMdxContext(query));
