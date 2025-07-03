@@ -6,10 +6,7 @@
  */
 package com.activeviam.apps.query.rest;
 
-import static com.activeviam.activepivot.server.json.api.dataexport.IJsonOutputConfiguration.FORMAT_PROPERTY;
 import static com.activeviam.apps.rest.EndpointConstants.CUSTOM_REST_PATH;
-
-import java.util.Map;
 
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,9 +29,6 @@ public class CubeQueryController {
 
     public static final String QUERY_ENDPOINT = CUSTOM_REST_PATH + "/cube_query";
 
-    public static final Map<String, Object> CSV_OUTPUT_EXPORTER_CONFIG =
-            Map.of(FORMAT_PROPERTY, JsonCsvPivotTableOutputConfiguration.PLUGIN_KEY);
-
     @PostMapping("/mdx/{cube}")
     public String getMdxQueryforCube(@PathVariable String cube, @RequestBody @Valid CubeQueryDTO queryDTO) {
         var querier = cubeQueryService.getCubeQuerier(cube);
@@ -50,12 +44,12 @@ public class CubeQueryController {
     @PostMapping("/{cube}")
     public StreamingResponseBody runQueryOnCube(@PathVariable String cube, @RequestBody @Valid CubeQueryDTO queryDTO) {
         var querier = cubeQueryService.getCubeQuerier(cube);
-        return querier.runQuery(querier.convertCubeQuery(queryDTO), CSV_OUTPUT_EXPORTER_CONFIG);
+        return querier.runQuery(querier.convertCubeQuery(queryDTO), JsonCsvPivotTableOutputConfiguration.PLUGIN_KEY);
     }
 
     @PostMapping()
     public StreamingResponseBody runQueryOnDefaultCube(@RequestBody @Valid CubeQueryDTO queryDTO) {
         var querier = cubeQueryService.getDefaultCubeQuerier();
-        return querier.runQuery(querier.convertCubeQuery(queryDTO), CSV_OUTPUT_EXPORTER_CONFIG);
+        return querier.runQuery(querier.convertCubeQuery(queryDTO), JsonCsvPivotTableOutputConfiguration.PLUGIN_KEY);
     }
 }

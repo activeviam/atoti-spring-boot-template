@@ -7,7 +7,6 @@
 package com.activeviam.apps.query;
 
 import static com.activeviam.activepivot.core.intf.api.cube.hierarchy.IHierarchy.ALLMEMBER;
-import static com.activeviam.activepivot.server.json.api.dataexport.IJsonOutputConfiguration.FORMAT_PROPERTY;
 import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.COB_DATE_LEVEL;
 import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.COUNTERPARTY_LEVEL;
 import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.TRADE_ID_LEVEL;
@@ -22,7 +21,6 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
 import static com.activeviam.apps.query.CubeQueryService.CubeQuerier.levelToMdxPath;
 import static com.activeviam.apps.query.CubeQueryService.OTHERS_MEMBER;
 import static com.activeviam.apps.query.CubeQueryService.TOP_RANK_MEASURE;
-import static com.activeviam.apps.query.rest.CubeQueryController.CSV_OUTPUT_EXPORTER_CONFIG;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.BufferedReader;
@@ -58,6 +56,7 @@ import org.slf4j.Logger;
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IMeasureHierarchy;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
 import com.activeviam.activepivot.server.json.api.dataexport.JsonArrowOutputConfiguration;
+import com.activeviam.activepivot.server.json.api.dataexport.JsonCsvPivotTableOutputConfiguration;
 import com.activeviam.apps.query.rest.CubeQueryDTO;
 import com.activeviam.atoti.server.test.api.ICellSetTester;
 
@@ -577,8 +576,7 @@ public class QueryServiceTestConstants {
                             .build();
                     var querier = cubeQueryService.getCubeQuerier(CUBE_NAME);
                     var streamingResult = querier.runQuery(
-                            querier.convertCubeQuery(queryDto),
-                            Map.of(FORMAT_PROPERTY, JsonArrowOutputConfiguration.PLUGIN_KEY));
+                            querier.convertCubeQuery(queryDto), JsonArrowOutputConfiguration.PLUGIN_KEY);
                     try (var outputStream = new ByteArrayOutputStream()) {
                         outputStream.flush();
                         streamingResult.writeTo(outputStream);
@@ -609,8 +607,8 @@ public class QueryServiceTestConstants {
                             .withUseContext(useContext)
                             .build();
                     var querier = cubeQueryService.getCubeQuerier(CUBE_NAME);
-                    var streamingResult =
-                            querier.runQuery(querier.convertCubeQuery(queryDto), CSV_OUTPUT_EXPORTER_CONFIG);
+                    var streamingResult = querier.runQuery(
+                            querier.convertCubeQuery(queryDto), JsonCsvPivotTableOutputConfiguration.PLUGIN_KEY);
                     try (var outputStream = new ByteArrayOutputStream()) {
                         outputStream.flush();
                         streamingResult.writeTo(outputStream);

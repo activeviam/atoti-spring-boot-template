@@ -123,7 +123,7 @@ public class CubeQuery {
                 Optional.ofNullable(dto.getPartitionedBys()).orElse(Collections.emptyList()).stream()
                         .map(p -> Partitioning.fromDTO(p, levelsConverter))
                         .toList(),
-                Optional.of(dto.getMetricDefinitions()).orElse(Collections.emptyList()).stream()
+                Optional.ofNullable(dto.getMetricDefinitions()).orElse(Collections.emptyList()).stream()
                         .map(MetricDefinition::fromDTO)
                         .toList(),
                 useContext,

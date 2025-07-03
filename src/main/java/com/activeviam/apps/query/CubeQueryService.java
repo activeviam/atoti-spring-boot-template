@@ -6,6 +6,8 @@
  */
 package com.activeviam.apps.query;
 
+import static com.activeviam.activepivot.server.json.api.dataexport.IJsonOutputConfiguration.FORMAT_PROPERTY;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,7 +19,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -131,7 +132,22 @@ public class CubeQueryService {
             return CubeQuery.fromDTO(dto, levelsConverter);
         }
 
-        public StreamingResponseBody runQuery(CubeQuery cubeQuery, Map<String, Object> exporterConfig) {
+        private static Map<String, Object> exporterConfig(
+                String outputFormat, String defaultDoubleFormatter, List<String> metrics) {
+            var config = new HashMap<String, Object>();
+            config.put(FORMAT_PROPERTY, outputFormat);
+            //            if (!ObjectUtils.isEmpty(metrics)) {
+            //                var formatters = new ArrayList<Map<String, String>>();
+            //                for (var metric : metrics) {
+            //                    formatters.add(Map.of(COLUMN_NAME_PROPERTY, metric, FORMATTER_PROPERTY,
+            // defaultDoubleFormatter));
+            //                }
+            //                config.put(COLUMN_FORMATTERS_PROPERTY, formatters);
+            //            }
+            return config;
+        }
+
+        public StreamingResponseBody runQuery(CubeQuery cubeQuery, String outputFormat) {
             assertIsReady();
             var contextValues = new ArrayList<IContextValue>();
             contextValues.add(buildMdxContext(cubeQuery));
@@ -142,6 +158,8 @@ public class CubeQueryService {
             var contextSnapshot = ContextUtils.applyContextValues(activePivot.getContext(), contextValues, true);
             var mdx = buildMdxQuery(cubeQuery);
             log.info("Mdx Query: {}", mdx);
+            var allMetrics = extractAllMetricNames(cubeQuery);
+            var exporterConfig = exporterConfig(outputFormat, defaultDoubleFormatter, allMetrics);
             var dataExportOrder =
                     new JsonDataExportOrder(new JsonMdxQuery(mdx, Collections.emptyMap()), exporterConfig);
             var output = dataExportService.streamMdxQuery(dataExportOrder);
@@ -238,7 +256,7 @@ public class CubeQueryService {
 
         private void applyFormatters(CubeQuery cubeQuery, MdxContext mdxContext) {
             mdxContext.setFormatters(extractAllMetricNames(cubeQuery).stream()
-                    .collect(Collectors.toMap(Function.identity(), m -> defaultDoubleFormatter)));
+                    .collect(Collectors.toMap(CubeQuerier::metricToMdxMeasure, m -> defaultDoubleFormatter)));
         }
 
         IMdxContext buildMdxContext(CubeQuery cubeQuery) {
