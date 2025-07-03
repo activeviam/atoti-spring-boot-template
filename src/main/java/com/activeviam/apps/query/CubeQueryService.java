@@ -132,18 +132,9 @@ public class CubeQueryService {
             return CubeQuery.fromDTO(dto, levelsConverter);
         }
 
-        private static Map<String, Object> exporterConfig(
-                String outputFormat, String defaultDoubleFormatter, List<String> metrics) {
+        private static Map<String, Object> exporterConfig(String outputFormat) {
             var config = new HashMap<String, Object>();
             config.put(FORMAT_PROPERTY, outputFormat);
-            //            if (!ObjectUtils.isEmpty(metrics)) {
-            //                var formatters = new ArrayList<Map<String, String>>();
-            //                for (var metric : metrics) {
-            //                    formatters.add(Map.of(COLUMN_NAME_PROPERTY, metric, FORMATTER_PROPERTY,
-            // defaultDoubleFormatter));
-            //                }
-            //                config.put(COLUMN_FORMATTERS_PROPERTY, formatters);
-            //            }
             return config;
         }
 
@@ -158,8 +149,7 @@ public class CubeQueryService {
             var contextSnapshot = ContextUtils.applyContextValues(activePivot.getContext(), contextValues, true);
             var mdx = buildMdxQuery(cubeQuery);
             log.info("Mdx Query: {}", mdx);
-            var allMetrics = extractAllMetricNames(cubeQuery);
-            var exporterConfig = exporterConfig(outputFormat, defaultDoubleFormatter, allMetrics);
+            var exporterConfig = exporterConfig(outputFormat);
             var dataExportOrder =
                     new JsonDataExportOrder(new JsonMdxQuery(mdx, Collections.emptyMap()), exporterConfig);
             var output = dataExportService.streamMdxQuery(dataExportOrder);
@@ -201,6 +191,7 @@ public class CubeQueryService {
                         .forEach(p -> mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
                                 .withName(metricToMdxMeasure(p.newMetric()))
                                 .withExpression(partitioningCalculatedMemberExpression(p))
+                                .withFormatString(defaultDoubleFormatter)
                                 .build()));
             }
             if (!ObjectUtils.isEmpty(cubeQuery.getSortBy())) {
@@ -232,6 +223,7 @@ public class CubeQueryService {
                     mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
                             .withName(def.name())
                             .withExpression(calculatedMemberExpressionToMdx(def.expression()))
+                            .withFormatString(defaultDoubleFormatter)
                             .build());
                 }
             }
@@ -255,8 +247,9 @@ public class CubeQueryService {
         }
 
         private void applyFormatters(CubeQuery cubeQuery, MdxContext mdxContext) {
-            mdxContext.setFormatters(extractAllMetricNames(cubeQuery).stream()
-                    .collect(Collectors.toMap(CubeQuerier::metricToMdxMeasure, m -> defaultDoubleFormatter)));
+            var formatter = String.format("DOUBLE[%s]", defaultDoubleFormatter);
+            mdxContext.setFormatters(extractAllMetricNames(cubeQuery, false).stream()
+                    .collect(Collectors.toMap(CubeQuerier::metricToMdxMeasure, m -> formatter)));
         }
 
         IMdxContext buildMdxContext(CubeQuery cubeQuery) {
@@ -305,7 +298,7 @@ public class CubeQueryService {
                 // Partitioning
                 if (!ObjectUtils.isEmpty(partitionedBy)) {
                     query.append(partitionedBy.stream()
-                            .map(CubeQuerier::partitioningCalculatedMeasureMdx)
+                            .map(this::partitioningCalculatedMeasureMdx)
                             .collect(Collectors.joining(",")));
                     query.append(System.lineSeparator());
                 }
@@ -339,8 +332,7 @@ public class CubeQueryService {
         }
 
         private String metricDefinitionMdx(String name, String expression) {
-            return String.format(
-                    "Member %s AS %s", measureToMemberMdx(name), calculatedMemberExpressionToMdx(expression));
+            return calculatedMemberMdx(measureToMemberMdx(name), calculatedMemberExpressionToMdx(expression));
         }
 
         private static String setMdx(String setName, String expression) {
@@ -355,34 +347,41 @@ public class CubeQueryService {
             return setMdx(TOP_N_SET, topNSetExpression(topCount));
         }
 
-        private static String calculatedMemberMdx(String memberName, String expression) {
-            return String.format("Member %s AS (%s)", memberName, expression);
+        private String calculatedMemberMdx(String memberName, String expression) {
+            return String.format(
+                    "Member %s AS (%s), FORMAT_STRING = \"%s\"", memberName, expression, defaultDoubleFormatter);
         }
 
-        private static String partitioningCalculatedMeasureMdx(CubeQuery.Partitioning partitioning) {
+        private String partitioningCalculatedMeasureMdx(CubeQuery.Partitioning partitioning) {
             return calculatedMemberMdx(
                     measureToMemberMdx(partitioning.newMetric()), partitioningCalculatedMemberExpression(partitioning));
         }
 
-        private static String topRankCalculatedMeasureMdx(CubeQuery.TopRank topRank) {
+        private String topRankCalculatedMeasureMdx(CubeQuery.TopRank topRank) {
             return calculatedMemberMdx(TOP_RANK_MEASURE, topRankMemberExpression(topRank));
         }
 
         private String topCountOthersCalculatedMeasureMdx(CubeQuery.TopCount topCount) {
-            var measure = topNOthersMemberName(topCount);
-            return calculatedMemberMdx(measure, topNOthersMemberExpression(topCount));
+            return calculatedMemberMdx(topNOthersMemberName(topCount), topNOthersMemberExpression(topCount));
         }
 
         IQueryBasedCubeRestriction buildCubeRestrictions(CubeQuery cubeQuery) {
             return QueryBasedCubeRestriction.create(convertQueryConditionToCubeRestriction(cubeQuery.getFilter()));
         }
 
-        private static List<String> extractAllMetricNames(CubeQuery cubeQuery) {
+        private static List<String> extractAllMetricNames(CubeQuery cubeQuery, boolean includeCalculatedMetrics) {
             var allMetrics = new ArrayList<>(cubeQuery.getMetrics());
             // Add calculated members
-            allMetrics.addAll(Optional.ofNullable(cubeQuery.getPartitionedBy()).orElse(Collections.emptyList()).stream()
-                    .map(CubeQuery.Partitioning::newMetric)
-                    .toList());
+            if (includeCalculatedMetrics) {
+                allMetrics.addAll(
+                        Optional.ofNullable(cubeQuery.getPartitionedBy()).orElse(Collections.emptyList()).stream()
+                                .map(CubeQuery.Partitioning::newMetric)
+                                .toList());
+            } else {
+                cubeQuery.getMetricDefinitions().stream()
+                        .map(CubeQuery.MetricDefinition::name)
+                        .forEach(allMetrics::remove);
+            }
             return allMetrics;
         }
 
@@ -413,7 +412,7 @@ public class CubeQueryService {
             }
 
             // Metrics
-            var metrics = extractAllMetricNames(cubeQuery);
+            var metrics = extractAllMetricNames(cubeQuery, true);
             if (!ObjectUtils.isEmpty(metrics)) {
                 query.append(String.format(
                         "{%s} ON COLUMNS",
