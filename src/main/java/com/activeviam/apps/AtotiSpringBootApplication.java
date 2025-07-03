@@ -16,10 +16,6 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @ConfigurationPropertiesScan
 public class AtotiSpringBootApplication {
 
-    static {
-        System.setProperty("activeviam.feature.experimental.new_cube_restriction.enabled", "true");
-    }
-
     public static void main(String[] args) {
         SpringApplication.run(AtotiSpringBootApplication.class, args);
     }

@@ -94,11 +94,31 @@ public class FilterExpressionConditionVisitor extends QueryConditionBaseVisitor<
     @Override
     public LogicalCondition visitMeasureConditionQuery(QueryConditionParser.MeasureConditionQueryContext ctx) {
         return new MeasureCondition(
-                ctx.measure.getText(), ctx.operator.getText(), Double.parseDouble(ctx.operand.getText()));
+                ctx.measure.getText(),
+                ctx.operator.getText(),
+                Double.parseDouble(ctx.operand.getText()),
+                ctx.field.getText());
+    }
+
+    @Override
+    public LogicalCondition visitBetweenConditionQuery(QueryConditionParser.BetweenConditionQueryContext ctx) {
+        var left = parseDateOrInt(ctx.left);
+        var right = parseDateOrInt(ctx.right);
+        return new BetweenLogicalCondition<Object>(ctx.field.getText(), left, right);
     }
 
     @Override
     public LogicalCondition visitInput(QueryConditionParser.InputContext ctx) {
         return visit(ctx.query());
+    }
+
+    private static Object parseDateOrInt(QueryConditionParser.BetweenArgContext ctx) {
+        if (ctx.SEMICOL() != null) {
+            return null;
+        } else if (ctx.DATE() != null) {
+            return LocalDate.parse(ctx.getText());
+        } else {
+            return Integer.parseInt(ctx.getText());
+        }
     }
 }

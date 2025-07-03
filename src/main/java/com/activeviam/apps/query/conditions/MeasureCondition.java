@@ -11,15 +11,17 @@ import lombok.Getter;
 @Getter
 public class MeasureCondition implements LogicalCondition {
 
-    public MeasureCondition(String measure, String operator, Number operand) {
+    public MeasureCondition(String measure, String operator, Number operand, String atLevel) {
         this.measure = measure;
         this.operator = Operator.fromString(operator);
         this.operand = operand;
+        this.atLevel = atLevel;
     }
 
     private final String measure;
     private final Operator operator;
     private final Number operand;
+    private final String atLevel;
 
     public enum Operator {
         EQ("="),

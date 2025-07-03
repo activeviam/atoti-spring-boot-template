@@ -30,10 +30,19 @@ public class CubeQuery {
     private final List<CubeQuery.Sort> sortBy;
     private final CubeQuery.TopRank topRank;
     private final List<CubeQuery.Partitioning> partitionedBy;
-    private final Boolean useContext;
+    private final List<MetricDefinition> metricDefinitions;
+    private final boolean useContext;
+    private final HideTotals hideTotals;
 
     public static String calculatedMemberDefaultName(String metric, String level) {
         return metric + "@" + level;
+    }
+
+    public record MetricDefinition(String name, String expression) {
+
+        public static CubeQuery.MetricDefinition fromDTO(CubeQueryDTO.MetricDefinitionDTO dto) {
+            return new CubeQuery.MetricDefinition(dto.getName(), dto.getDefinition());
+        }
     }
 
     public record TopCount(String metric, LevelIdentifier level, int count, boolean bottom, boolean aggregateOthers) {
@@ -82,6 +91,17 @@ public class CubeQuery {
         }
     }
 
+    public record HideTotals(boolean all, boolean grandTotal, List<LevelIdentifier> levels) {
+        public static HideTotals fromDTO(CubeQueryDTO.HideTotalsDTO dto, LevelsConverter levelsConverter) {
+            return new HideTotals(
+                    dto.isAll(),
+                    dto.isGrandTotal(),
+                    dto.getLevels().stream()
+                            .map(levelsConverter::stringToLevelIdentifier)
+                            .toList());
+        }
+    }
+
     public static CubeQuery fromDTO(CubeQueryDTO dto, LevelsConverter levelsConverter) {
         var filter = ObjectUtils.isEmpty(dto.getFiltersExpression())
                 ? new TrueLogicalCondition()
@@ -103,6 +123,13 @@ public class CubeQuery {
                 Optional.ofNullable(dto.getPartitionedBys()).orElse(Collections.emptyList()).stream()
                         .map(p -> Partitioning.fromDTO(p, levelsConverter))
                         .toList(),
-                useContext);
+                Optional.ofNullable(dto.getMetricDefinitions()).orElse(Collections.emptyList()).stream()
+                        .map(MetricDefinition::fromDTO)
+                        .toList(),
+                useContext,
+                HideTotals.fromDTO(
+                        Optional.ofNullable(dto.getHideTotals())
+                                .orElse(CubeQueryDTO.HideTotalsDTO.builder().build()),
+                        levelsConverter));
     }
 }
