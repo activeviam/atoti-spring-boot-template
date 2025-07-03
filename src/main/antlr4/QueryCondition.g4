@@ -8,7 +8,6 @@ input
 // A query can be a combination of subqueries with logical operators, a parenthesized query, or a single criteria
 query
    : left=query logicalOp=('AND' | 'OR') right=query #operatorQuery
-//   : logicalOp=('AND' | 'OR') LPAREN argumentList? RPAREN #operatorQuery
    | LPAREN query RPAREN #priorityQuery
    | field=fieldName 'IN' LSQPAREN values=valuesList RSQPAREN #inConditionQuery
    | 'NOT' notConditition=query #notConditionQuery

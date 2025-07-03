@@ -30,11 +30,19 @@ public class CubeQuery {
     private final List<CubeQuery.Sort> sortBy;
     private final CubeQuery.TopRank topRank;
     private final List<CubeQuery.Partitioning> partitionedBy;
+    private final List<MetricDefinition> metricDefinitions;
     private final boolean useContext;
     private final HideTotals hideTotals;
 
     public static String calculatedMemberDefaultName(String metric, String level) {
         return metric + "@" + level;
+    }
+
+    public record MetricDefinition(String name, String expression) {
+
+        public static CubeQuery.MetricDefinition fromDTO(CubeQueryDTO.MetricDefinitionDTO dto) {
+            return new CubeQuery.MetricDefinition(dto.getName(), dto.getDefinition());
+        }
     }
 
     public record TopCount(String metric, LevelIdentifier level, int count, boolean bottom, boolean aggregateOthers) {
@@ -114,6 +122,9 @@ public class CubeQuery {
                 TopRank.fromDTO(dto.getTopRank(), levelsConverter),
                 Optional.ofNullable(dto.getPartitionedBys()).orElse(Collections.emptyList()).stream()
                         .map(p -> Partitioning.fromDTO(p, levelsConverter))
+                        .toList(),
+                Optional.of(dto.getMetricDefinitions()).orElse(Collections.emptyList()).stream()
+                        .map(MetricDefinition::fromDTO)
                         .toList(),
                 useContext,
                 HideTotals.fromDTO(

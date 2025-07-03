@@ -111,6 +111,7 @@ public class CubeQueryService {
         private final IMultiVersionActivePivot activePivot;
         private final IDataExportService dataExportService;
         Set<HierarchyIdentifier> slicingHierarchies;
+        Set<String> existingMeasures;
 
         private CubeQuerier(
                 String cube,
@@ -207,6 +208,32 @@ public class CubeQueryService {
                             .build());
                 }
             }
+            if (!ObjectUtils.isEmpty(cubeQuery.getMetricDefinitions())) {
+                var metricDefinitions = cubeQuery.getMetricDefinitions();
+                for (var def : metricDefinitions) {
+                    mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
+                            .withName(def.name())
+                            .withExpression(calculatedMemberExpressionToMdx(def.expression()))
+                            .build());
+                }
+            }
+        }
+
+        // Replace the metric names with the mdx metric expression
+        private String calculatedMemberExpressionToMdx(String expression) {
+            if (ObjectUtils.isEmpty(existingMeasures)) {
+                // Fetch the list of existingMeasures
+                existingMeasures = Set.of(activePivot
+                        .getHead()
+                        .getMeasuresProvider()
+                        .getAllMeasureNames()
+                        .toArray(String[]::new));
+            }
+            var convertedExpression = expression;
+            for (var measure : existingMeasures) {
+                convertedExpression = convertedExpression.replace(measure, metricToMdxMeasure(measure));
+            }
+            return convertedExpression;
         }
 
         private void applyFormatters(CubeQuery cubeQuery, MdxContext mdxContext) {
@@ -239,11 +266,13 @@ public class CubeQueryService {
             var partitionedBy = cubeQuery.getPartitionedBy();
             var topRank = cubeQuery.getTopRank();
             var topCount = cubeQuery.getTopCount();
+            var metricDefinitions = cubeQuery.getMetricDefinitions();
             // If any of these conditions is true, we need to add the calculated Members
             if (!ObjectUtils.isEmpty(sortByCalculatedMember)
                     || !ObjectUtils.isEmpty(partitionedBy)
                     || !ObjectUtils.isEmpty(topRank)
-                    || !ObjectUtils.isEmpty(topCount)) {
+                    || !ObjectUtils.isEmpty(topCount)
+                    || !ObjectUtils.isEmpty(metricDefinitions)) {
                 query.append("WITH ");
                 query.append(System.lineSeparator());
 
@@ -279,8 +308,21 @@ public class CubeQueryService {
                         query.append(topCountOthersCalculatedMeasureMdx(topCount));
                     }
                 }
+
+                // Calculated measures
+                if (!ObjectUtils.isEmpty(metricDefinitions)) {
+                    for (var def : metricDefinitions) {
+                        query.append(metricDefinitionMdx(def.name(), def.expression()));
+                        query.append(System.lineSeparator());
+                    }
+                }
             }
             return query.toString();
+        }
+
+        private String metricDefinitionMdx(String name, String expression) {
+            return String.format(
+                    "Member %s AS %s", measureToMemberMdx(name), calculatedMemberExpressionToMdx(expression));
         }
 
         private static String setMdx(String setName, String expression) {

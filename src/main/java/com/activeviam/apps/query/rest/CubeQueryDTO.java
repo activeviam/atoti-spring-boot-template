@@ -38,6 +38,9 @@ public class CubeQueryDTO {
     @Singular
     private List<@Valid SortDTO> sortBys;
 
+    @Singular
+    private List<@Valid MetricDefinitionDTO> metricDefinitions;
+
     @Valid
     private TopRankDTO topRank;
 
@@ -47,6 +50,21 @@ public class CubeQueryDTO {
     private Boolean useContext;
 
     private HideTotalsDTO hideTotals;
+
+    @Data
+    @Builder(setterPrefix = "with")
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class MetricDefinitionDTO {
+
+        @NonNull
+        @NotBlank
+        private String name;
+
+        @NonNull
+        @NotBlank
+        private String definition;
+    }
 
     @Data
     @Builder(setterPrefix = "with")
