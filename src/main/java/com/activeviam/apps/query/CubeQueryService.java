@@ -28,7 +28,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.impl.api.contextvalues.mdx.MdxContext;
 import com.activeviam.activepivot.core.impl.api.cube.hierarchy.HierarchiesUtil;
-import com.activeviam.activepivot.core.impl.internal.context.filter.QueryBasedCubeRestriction;
+import com.activeviam.activepivot.core.impl.api.experimental.context.filter.QueryBasedCubeRestriction;
 import com.activeviam.activepivot.core.impl.internal.context.impl.ContextUtils;
 import com.activeviam.activepivot.core.impl.internal.contextvalues.subcube.CubeFilterUtil;
 import com.activeviam.activepivot.core.intf.api.contextvalues.IContextValue;
@@ -39,12 +39,8 @@ import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IAxisHierarchy;
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IMeasureHierarchy;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.HierarchyIdentifier;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
-import com.activeviam.activepivot.core.intf.internal.context.filter.AndCubeRestriction;
-import com.activeviam.activepivot.core.intf.internal.context.filter.ICubeRestriction;
-import com.activeviam.activepivot.core.intf.internal.context.filter.IQueryBasedCubeRestriction;
-import com.activeviam.activepivot.core.intf.internal.context.filter.InLevelRestriction;
-import com.activeviam.activepivot.core.intf.internal.context.filter.NotCubeRestriction;
-import com.activeviam.activepivot.core.intf.internal.context.filter.OrCubeRestriction;
+import com.activeviam.activepivot.core.intf.api.experimental.context.filter.ICubeRestriction;
+import com.activeviam.activepivot.core.intf.api.experimental.context.filter.IQueryBasedCubeRestriction;
 import com.activeviam.activepivot.server.intf.api.dataexport.IDataExportService;
 import com.activeviam.activepivot.server.json.api.dataexport.JsonDataExportOrder;
 import com.activeviam.activepivot.server.json.api.query.JsonMdxQuery;
@@ -631,15 +627,14 @@ public class CubeQueryService {
         private ICubeRestriction convertQueryConditionToCubeRestriction(LogicalCondition queryCondition) {
             return switch (queryCondition) {
                 case AndLogicalCondition andLogicalCondition ->
-                    AndCubeRestriction.create(toListOfRestrictions(andLogicalCondition.getSubConditions()));
+                    ICubeRestriction.and(toListOfRestrictions(andLogicalCondition.getSubConditions()));
                 case OrLogicalCondition orLogicalCondition ->
-                    OrCubeRestriction.create(toListOfRestrictions(orLogicalCondition.getSubConditions()));
+                    ICubeRestriction.or(toListOfRestrictions(orLogicalCondition.getSubConditions()));
                 case NotLogicalCondition notLogicalCondition ->
-                    NotCubeRestriction.create(
-                            convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
+                    ICubeRestriction.not(convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
                 case InLogicalCondition<?> inLogicalCondition ->
-                    InLevelRestriction.create(
-                            levelsConverter.stringToLevelIdentifier(inLogicalCondition.getField()),
+                    ICubeRestriction.inPath(
+                            levelsConverter.stringToHierarchyIdentifier(inLogicalCondition.getField()),
                             inPathValues(inLogicalCondition.getField(), inLogicalCondition.getValues()));
                 case MeasureCondition measureCondition ->
                     throw new UnsupportedOperationException(MeasureCondition.class.getSimpleName());
@@ -650,11 +645,11 @@ public class CubeQueryService {
                     var valuesToFilter = allMembers.stream()
                             .filter(m -> m.contains(criteria))
                             .toList();
-                    yield InLevelRestriction.create(
-                            levelsConverter.stringToLevelIdentifier(likeCondition.getField()),
+                    yield ICubeRestriction.inPath(
+                            levelsConverter.stringToHierarchyIdentifier(likeCondition.getField()),
                             inPathValues(likeCondition.getField(), valuesToFilter));
                 }
-                default -> ICubeRestriction.TRUE_INSTANCE;
+                default -> ICubeRestriction.trueRestriction();
             };
         }
 
@@ -797,6 +792,7 @@ public class CubeQueryService {
                     .toList();
         }
 
+        // FIXME!
         private static Set<?> inPathValues(String hierarchy, Collection<?> values) {
             return new HashSet<>(values);
         }
