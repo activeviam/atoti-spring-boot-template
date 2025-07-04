@@ -404,15 +404,17 @@ public class CubeQueryService {
             // Levels and top rank
             if (!ObjectUtils.isEmpty(levels)) {
                 query.append(hierarchizedLevels(levels, topRank, topCount, sortBys));
-                query.append(System.lineSeparator());
             }
 
             // Metrics
             var metrics = extractAllMetricNames(cubeQuery, true);
             if (!ObjectUtils.isEmpty(metrics)) {
+                query.append(",");
+                query.append(System.lineSeparator());
                 query.append(String.format(
                         "{%s} ON COLUMNS",
                         metrics.stream().map(CubeQuerier::metricToMdxMeasure).collect(Collectors.joining(","))));
+            } else {
                 query.append(System.lineSeparator());
             }
 
@@ -522,7 +524,7 @@ public class CubeQueryService {
                 hierarchizeTemplate.append(crossJoinOrNot);
             }
             return String.format(
-                    hierarchizeTemplate.append(" ON ROWS,").toString(),
+                    hierarchizeTemplate.append(" ON ROWS").toString(),
                     levels.stream()
                             .map(level -> Objects.nonNull(topCount)
                                             && topCount.level().equals(level)
