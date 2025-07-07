@@ -16,6 +16,10 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @ConfigurationPropertiesScan
 public class AtotiSpringBootApplication {
 
+    static {
+        System.setProperty("activeviam.feature.experimental.motherboard.enabled", "true");
+    }
+
     public static void main(String[] args) {
         SpringApplication.run(AtotiSpringBootApplication.class, args);
     }

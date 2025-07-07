@@ -6,7 +6,7 @@
  */
 package com.activeviam.apps.cfg.pivot;
 
-import static com.activeviam.apps.cfg.pivot.CubeConfig.CUBE_NAME;
+import static com.activeviam.apps.cfg.cube.CubeConfiguration.CUBE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;

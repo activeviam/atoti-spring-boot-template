@@ -151,3 +151,9 @@ springdoc:
   swagger-ui:
     path: /swagger-ui
     doc-expansion: none
+
+activeviam:
+  feature:
+    experimental:
+      motherboard:
+        enabled: true
