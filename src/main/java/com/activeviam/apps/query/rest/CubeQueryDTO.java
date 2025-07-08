@@ -94,16 +94,11 @@ public class CubeQueryDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class SortDTO {
-        @NonNull
-        @NotBlank
         private String metric;
-
-        @NonNull
-        @NotBlank
-        String level;
+        private String level;
 
         @Builder.Default
-        boolean ascending = false;
+        private boolean ascending = false;
     }
 
     @Data
@@ -111,12 +106,7 @@ public class CubeQueryDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class TopRankDTO {
-        @NonNull
-        @NotBlank
         private String metric;
-
-        @NonNull
-        @NotBlank
         private String level;
     }
 
