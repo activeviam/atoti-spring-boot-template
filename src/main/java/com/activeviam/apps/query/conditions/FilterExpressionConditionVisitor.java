@@ -64,12 +64,10 @@ public class FilterExpressionConditionVisitor extends QueryConditionBaseVisitor<
                     values.STRING().stream()
                             .map(v -> v.getText().replace("'", ""))
                             .toList());
-        } else if (!values.INT().isEmpty()) {
-            return new InLogicalCondition<Double>(
+        } else if (!values.NUMBER().isEmpty()) {
+            return new InLogicalCondition<Number>(
                     field,
-                    values.INT().stream()
-                            .map(v -> Double.parseDouble(v.getText()))
-                            .toList());
+                    values.NUMBER().stream().map(v -> intOrDouble(v.getText())).toList());
         } else if (!values.DATE().isEmpty()) {
             return new InLogicalCondition<LocalDate>(
                     field,
@@ -118,7 +116,15 @@ public class FilterExpressionConditionVisitor extends QueryConditionBaseVisitor<
         } else if (ctx.DATE() != null) {
             return LocalDate.parse(ctx.getText());
         } else {
-            return Integer.parseInt(ctx.getText());
+            return intOrDouble(ctx.getText());
+        }
+    }
+
+    private static Number intOrDouble(String str) {
+        if (str.contains(".")) {
+            return Double.parseDouble(str);
+        } else {
+            return Integer.parseInt(str);
         }
     }
 }

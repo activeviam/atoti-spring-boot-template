@@ -12,21 +12,21 @@ query
    | field=fieldName 'IN' LSQPAREN values=valuesList RSQPAREN #inConditionQuery
    | 'NOT' notConditition=query #notConditionQuery
    | field=fieldName 'LIKE' criteria=criteriaType #likeConditionQuery
-   | field=fieldName 'BETWEEN' LSQPAREN left=betweenArg ARG_SEPARATOR right=betweenArg RSQPAREN #betweenConditionQuery
+   | field=fieldName 'BETWEEN' LSQPAREN left=betweenArg ',' right=betweenArg RSQPAREN #betweenConditionQuery
    | measure=measureName 'AT' field=fieldName operator=('<='|'<'|'>'|'>='|'=') operand=operandType #measureConditionQuery
    ;
 
 valuesList
-   :  (STRING ARG_SEPARATOR?)*
-      | (INT ARG_SEPARATOR?)*
+   :  (NUMBER ARG_SEPARATOR?)*
       | (BOOL ARG_SEPARATOR?)*
       | (DATE ARG_SEPARATOR?)*
+      | (STRING ARG_SEPARATOR?)*
    ;
 
 betweenArg
-    : DATE
-    | INT
-    | SEMICOL
+    : SEMICOL
+    | NUMBER
+    | DATE
     ;
 
 // Key is an identifier (e.g., field name)
@@ -44,8 +44,7 @@ criteriaType
     ;
 
 operandType
-    : INT
-    | DOUBLE
+    : NUMBER
     ;
 
 //// Value can be a string, number, boolean, or date
@@ -57,23 +56,18 @@ operandType
 //   ;
 
 // Identifiers (e.g., field names)
+// references the DIGIT helper rule
+
 ARG_SEPARATOR
     :
     ',';
 
 NUMBER
-   : ('0' .. '9')
-   ;
-
-DOUBLE
     :
-    (PLUS_MINUS)? NUMBER+ (PT NUMBER+)?
+    (PLUS_MINUS)? DIGIT+ (PT DIGIT+)?
     ;
 
-INT
-    :
-    NUMBER+
-    ;
+fragment DIGIT : [0-9] ; // not a token by itself
 
 BOOL
     : 'true'
@@ -103,7 +97,7 @@ DATE
 
 // Year should be four digits
 YEAR
-   : [0-9][0-9][0-9][0-9]
+   : DIGIT DIGIT DIGIT DIGIT
    ;
 
 // Month should be two digits (01 to 12)
