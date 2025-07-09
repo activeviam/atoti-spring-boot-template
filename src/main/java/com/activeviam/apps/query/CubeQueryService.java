@@ -290,7 +290,7 @@ public class CubeQueryService {
                 // Sort
                 if (!ObjectUtils.isEmpty(sortByCalculatedMember)) {
                     query.append(sortByCalculatedMember.stream()
-                            .map(CubeQuerier::sortingCalculatedMeasure)
+                            .map(this::sortingCalculatedMeasureMdx)
                             .collect(Collectors.joining(",")));
                     query.append(System.lineSeparator());
                 }
@@ -350,6 +350,10 @@ public class CubeQueryService {
         private String calculatedMemberMdx(String memberName, String expression) {
             return String.format(
                     "Member %s AS (%s), FORMAT_STRING = \"%s\"", memberName, expression, defaultDoubleFormatter);
+        }
+
+        private String sortingCalculatedMeasureMdx(CubeQuery.Sort sorting) {
+            return calculatedMemberMdx(sortingMeasureToMdx(sorting), sortingCalculatedMemberExpression(sorting));
         }
 
         private String partitioningCalculatedMeasureMdx(CubeQuery.Partitioning partitioning) {
@@ -578,7 +582,7 @@ public class CubeQueryService {
         }
 
         private static String sortingCalculatedMemberExpression(CubeQuery.Sort sort) {
-            return levelToCurrentMemberValue(sort.level());
+            return String.format("Rank(%s,%s)", levelToCurrentMemberMdx(sort.level()), levelToMdxMembers(sort.level()));
         }
 
         private static String levelToCurrentMemberValue(LevelIdentifier level) {
@@ -739,10 +743,7 @@ public class CubeQueryService {
                     var mdxLevelValue = levelToCurrentMemberValue(level);
                     yield new MdxSubSelectData(
                             values.stream()
-                                    .map(value -> mdxLevelValue + " = "
-                                            + (value instanceof LocalDate localDate
-                                                    ? formatLocalDate(localDate)
-                                                    : value.toString()))
+                                    .map(value -> mdxLevelValue + " = " + valueToString(value))
                                     .collect(Collectors.joining(" OR ", "(", ")")),
                             Set.of(level));
                 }
@@ -760,16 +761,10 @@ public class CubeQueryService {
                         subConditions.add(String.format("IsDate(%s)", mdxMemberValue));
                     }
                     if (Objects.nonNull(left)) {
-                        subConditions.add(String.format(
-                                "%s >= %s",
-                                mdxMemberValue,
-                                left instanceof LocalDate localDate ? formatLocalDate(localDate) : left.toString()));
+                        subConditions.add(String.format("%s >= %s", mdxMemberValue, valueToString(left)));
                     }
                     if (Objects.nonNull(right)) {
-                        subConditions.add(String.format(
-                                "%s <= %s",
-                                mdxMemberValue,
-                                right instanceof LocalDate ? String.format("CDate(\"%s\")", right) : right.toString()));
+                        subConditions.add(String.format("%s <= %s", mdxMemberValue, valueToString(right)));
                     }
                     yield new MdxSubSelectData(
                             subConditions.stream().collect(Collectors.joining(" AND ", "(", ")")), Set.of(level));
@@ -789,6 +784,16 @@ public class CubeQueryService {
                 }
                 default -> null;
             };
+        }
+
+        private static String valueToString(Object value) {
+            if (value instanceof LocalDate localDate) {
+                return formatLocalDate(localDate);
+            } else if (value instanceof Number number) {
+                return number.toString();
+            } else {
+                return String.format("\"%s\"", value.toString());
+            }
         }
 
         private List<ICubeRestriction> toListOfRestrictions(Collection<LogicalCondition> conditions) {
