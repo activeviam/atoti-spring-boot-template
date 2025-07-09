@@ -35,17 +35,17 @@ public class CubeQueryDTO {
     @Valid
     private TopCountDTO topCount;
 
-    @Singular
-    private List<@Valid SortDTO> sortBys;
-
-    @Singular
-    private List<@Valid MetricDefinitionDTO> metricDefinitions;
+    @Valid
+    private SortDTO sortBy;
 
     @Valid
     private TopRankDTO topRank;
 
     @Singular
     private List<@Valid PartitioningDTO> partitionedBys;
+
+    @Singular
+    private List<@Valid MetricDefinitionDTO> metricDefinitions;
 
     private Boolean useContext;
 
@@ -94,11 +94,9 @@ public class CubeQueryDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class SortDTO {
-        private String metric;
-
         @NonNull
         @NotBlank
-        private String level;
+        private String column;
 
         @Builder.Default
         private boolean ascending = false;

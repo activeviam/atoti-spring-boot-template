@@ -129,7 +129,7 @@ public class CubeQueryService {
 
         public CubeQuery convertCubeQuery(CubeQueryDTO dto) {
             assertIsReady();
-            return CubeQuery.fromDTO(dto, levelsConverter);
+            return CubeQuery.fromDTO(dto, levelsConverter, getExistingMeasures());
         }
 
         private static Map<String, Object> exporterConfig(String outputFormat) {
@@ -196,12 +196,13 @@ public class CubeQueryService {
             }
             if (!ObjectUtils.isEmpty(cubeQuery.getSortBy())) {
                 // Create calculated members for sorting that requires it
-                cubeQuery.getSortBy().stream()
-                        .filter(CubeQuerier::sortRequiresCalculatedMember)
-                        .forEach(sort -> mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
-                                .withName(sortingCalculatedMeasure(sort))
-                                .withExpression(sortingCalculatedMemberExpression(sort))
-                                .build()));
+                var sortBy = cubeQuery.getSortBy();
+                if (sortBy.column() instanceof LevelIdentifier level) {
+                    mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
+                            .withName(sortingCalculatedMeasure(level))
+                            .withExpression(sortingCalculatedMemberExpression(level))
+                            .build());
+                }
             }
             if (!ObjectUtils.isEmpty(cubeQuery.getTopCount())) {
                 var topCounts = cubeQuery.getTopCount();
@@ -231,6 +232,14 @@ public class CubeQueryService {
 
         // Replace the metric names with the mdx metric expression
         private String calculatedMemberExpressionToMdx(String expression) {
+            var convertedExpression = expression;
+            for (var measure : getExistingMeasures()) {
+                convertedExpression = convertedExpression.replace(measure, metricToMdxMeasure(measure));
+            }
+            return convertedExpression;
+        }
+
+        private Set<String> getExistingMeasures() {
             if (ObjectUtils.isEmpty(existingMeasures)) {
                 // Fetch the list of existingMeasures
                 existingMeasures = Set.of(activePivot
@@ -239,11 +248,7 @@ public class CubeQueryService {
                         .getAllMeasureNames()
                         .toArray(String[]::new));
             }
-            var convertedExpression = expression;
-            for (var measure : existingMeasures) {
-                convertedExpression = convertedExpression.replace(measure, metricToMdxMeasure(measure));
-            }
-            return convertedExpression;
+            return existingMeasures;
         }
 
         private void applyFormatters(CubeQuery cubeQuery, MdxContext mdxContext) {
@@ -269,17 +274,16 @@ public class CubeQueryService {
         private String buildCalculatedMembersMdx(CubeQuery cubeQuery) {
             var query = new StringBuilder();
             var sortBy = cubeQuery.getSortBy();
-            var sortByCalculatedMember = ObjectUtils.isEmpty(sortBy)
-                    ? null
-                    : sortBy.stream()
-                            .filter(CubeQuerier::sortRequiresCalculatedMember)
-                            .toList();
+            LevelIdentifier sortByCalculatedMemberLevel = null;
+            if (!ObjectUtils.isEmpty(sortBy) && sortBy.column() instanceof LevelIdentifier level) {
+                sortByCalculatedMemberLevel = level;
+            }
             var partitionedBy = cubeQuery.getPartitionedBy();
             var topRank = cubeQuery.getTopRank();
             var topCount = cubeQuery.getTopCount();
             var metricDefinitions = cubeQuery.getMetricDefinitions();
             // If any of these conditions is true, we need to add the calculated Members
-            if (!ObjectUtils.isEmpty(sortByCalculatedMember)
+            if (!ObjectUtils.isEmpty(sortByCalculatedMemberLevel)
                     || !ObjectUtils.isEmpty(partitionedBy)
                     || !ObjectUtils.isEmpty(topRank)
                     || !ObjectUtils.isEmpty(topCount)
@@ -288,10 +292,8 @@ public class CubeQueryService {
                 query.append(System.lineSeparator());
 
                 // Sort
-                if (!ObjectUtils.isEmpty(sortByCalculatedMember)) {
-                    query.append(sortByCalculatedMember.stream()
-                            .map(this::sortingCalculatedMeasureMdx)
-                            .collect(Collectors.joining(",")));
+                if (!ObjectUtils.isEmpty(sortByCalculatedMemberLevel)) {
+                    query.append(sortingCalculatedMeasureMdx(sortByCalculatedMemberLevel));
                     query.append(System.lineSeparator());
                 }
 
@@ -352,8 +354,8 @@ public class CubeQueryService {
                     "Member %s AS (%s), FORMAT_STRING = \"%s\"", memberName, expression, defaultDoubleFormatter);
         }
 
-        private String sortingCalculatedMeasureMdx(CubeQuery.Sort sorting) {
-            return calculatedMemberMdx(sortingMeasureToMdx(sorting), sortingCalculatedMemberExpression(sorting));
+        private String sortingCalculatedMeasureMdx(LevelIdentifier level) {
+            return calculatedMemberMdx(sortingCalculatedMeasure(level), sortingCalculatedMemberExpression(level));
         }
 
         private String partitioningCalculatedMeasureMdx(CubeQuery.Partitioning partitioning) {
@@ -362,7 +364,7 @@ public class CubeQueryService {
         }
 
         private String topRankCalculatedMeasureMdx(CubeQuery.TopRank topRank) {
-            return calculatedMemberMdx(TOP_RANK_MEASURE, topRankMemberExpression(topRank));
+            return calculatedMemberMdx(TOP_RANK_MEMBER, topRankMemberExpression(topRank));
         }
 
         private String topCountOthersCalculatedMeasureMdx(CubeQuery.TopCount topCount) {
@@ -392,7 +394,7 @@ public class CubeQueryService {
         public String buildMdxQuery(CubeQuery cubeQuery) {
             assertIsReady();
             var query = new StringBuilder();
-            var sortBys = cubeQuery.getSortBy();
+            var sortBy = cubeQuery.getSortBy();
             var topRank = cubeQuery.getTopRank();
             var topCount = cubeQuery.getTopCount();
             var levels = cubeQuery.getLevels();
@@ -411,7 +413,7 @@ public class CubeQueryService {
             query.append(System.lineSeparator());
             // Levels and top rank
             if (!ObjectUtils.isEmpty(levels)) {
-                query.append(hierarchizedLevels(levels, topRank, topCount, sortBys));
+                query.append(hierarchizedLevels(levels, sortBy, topRank, topCount));
                 query.append(System.lineSeparator());
             }
 
@@ -461,13 +463,6 @@ public class CubeQueryService {
             return slicingHierarchies.contains(hierarchyIdentifier);
         }
 
-        private static Optional<CubeQuery.Sort> levelSorting(
-                LevelIdentifier levelIdentifier, List<CubeQuery.Sort> sortByDefinition) {
-            return sortByDefinition.stream()
-                    .filter(sort -> sort.level().equals(levelIdentifier))
-                    .findAny();
-        }
-
         private String topNLevels(CubeQuery.TopCount topCount) {
             return String.format(
                     "{%s, {%s}}",
@@ -480,9 +475,10 @@ public class CubeQueryService {
         }
 
         private static String sortedHierarchizedLevels(
-                LevelIdentifier level, Optional<CubeQuery.Sort> sort, boolean isSlicingHierarchy) {
+                LevelIdentifier level, CubeQuery.Sort<?> sort, boolean isSlicingHierarchy) {
             var levelMembers = isSlicingHierarchy ? levelToMdxMembers(level) : hierarchizedDescendantsAllMember(level);
-            return sort.map(s -> orderMdx(levelMembers, sortingMeasureToMdx(s), s.sortType()))
+            return Optional.ofNullable(sort)
+                    .map(s -> orderMdx(levelMembers, sortingMeasureToMdx(s), s.sortType()))
                     .orElse(levelMembers);
         }
 
@@ -517,15 +513,14 @@ public class CubeQueryService {
 
         private String hierarchizedLevels(
                 List<LevelIdentifier> levels,
+                CubeQuery.Sort<?> sortByDefinition,
                 CubeQuery.TopRank topRankDefinition,
-                CubeQuery.TopCount topCount,
-                List<CubeQuery.Sort> sortByDefinitions) {
+                CubeQuery.TopCount topCount) {
             var hierarchizeTemplate = new StringBuilder();
             var crossJoinOrNot = levels.size() == 1 ? "%s" : "Crossjoin(%s)";
             // Sort by topRank
             if (Objects.nonNull(topRankDefinition)) {
-                hierarchizeTemplate.append(
-                        orderMdx(crossJoinOrNot, metricToMdxMeasure(topRankDefinition.metric()), "BDESC"));
+                hierarchizeTemplate.append(orderMdx(crossJoinOrNot, TOP_RANK_MEMBER, "BDESC"));
             } else {
                 hierarchizeTemplate.append(crossJoinOrNot);
             }
@@ -538,9 +533,7 @@ public class CubeQueryService {
                                     // If level is the TopCount level, we use Top Set
                                     topNLevels(topCount)
                                     : sortedHierarchizedLevels(
-                                            level,
-                                            levelSorting(level, sortByDefinitions),
-                                            isSlicingHierarchy(level.getHierarchy())))
+                                            level, sortByDefinition, isSlicingHierarchy(level.getHierarchy())))
                             .collect(Collectors.joining(",")));
         }
 
@@ -567,22 +560,21 @@ public class CubeQueryService {
             return String.format("[Measures].[%s]", metric);
         }
 
-        private static String sortingCalculatedMeasure(CubeQuery.Sort sort) {
-            return metricToMdxMeasure(String.format("%s_sorting", sort.level().getLevelName()));
+        private static String sortingCalculatedMeasure(LevelIdentifier level) {
+            return metricToMdxMeasure(String.format("%s_sorting", level.getLevelName()));
         }
 
-        private static boolean sortRequiresCalculatedMember(CubeQuery.Sort sort) {
-            return sort.metric().equals(sort.level().getLevelName());
+        private static String sortingMeasureToMdx(CubeQuery.Sort<?> sort) {
+            if (sort.column() instanceof String metric) {
+                return metricToMdxMeasure(metric);
+            } else if (sort.column() instanceof LevelIdentifier level) {
+                return sortingCalculatedMeasure(level);
+            }
+            throw new ActiveViamRuntimeException("Invalid sort value: " + sort.column());
         }
 
-        private static String sortingMeasureToMdx(CubeQuery.Sort sort) {
-            return sortRequiresCalculatedMember(sort)
-                    ? sortingCalculatedMeasure(sort)
-                    : metricToMdxMeasure(sort.metric());
-        }
-
-        private static String sortingCalculatedMemberExpression(CubeQuery.Sort sort) {
-            return String.format("Rank(%s,%s)", levelToCurrentMemberMdx(sort.level()), levelToMdxMembers(sort.level()));
+        private static String sortingCalculatedMemberExpression(LevelIdentifier level) {
+            return String.format("Rank(%s,%s)", levelToCurrentMemberMdx(level), levelToMdxMembers(level));
         }
 
         private static String levelToCurrentMemberValue(LevelIdentifier level) {

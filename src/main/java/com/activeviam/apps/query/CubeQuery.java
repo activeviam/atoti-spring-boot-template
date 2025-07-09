@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.util.ObjectUtils;
 
@@ -27,7 +28,7 @@ public class CubeQuery {
     private final List<LevelIdentifier> levels;
     private final LogicalCondition filter;
     private final CubeQuery.TopCount topCount;
-    private final List<CubeQuery.Sort> sortBy;
+    private final CubeQuery.Sort<?> sortBy;
     private final CubeQuery.TopRank topRank;
     private final List<CubeQuery.Partitioning> partitionedBy;
     private final List<MetricDefinition> metricDefinitions;
@@ -59,25 +60,9 @@ public class CubeQuery {
         }
     }
 
-    public record Sort(String metric, LevelIdentifier level, String sortType) {
+    public record Sort<T>(T column, String sortType) {}
 
-        public static Sort fromDTO(CubeQueryDTO.SortDTO dto, LevelsConverter levelsConverter) {
-            return new Sort(
-                    ObjectUtils.isEmpty(dto.getMetric())
-                            ? dto.getLevel()
-                            : dto.getMetric(), // If we only specify the level, we use level as metric as well
-                    levelsConverter.stringToLevelIdentifier(dto.getLevel()),
-                    dto.isAscending() ? "ASC" : "DESC");
-        }
-    }
-
-    public record TopRank(String metric, LevelIdentifier level) {
-        public static TopRank fromDTO(CubeQueryDTO.TopRankDTO dto, LevelsConverter levelsConverter) {
-            return Objects.nonNull(dto)
-                    ? new TopRank(dto.getMetric(), levelsConverter.stringToLevelIdentifier(dto.getLevel()))
-                    : null;
-        }
-    }
+    public record TopRank(String metric, LevelIdentifier level) {}
 
     public record Partitioning(String newMetric, String metric, LevelIdentifier level) {
         public static Partitioning fromDTO(CubeQueryDTO.PartitioningDTO dto, LevelsConverter levelsConverter) {
@@ -102,7 +87,7 @@ public class CubeQuery {
         }
     }
 
-    public static CubeQuery fromDTO(CubeQueryDTO dto, LevelsConverter levelsConverter) {
+    public static CubeQuery fromDTO(CubeQueryDTO dto, LevelsConverter levelsConverter, Set<String> measures) {
         var filter = ObjectUtils.isEmpty(dto.getFiltersExpression())
                 ? new TrueLogicalCondition()
                 : FilterExpressionConditionVisitor.parseFilterExpression(dto.getFiltersExpression());
@@ -116,10 +101,20 @@ public class CubeQuery {
                         .toList(),
                 filter,
                 TopCount.fromDTO(dto.getTopCount(), levelsConverter),
-                Optional.ofNullable(dto.getSortBys()).orElse(Collections.emptyList()).stream()
-                        .map(s -> Sort.fromDTO(s, levelsConverter))
-                        .toList(),
-                TopRank.fromDTO(dto.getTopRank(), levelsConverter),
+                Optional.ofNullable(dto.getSortBy())
+                        .map(s -> {
+                            var sortType = s.isAscending() ? "ASC" : "DESC";
+                            if (measures.contains(s.getColumn())) {
+                                return new Sort<String>(s.getColumn(), sortType);
+                            } else {
+                                return new Sort<LevelIdentifier>(
+                                        levelsConverter.stringToLevelIdentifier(s.getColumn()), sortType);
+                            }
+                        })
+                        .orElse(null),
+                Optional.of(dto.getTopRank())
+                        .map(t -> new TopRank(t.getMetric(), levelsConverter.stringToLevelIdentifier(t.getLevel())))
+                        .orElse(null),
                 Optional.ofNullable(dto.getPartitionedBys()).orElse(Collections.emptyList()).stream()
                         .map(p -> Partitioning.fromDTO(p, levelsConverter))
                         .toList(),
