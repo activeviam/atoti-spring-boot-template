@@ -93,7 +93,7 @@ public class CubeQuery {
                 : FilterExpressionConditionVisitor.parseFilterExpression(dto.getFiltersExpression());
         // If we dont force the use of context or not, we always use context unless there is a measure filter
         var useContext = Optional.ofNullable(dto.getUseContext())
-                .orElse(!CubeQueryService.CubeQuerier.containsMeasureFilter(filter));
+                .orElse(ObjectUtils.isEmpty(filter) || !CubeQueryService.CubeQuerier.containsMeasureFilter(filter));
         return new CubeQuery(
                 Optional.ofNullable(dto.getMetrics()).orElse(Collections.emptyList()),
                 Optional.ofNullable(dto.getLevels()).orElse(Collections.emptyList()).stream()
@@ -112,7 +112,7 @@ public class CubeQuery {
                             }
                         })
                         .orElse(null),
-                Optional.of(dto.getTopRank())
+                Optional.ofNullable(dto.getTopRank())
                         .map(t -> new TopRank(t.getMetric(), levelsConverter.stringToLevelIdentifier(t.getLevel())))
                         .orElse(null),
                 Optional.ofNullable(dto.getPartitionedBys()).orElse(Collections.emptyList()).stream()

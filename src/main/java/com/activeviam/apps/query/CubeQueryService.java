@@ -410,26 +410,28 @@ public class CubeQueryService {
             }
 
             query.append("SELECT NON EMPTY");
-            query.append(System.lineSeparator());
             // Levels and top rank
             if (!ObjectUtils.isEmpty(levels)) {
-                query.append(hierarchizedLevels(levels, sortBy, topRank, topCount));
                 query.append(System.lineSeparator());
+                query.append(hierarchizedLevels(levels, sortBy, topRank, topCount));
             }
 
             // Metrics
             var metrics = extractAllMetricNames(cubeQuery, true);
             if (!ObjectUtils.isEmpty(metrics)) {
+                query.append(System.lineSeparator());
+                query.append(",");
                 query.append(String.format(
                         "{%s} ON COLUMNS",
                         metrics.stream().map(CubeQuerier::metricToMdxMeasure).collect(Collectors.joining(","))));
-                query.append(System.lineSeparator());
             }
 
             // If we are using a subselect to add filters, add them here
             if (!(cubeQuery.getFilter() instanceof TrueLogicalCondition) && fullMdxQuery) {
+                query.append(System.lineSeparator());
                 query.append(subSelectWithFilter(cubeQuery.getFilter(), cubeQuery.getLevels()));
             } else {
+                query.append(System.lineSeparator());
                 query.append(fromCube(cube));
             }
 
@@ -525,7 +527,7 @@ public class CubeQueryService {
                 hierarchizeTemplate.append(crossJoinOrNot);
             }
             return String.format(
-                    hierarchizeTemplate.append(" ON ROWS,").toString(),
+                    hierarchizeTemplate.append(" ON ROWS").toString(),
                     levels.stream()
                             .map(level -> Objects.nonNull(topCount)
                                             && topCount.level().equals(level)
