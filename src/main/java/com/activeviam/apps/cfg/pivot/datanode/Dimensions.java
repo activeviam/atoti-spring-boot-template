@@ -48,7 +48,9 @@ public class Dimensions implements ICanStartBuildingDimensions.DimensionsAdder {
     @Override
     public ICanBuildCubeDescription<IActivePivotInstanceDescription> apply(ICanStartBuildingDimensions builder) {
         return builder.withDimension(TRADE_ATTRIBUTES_DIMENSION)
-                .withSingleLevelHierarchies(TRADE_ID, COUNTERPARTY_ID, DESK, PORTFOLIO, NUMERIC)
+                .withSingleLevelHierarchies(TRADE_ID, COUNTERPARTY_ID, PORTFOLIO, NUMERIC)
+                .withSingleLevelHierarchy(DESK)
+                .withComparator(CustomStringComparator.CUSTOM_STRING_COMPARATOR_PLUGIN_KEY)
                 .withSingleLevelHierarchy(TRADE_DATE)
                 .withType(ILevelInfo.LevelType.TIME)
                 // Make the AsOfDate hierarchy slicing - we do not aggregate across dates

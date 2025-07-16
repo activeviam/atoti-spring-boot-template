@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2024
+ * Copyright (C) ActiveViam 2024-2025
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -23,7 +23,7 @@ public class RegistryInitializationListener implements ApplicationListener<Appli
     public void onApplicationEvent(ApplicationPreparedEvent event) {
         // Remember to include your package, such as `com.yourdomain`, otherwise the custom plugins from that
         Registry.initialize(Registry.RegistryContributions.builder()
-                .packagesToScan(List.of("com.activeviam.apps"))
+                .packagesToScan(List.of("com.activeviam.apps", "com.jpmc"))
                 .build());
     }
 }
