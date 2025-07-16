@@ -70,7 +70,7 @@ public class InitialLoad {
 
         log.info("Generating fake trades for today");
         var today = LocalDate.now();
-        var tradesCount = 50_000;
+        var tradesCount = 10_000;
         var tradeData = dataGenerator.generateTradeData(today, tradesCount);
         var tradeAttributesData = dataGenerator.generateTradeAttributesData(today, tradesCount);
         applicationWithDatastore.getDatastore().edit(t -> {

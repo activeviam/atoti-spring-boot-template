@@ -26,9 +26,9 @@ public class CubeConstants {
     /* ********** */
     /* Formatters */
     /* ********** */
-    public static final String FORMATTER_STRING = "#,###.##";
-    public static final String DOUBLE_FORMATTER = "DOUBLE[#,###.00]";
-    public static final String INT_FORMATTER = "INT[#,###]";
+    public static final String FORMATTER_STRING = "#0.00";
+    public static final String DOUBLE_FORMATTER = "DOUBLE[#0.00]";
+    public static final String INT_FORMATTER = "INT[#0]";
     public static final String TIMESTAMP_FORMATTER = "DATE[HH:mm:ss]";
 
     public static final String NATIVE_MEASURES = "Native Measures";

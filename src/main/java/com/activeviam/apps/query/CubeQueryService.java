@@ -6,6 +6,7 @@
  */
 package com.activeviam.apps.query;
 
+import static com.activeviam.activepivot.core.intf.api.cube.hierarchy.IHierarchy.ALLMEMBER;
 import static com.activeviam.activepivot.server.json.api.dataexport.IJsonOutputConfiguration.FORMAT_PROPERTY;
 import static com.activeviam.apps.constants.CubeConstants.FORMATTER_STRING;
 
@@ -27,9 +28,10 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
+import com.activeviam.activepivot.core.impl.api.contextvalues.QueryMonitoring;
 import com.activeviam.activepivot.core.impl.api.contextvalues.mdx.MdxContext;
 import com.activeviam.activepivot.core.impl.api.cube.hierarchy.HierarchiesUtil;
-import com.activeviam.activepivot.core.impl.internal.context.filter.QueryBasedCubeRestriction;
+import com.activeviam.activepivot.core.impl.api.experimental.context.filter.QueryBasedCubeRestriction;
 import com.activeviam.activepivot.core.impl.internal.context.impl.ContextUtils;
 import com.activeviam.activepivot.core.impl.internal.contextvalues.subcube.CubeFilterUtil;
 import com.activeviam.activepivot.core.intf.api.contextvalues.IContextValue;
@@ -40,12 +42,8 @@ import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IAxisHierarchy;
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IMeasureHierarchy;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.HierarchyIdentifier;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
-import com.activeviam.activepivot.core.intf.internal.context.filter.AndCubeRestriction;
-import com.activeviam.activepivot.core.intf.internal.context.filter.ICubeRestriction;
-import com.activeviam.activepivot.core.intf.internal.context.filter.IQueryBasedCubeRestriction;
-import com.activeviam.activepivot.core.intf.internal.context.filter.InLevelRestriction;
-import com.activeviam.activepivot.core.intf.internal.context.filter.NotCubeRestriction;
-import com.activeviam.activepivot.core.intf.internal.context.filter.OrCubeRestriction;
+import com.activeviam.activepivot.core.intf.api.experimental.context.filter.ICubeRestriction;
+import com.activeviam.activepivot.core.intf.api.experimental.context.filter.IQueryBasedCubeRestriction;
 import com.activeviam.activepivot.server.intf.api.dataexport.IDataExportService;
 import com.activeviam.activepivot.server.json.api.dataexport.JsonDataExportOrder;
 import com.activeviam.activepivot.server.json.api.query.JsonMdxQuery;
@@ -149,6 +147,7 @@ public class CubeQueryService {
                 var cubeRestrictions = buildCubeRestrictions(cubeQuery);
                 contextValues.add(cubeRestrictions);
             }
+            contextValues.add(new QueryMonitoring().enableExecutionPlanningPrint().enableQueryPlanSummary());
             var contextSnapshot = ContextUtils.applyContextValues(activePivot.getContext(), contextValues, true);
             var mdx = buildMdxQuery(cubeQuery);
             log.info("Mdx Query: {}", mdx);
@@ -699,16 +698,16 @@ public class CubeQueryService {
         private ICubeRestriction convertQueryConditionToCubeRestriction(LogicalCondition queryCondition) {
             return switch (queryCondition) {
                 case AndLogicalCondition andLogicalCondition ->
-                    AndCubeRestriction.create(toListOfRestrictions(andLogicalCondition.getSubConditions()));
+                    ICubeRestriction.and(toListOfRestrictions(andLogicalCondition.getSubConditions()));
                 case OrLogicalCondition orLogicalCondition ->
-                    OrCubeRestriction.create(toListOfRestrictions(orLogicalCondition.getSubConditions()));
+                    ICubeRestriction.or(toListOfRestrictions(orLogicalCondition.getSubConditions()));
                 case NotLogicalCondition notLogicalCondition ->
-                    NotCubeRestriction.create(
-                            convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
-                case InLogicalCondition<?> inLogicalCondition ->
-                    InLevelRestriction.create(
-                            levelsConverter.stringToLevelIdentifier(inLogicalCondition.getField()),
-                            inPathValues(inLogicalCondition.getField(), inLogicalCondition.getValues()));
+                    ICubeRestriction.not(convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
+                case InLogicalCondition<?> inLogicalCondition -> {
+                    var level = levelsConverter.stringToLevelIdentifier(inLogicalCondition.getField());
+                    yield ICubeRestriction.inPath(
+                            level.getHierarchy(), inPathValues(level, inLogicalCondition.getValues()));
+                }
                 case MeasureCondition measureCondition ->
                     throw new UnsupportedOperationException(MeasureCondition.class.getSimpleName());
                 case LikeLogicalCondition likeCondition -> {
@@ -718,11 +717,10 @@ public class CubeQueryService {
                     var valuesToFilter = allMembers.stream()
                             .filter(m -> m.contains(criteria))
                             .toList();
-                    yield InLevelRestriction.create(
-                            levelsConverter.stringToLevelIdentifier(likeCondition.getField()),
-                            inPathValues(likeCondition.getField(), valuesToFilter));
+                    var level = levelsConverter.stringToLevelIdentifier(likeCondition.getField());
+                    yield ICubeRestriction.inPath(level.getHierarchy(), inPathValues(level, valuesToFilter));
                 }
-                default -> ICubeRestriction.TRUE_INSTANCE;
+                default -> ICubeRestriction.trueRestriction();
             };
         }
 
@@ -866,8 +864,14 @@ public class CubeQueryService {
                     .toList();
         }
 
-        private static Set<?> inPathValues(String hierarchy, Collection<?> values) {
-            return new HashSet<>(values);
+        private Object[] inPathValues(LevelIdentifier levelIdentifier, Collection<?> values) {
+            if (isSlicingHierarchy(levelIdentifier.getHierarchy())) {
+                return new Object[] {values};
+            } else {
+                return new Object[] {ALLMEMBER, values};
+            }
+            // throw new NotImplementedException("Not implemented yet");
+            //            return new HashSet<>(values);
         }
 
         static boolean containsMeasureFilter(LogicalCondition queryCondition) {
