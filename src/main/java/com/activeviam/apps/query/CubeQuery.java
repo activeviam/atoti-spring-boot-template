@@ -6,6 +6,8 @@
  */
 package com.activeviam.apps.query;
 
+import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -103,7 +105,7 @@ public class CubeQuery {
                 TopCount.fromDTO(dto.getTopCount(), levelsConverter),
                 Optional.ofNullable(dto.getSortBy())
                         .map(s -> {
-                            var sortType = s.isAscending() ? "ASC" : "DESC";
+                            var sortType = computeSortType(s.getColumn(),s.isAscending());
                             if (measures.contains(s.getColumn())) {
                                 return new Sort<String>(s.getColumn(), sortType);
                             } else {
@@ -126,5 +128,10 @@ public class CubeQuery {
                         Optional.ofNullable(dto.getHideTotals())
                                 .orElse(CubeQueryDTO.HideTotalsDTO.builder().build()),
                         levelsConverter));
+    }
+
+    private static String computeSortType(String level, boolean isAscending) {
+        // COB_DATE is sorted in reverse order so we need to reverse this
+        return level.equals(COB_DATE) != isAscending ? "ASC" : "DESC";
     }
 }
