@@ -73,7 +73,7 @@ public class DataCubeConfig {
         }
         // Shared context values
         // Query maximum execution time (before timeout cancellation): 30s
-        builder = builder.withSharedContextValue(QueriesTimeLimit.of(30, TimeUnit.SECONDS))
+        builder = builder.withSharedContextValue(QueriesTimeLimit.of(2, TimeUnit.MINUTES))
                 .withSharedContextValue(QueriesResultLimit.withoutLimit())
                 .withSharedMdxContext()
                 .aggressiveFormulaEvaluation(true)
