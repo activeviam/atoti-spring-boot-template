@@ -26,7 +26,8 @@ public class CubeConstants {
     /* ********** */
     /* Formatters */
     /* ********** */
-    public static final String DOUBLE_FORMATTER = "DOUBLE[#,###.##]";
+    public static final String FORMATTER_STRING = "#,###.##";
+    public static final String DOUBLE_FORMATTER = "DOUBLE[#,###.00]";
     public static final String INT_FORMATTER = "INT[#,###]";
     public static final String TIMESTAMP_FORMATTER = "DATE[HH:mm:ss]";
 

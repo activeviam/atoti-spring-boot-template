@@ -56,11 +56,13 @@ public class Measures implements Consumer<ICopperContext> {
                 .mapToInt(r -> 1)
                 .per(Copper.level(PORTFOLIO_LEVEL))
                 .sum()
+                .withFormatter(INT_FORMATTER)
                 .as("Portfolio count"));
         copperMeasures.add(Copper.count()
                 .mapToInt(r -> 1)
                 .per(Copper.level(COUNTERPARTY_LEVEL))
                 .sum()
+                .withFormatter(INT_FORMATTER)
                 .as("Cpty count"));
     }
 

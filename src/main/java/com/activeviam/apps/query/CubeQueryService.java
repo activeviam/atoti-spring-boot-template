@@ -7,6 +7,7 @@
 package com.activeviam.apps.query;
 
 import static com.activeviam.activepivot.server.json.api.dataexport.IJsonOutputConfiguration.FORMAT_PROPERTY;
+import static com.activeviam.apps.constants.CubeConstants.FORMATTER_STRING;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -84,14 +85,7 @@ public class CubeQueryService {
         defaultCube = cubeQueryProperties.getDefaultCube();
         activePivotManager.getActivePivots().forEach((cube, pivot) -> {
             var cubeDefaults = cubeQueryProperties.getCubeConfiguration().get(cube);
-            cubeQueriers.put(
-                    cube,
-                    new CubeQuerier(
-                            cube,
-                            cubeDefaults,
-                            cubeQueryProperties.getDefaultDoubleFormatter(),
-                            pivot,
-                            dataExportService));
+            cubeQueriers.put(cube, new CubeQuerier(cube, cubeDefaults, FORMATTER_STRING, pivot, dataExportService));
         });
     }
 
@@ -113,18 +107,27 @@ public class CubeQueryService {
         private final IDataExportService dataExportService;
         Set<HierarchyIdentifier> slicingHierarchies;
         Set<String> existingMeasures;
+        Map<String, String> formatters = new HashMap<>();
 
         private CubeQuerier(
                 String cube,
                 CubeQueryProperties.CubeDefaults cubeDefaults,
-                String defaultDoubleFormatter,
+                String calculatedMeasuresFormatter,
                 IMultiVersionActivePivot activePivot,
                 IDataExportService dataExportService) {
             this.cube = cube;
-            this.defaultDoubleFormatter = defaultDoubleFormatter;
+            this.defaultDoubleFormatter = calculatedMeasuresFormatter;
             this.activePivot = activePivot;
             this.dataExportService = dataExportService;
             levelsConverter = new SingleDimensionLevelsConverter(cubeDefaults.getDefaultDimension());
+        }
+
+        private String getFormatter(String metric) {
+            return formatters.computeIfAbsent(metric, k -> activePivot
+                    .getHead()
+                    .getMeasuresProvider()
+                    .getMeasure(metric)
+                    .getDefaultFormatter());
         }
 
         public CubeQuery convertCubeQuery(CubeQueryDTO dto) {
@@ -256,16 +259,28 @@ public class CubeQueryService {
             return existingMeasures;
         }
 
+        //        private String getExistingMeasureFormatter() {
+        //            if (ObjectUtils.isEmpty(existingMeasures)) {
+        //                // Fetch the list of existingMeasures
+        //                existingMeasures = Set.of(activePivot
+        //                        .getHead()
+        //                        .getMeasuresProvider()
+        //                        .getAllMeasureNames()
+        //                        .toArray(String[]::new));
+        //            }
+        //            return existingMeasures;
+        //        }
+
         private void applyFormatters(CubeQuery cubeQuery, MdxContext mdxContext) {
-            var formatter = String.format("DOUBLE[%s]", defaultDoubleFormatter);
             mdxContext.setFormatters(extractAllMetricNames(cubeQuery, false).stream()
-                    .collect(Collectors.toMap(CubeQuerier::metricToMdxMeasure, m -> formatter)));
+                    .collect(Collectors.toMap(CubeQuerier::metricToMdxMeasure, this::getFormatter)));
         }
 
         IMdxContext buildMdxContext(CubeQuery cubeQuery) {
             var mdxContext = new MdxContext();
 
-            applyFormatters(cubeQuery, mdxContext);
+            // Just use the default formatter
+            // applyFormatters(cubeQuery, mdxContext);
 
             applyHideTotals(cubeQuery.getHideTotals(), cubeQuery.getLevels(), mdxContext);
 

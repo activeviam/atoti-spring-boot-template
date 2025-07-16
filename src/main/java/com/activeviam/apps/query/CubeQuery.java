@@ -105,7 +105,7 @@ public class CubeQuery {
                 TopCount.fromDTO(dto.getTopCount(), levelsConverter),
                 Optional.ofNullable(dto.getSortBy())
                         .map(s -> {
-                            var sortType = computeSortType(s.getColumn(),s.isAscending());
+                            var sortType = computeSortType(s.getColumn(), s.isAscending());
                             if (measures.contains(s.getColumn())) {
                                 return new Sort<String>(s.getColumn(), sortType);
                             } else {
