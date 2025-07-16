@@ -7,6 +7,8 @@
 package com.activeviam.apps.cfg.source;
 
 import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -34,6 +36,8 @@ public class InitialLoad {
     private final CobDateLoadController cobDateLoadController;
     private final ApplicationWithDatastore applicationWithDatastore;
     private final CobDatesProperties cobDatesProperties;
+
+    private final DataGenerator dataGenerator = new DataGenerator(40, 20, 30);
 
     @EventListener(value = ApplicationStartedEvent.class)
     void onApplicationReady() {
@@ -63,6 +67,17 @@ public class InitialLoad {
         } catch (Exception e) {
             log.warn("Failed to load initial data", e);
         }
+
+        log.info("Generating fake trades for today");
+        var today = LocalDate.now();
+        var tradesCount = 200_000;
+        var tradeData = dataGenerator.generateTradeData(today, tradesCount);
+        var tradeAttributesData = dataGenerator.generateTradeAttributesData(today, tradesCount);
+        applicationWithDatastore.getDatastore().edit(t -> {
+            t.addAll(TRADES_STORE_NAME, tradeData);
+            t.addAll(TRADE_ATTRIBUTES_STORE_NAME, tradeAttributesData);
+            t.forceCommit();
+        });
     }
 
     public static void startDistributionMessenger(IActivePivotManager activePivotManager) {

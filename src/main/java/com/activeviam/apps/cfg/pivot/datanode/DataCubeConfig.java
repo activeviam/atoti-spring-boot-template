@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
+import com.activeviam.activepivot.core.impl.api.contextvalues.QueriesResultLimit;
 import com.activeviam.activepivot.core.impl.api.contextvalues.QueriesTimeLimit;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstanceDescription;
 import com.activeviam.activepivot.core.intf.api.description.IDataClusterDefinition;
@@ -73,6 +74,7 @@ public class DataCubeConfig {
         // Shared context values
         // Query maximum execution time (before timeout cancellation): 30s
         builder = builder.withSharedContextValue(QueriesTimeLimit.of(30, TimeUnit.SECONDS))
+                .withSharedContextValue(QueriesResultLimit.withoutLimit())
                 .withSharedMdxContext()
                 .aggressiveFormulaEvaluation(true)
                 .end()
