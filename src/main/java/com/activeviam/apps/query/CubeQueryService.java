@@ -100,7 +100,7 @@ public class CubeQueryService {
     public static class CubeQuerier {
         private final String cube;
         private final LevelsConverter levelsConverter;
-        private final String defaultDoubleFormatter;
+        private final String calculatedMeasuresFormatter;
         private final IMultiVersionActivePivot activePivot;
         private final IDataExportService dataExportService;
         Set<HierarchyIdentifier> slicingHierarchies;
@@ -114,7 +114,7 @@ public class CubeQueryService {
                 IMultiVersionActivePivot activePivot,
                 IDataExportService dataExportService) {
             this.cube = cube;
-            this.defaultDoubleFormatter = calculatedMeasuresFormatter;
+            this.calculatedMeasuresFormatter = calculatedMeasuresFormatter;
             this.activePivot = activePivot;
             this.dataExportService = dataExportService;
             levelsConverter = new SingleDimensionLevelsConverter(cubeDefaults.getDefaultDimension());
@@ -147,7 +147,8 @@ public class CubeQueryService {
                 var cubeRestrictions = buildCubeRestrictions(cubeQuery);
                 contextValues.add(cubeRestrictions);
             }
-            contextValues.add(new QueryMonitoring().enableExecutionPlanningPrint().enableQueryPlanSummary());
+            contextValues.add(
+                    new QueryMonitoring().enableExecutionPlanningPrint().enableQueryPlanSummary());
             var contextSnapshot = ContextUtils.applyContextValues(activePivot.getContext(), contextValues, true);
             var mdx = buildMdxQuery(cubeQuery);
             log.info("Mdx Query: {}", mdx);
@@ -178,7 +179,7 @@ public class CubeQueryService {
 
         private void applyFullContext(CubeQuery cubeQuery, MdxContext mdxContext) {
             // FIXME: workaround, remove once https://github.com/activeviam/activepivot/pull/12984 is merged
-            mdxContext.setLightCrossJoinEnabled(false);
+            // mdxContext.setLightCrossJoinEnabled(true);
             // Add TopRank Set and Member
             if (!ObjectUtils.isEmpty(cubeQuery.getTopRank())) {
                 var topRank = cubeQuery.getTopRank();
@@ -197,7 +198,7 @@ public class CubeQueryService {
                         .forEach(p -> mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
                                 .withName(metricToMdxMeasure(p.newMetric()))
                                 .withExpression(partitioningCalculatedMemberExpression(p))
-                                .withFormatString(defaultDoubleFormatter)
+                                .withFormatString(calculatedMeasuresFormatter)
                                 .build()));
             }
             if (!ObjectUtils.isEmpty(cubeQuery.getSortBy())) {
@@ -231,7 +232,7 @@ public class CubeQueryService {
                     mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
                             .withName(def.name())
                             .withExpression(calculatedMemberExpressionToMdx(def.expression()))
-                            .withFormatString(defaultDoubleFormatter)
+                            .withFormatString(calculatedMeasuresFormatter)
                             .build());
                 }
             }
@@ -370,7 +371,7 @@ public class CubeQueryService {
 
         private String calculatedMemberMdx(String memberName, String expression) {
             return String.format(
-                    "Member %s AS (%s), FORMAT_STRING = \"%s\"", memberName, expression, defaultDoubleFormatter);
+                    "Member %s AS (%s), FORMAT_STRING = \"%s\"", memberName, expression, calculatedMeasuresFormatter);
         }
 
         private String sortingCalculatedMeasureMdx(LevelIdentifier level) {
@@ -709,7 +710,8 @@ public class CubeQueryService {
                             level.getHierarchy(), inPathValues(level, inLogicalCondition.getValues()));
                 }
                 case MeasureCondition measureCondition ->
-                    throw new UnsupportedOperationException(MeasureCondition.class.getSimpleName());
+                    throw new UnsupportedOperationException(
+                            MeasureCondition.class.getSimpleName() + " not supported in CubeRestrictions");
                 case LikeLogicalCondition likeCondition -> {
                     var allMembers =
                             getMembersForLevel(levelsConverter.stringToLevelIdentifier(likeCondition.getField()));

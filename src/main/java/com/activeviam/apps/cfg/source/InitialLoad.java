@@ -36,8 +36,11 @@ public class InitialLoad {
     private final CobDateLoadController cobDateLoadController;
     private final ApplicationWithDatastore applicationWithDatastore;
     private final CobDatesProperties cobDatesProperties;
-
-    private final DataGenerator dataGenerator = new DataGenerator(40, 20, 30);
+    private static final int TRADES_COUNT = 200_000;
+    private static final int DESKS_COUNT = 40;
+    private static final int PORTFOLIOS_COUNT = 30;
+    private static final int CPTYS_COUNT = 20;
+    private final DataGenerator dataGenerator = new DataGenerator(DESKS_COUNT, CPTYS_COUNT, PORTFOLIOS_COUNT);
 
     @EventListener(value = ApplicationStartedEvent.class)
     void onApplicationReady() {
@@ -49,6 +52,7 @@ public class InitialLoad {
                     IntStream.range(1, 100)
                             .mapToObj(x -> new Object[] {LocalDate.now().minusDays(x)})
                             .toList());
+            t.forceCommit();
         });
         startDistributionMessenger(applicationWithDatastore.getManager());
         initialInMemoryLoad();
@@ -60,6 +64,18 @@ public class InitialLoad {
         datesToLoad.addAll(cobDatesProperties.computeInMemoryDates());
         try {
             cobDateLoadController.loadCobDates(datesToLoad);
+            log.info("Generating fake trades for today and yesterday...");
+            var dates = IntStream.range(0, 3)
+                    .mapToObj(i -> LocalDate.now().minusDays(i))
+                    .toList();
+            applicationWithDatastore.getDatastore().edit(t -> {
+                dates.forEach(date -> {
+                    t.addAll(TRADES_STORE_NAME, dataGenerator.generateTradeData(date, TRADES_COUNT));
+                    t.addAll(
+                            TRADE_ATTRIBUTES_STORE_NAME, dataGenerator.generateTradeAttributesData(date, TRADES_COUNT));
+                });
+                t.forceCommit();
+            });
             log.info("Initial data load completed");
             DatabasePrinter.printTableSizes(
                     applicationWithDatastore.getDatastore().getMasterHead());
@@ -67,17 +83,6 @@ public class InitialLoad {
         } catch (Exception e) {
             log.warn("Failed to load initial data", e);
         }
-
-        log.info("Generating fake trades for today");
-        var today = LocalDate.now();
-        var tradesCount = 10_000;
-        var tradeData = dataGenerator.generateTradeData(today, tradesCount);
-        var tradeAttributesData = dataGenerator.generateTradeAttributesData(today, tradesCount);
-        applicationWithDatastore.getDatastore().edit(t -> {
-            t.addAll(TRADES_STORE_NAME, tradeData);
-            t.addAll(TRADE_ATTRIBUTES_STORE_NAME, tradeAttributesData);
-            t.forceCommit();
-        });
     }
 
     public static void startDistributionMessenger(IActivePivotManager activePivotManager) {

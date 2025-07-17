@@ -75,7 +75,7 @@ public class FilterExpressionConditionVisitor extends QueryConditionBaseVisitor<
                             .map(v -> LocalDate.parse(v.getText()))
                             .toList());
         } else {
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException("Measure conditions not supported in CubeRestrictions");
         }
     }
 
