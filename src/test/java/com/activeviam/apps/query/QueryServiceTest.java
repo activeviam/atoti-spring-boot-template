@@ -185,11 +185,9 @@ class QueryServiceTest {
     void testContainsMeasureCondition() {
         var trueLogicalCondition = FilterExpressionConditionVisitor.parseFilterExpression(COB_DATE_FILTER + " AND ("
                 + CPTY_FILTER + " OR " + TRADE_3_FILTER + ") AND " + NOTIONAL_MEAN_METRIC_DTO + " >= 1000");
-        assertThat(CubeQueryService.CubeQuerier.containsMeasureFilter(trueLogicalCondition))
-                .isTrue();
+        assertThat(CubeQuery.containsMeasureFilter(trueLogicalCondition)).isTrue();
         var falseLogicalCondition = FilterExpressionConditionVisitor.parseFilterExpression(
                 COB_DATE_FILTER + " AND (" + CPTY_FILTER + " OR " + TRADE_3_FILTER + ")");
-        assertThat(CubeQueryService.CubeQuerier.containsMeasureFilter(falseLogicalCondition))
-                .isFalse();
+        assertThat(CubeQuery.containsMeasureFilter(falseLogicalCondition)).isFalse();
     }
 }

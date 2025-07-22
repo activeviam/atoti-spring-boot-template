@@ -17,8 +17,12 @@ import java.util.Set;
 import org.springframework.util.ObjectUtils;
 
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
+import com.activeviam.apps.query.conditions.AndLogicalCondition;
 import com.activeviam.apps.query.conditions.FilterExpressionConditionVisitor;
 import com.activeviam.apps.query.conditions.LogicalCondition;
+import com.activeviam.apps.query.conditions.MeasureCondition;
+import com.activeviam.apps.query.conditions.NotLogicalCondition;
+import com.activeviam.apps.query.conditions.OrLogicalCondition;
 import com.activeviam.apps.query.conditions.TrueLogicalCondition;
 import com.activeviam.apps.query.rest.CubeQueryDTO;
 
@@ -29,6 +33,7 @@ public class CubeQuery {
     private final List<String> metrics;
     private final List<LevelIdentifier> levels;
     private final LogicalCondition filter;
+    private final LogicalCondition measureFilter;
     private final CubeQuery.TopCount topCount;
     private final CubeQuery.Sort<?> sortBy;
     private final CubeQuery.TopRank topRank;
@@ -93,15 +98,27 @@ public class CubeQuery {
         var filter = ObjectUtils.isEmpty(dto.getFiltersExpression())
                 ? new TrueLogicalCondition()
                 : FilterExpressionConditionVisitor.parseFilterExpression(dto.getFiltersExpression());
+        if (containsMeasureFilter(filter)) {
+            throw new IllegalArgumentException(
+                    "Filter expression '" + dto.getFiltersExpression() + "' contains measure filter");
+        }
+        var measureFilter = ObjectUtils.isEmpty(dto.getMeasureFilterExpression())
+                ? new TrueLogicalCondition()
+                : FilterExpressionConditionVisitor.parseFilterExpression(dto.getMeasureFilterExpression());
+        if (containsOtherFilter(measureFilter)) {
+            throw new IllegalArgumentException("Measure filter expression '" + dto.getMeasureFilterExpression()
+                    + "' does not contain only measure filter");
+        }
         // If we dont force the use of context or not, we always use context unless there is a measure filter
         var useContext = Optional.ofNullable(dto.getUseContext())
-                .orElse(ObjectUtils.isEmpty(filter) || !CubeQueryService.CubeQuerier.containsMeasureFilter(filter));
+                .orElse(ObjectUtils.isEmpty(filter) || !CubeQuery.containsMeasureFilter(filter));
         return new CubeQuery(
                 Optional.ofNullable(dto.getMetrics()).orElse(Collections.emptyList()),
                 Optional.ofNullable(dto.getLevels()).orElse(Collections.emptyList()).stream()
                         .map(levelsConverter::stringToLevelIdentifier)
                         .toList(),
                 filter,
+                measureFilter,
                 TopCount.fromDTO(dto.getTopCount(), levelsConverter),
                 Optional.ofNullable(dto.getSortBy())
                         .map(s -> {
@@ -133,5 +150,29 @@ public class CubeQuery {
     private static String computeSortType(String level, boolean isAscending) {
         // COB_DATE is sorted in reverse order so we need to reverse this
         return level.equals(COB_DATE) != isAscending ? "ASC" : "DESC";
+    }
+
+    public static boolean containsMeasureFilter(LogicalCondition queryCondition) {
+        return switch (queryCondition) {
+            case MeasureCondition measureCondition -> true;
+            case AndLogicalCondition andLogicalCondition ->
+                andLogicalCondition.getSubConditions().stream().anyMatch(CubeQuery::containsMeasureFilter);
+            case OrLogicalCondition orLogicalCondition ->
+                orLogicalCondition.getSubConditions().stream().anyMatch(CubeQuery::containsMeasureFilter);
+            case NotLogicalCondition notLogicalCondition -> containsMeasureFilter(notLogicalCondition.getCondition());
+            default -> false;
+        };
+    }
+
+    public static boolean containsOtherFilter(LogicalCondition queryCondition) {
+        return switch (queryCondition) {
+            case MeasureCondition measureCondition -> false;
+            case AndLogicalCondition andLogicalCondition ->
+                andLogicalCondition.getSubConditions().stream().anyMatch(CubeQuery::containsOtherFilter);
+            case OrLogicalCondition orLogicalCondition ->
+                orLogicalCondition.getSubConditions().stream().anyMatch(CubeQuery::containsOtherFilter);
+            case NotLogicalCondition notLogicalCondition -> containsOtherFilter(notLogicalCondition.getCondition());
+            default -> true;
+        };
     }
 }

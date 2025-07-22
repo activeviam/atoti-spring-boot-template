@@ -449,7 +449,8 @@ public class CubeQueryService {
             // If we are using a subselect to add filters, add them here
             if (!(cubeQuery.getFilter() instanceof TrueLogicalCondition) && fullMdxQuery) {
                 query.append(System.lineSeparator());
-                query.append(subSelectWithFilter(cubeQuery.getFilter(), cubeQuery.getLevels()));
+                query.append(subSelectWithFilter(
+                        cubeQuery.getFilter(), cubeQuery.getMeasureFilter(), cubeQuery.getLevels()));
             } else {
                 query.append(System.lineSeparator());
                 query.append(fromCube(cube));
@@ -737,13 +738,14 @@ public class CubeQueryService {
                     .toList();
         }
 
-        private String subSelectWithFilter(LogicalCondition queryCondition, List<LevelIdentifier> allLevels) {
-            var subSelectData = convertQueryConditionToMdxSubSelectData(queryCondition);
+        private String subSelectWithMeasureFilter(
+                LogicalCondition measureFilterCondition, List<LevelIdentifier> allLevels, String subSelect) {
+            var subSelectData = convertQueryConditionToMdxSubSelectData(measureFilterCondition);
             if (ObjectUtils.isEmpty(subSelectData)) {
                 return "";
             }
             var levels = new HashSet<>(subSelectData.levels());
-            var measureFilterLevels = getMeasureFilterLevels(queryCondition);
+            var measureFilterLevels = getMeasureFilterLevels(measureFilterCondition);
             if (!measureFilterLevels.isEmpty()) {
                 // Add the required levels for the measure filter
                 levels.addAll(measureFilterLevels.stream()
@@ -765,7 +767,34 @@ public class CubeQueryService {
 
             return String.format(
                     "FROM (SELECT FILTER(%s,%s) ON COLUMNS %s)",
+                    crossJoin, subSelectData.filterExpression(), subSelect);
+        }
+
+        private String subSelectWithFilter(
+                LogicalCondition queryCondition,
+                LogicalCondition measureFilterCondition,
+                List<LevelIdentifier> allLevels) {
+            var subSelectData = convertQueryConditionToMdxSubSelectData(queryCondition);
+            if (ObjectUtils.isEmpty(subSelectData)) {
+                return subSelectWithMeasureFilter(measureFilterCondition, allLevels, fromCube(cube));
+            }
+
+            var levels = new HashSet<>(subSelectData.levels());
+            // Add a default level to the crossjoin
+            if (levels.isEmpty()) {
+                levels.add(allLevels.getLast());
+            }
+            // FIXME: if we dont have any levels?
+            var crossJoin = String.format(
+                    levels.size() == 1 ? "%s" : "Crossjoin(%s)",
+                    levels.stream()
+                            .map(l -> hierarchizedMembersForFilter(l, isSlicingHierarchy(l.getHierarchy())))
+                            .collect(Collectors.joining(",")));
+            var subSelect = String.format(
+                    "FROM (SELECT FILTER(%s,%s) ON COLUMNS %s)",
                     crossJoin, subSelectData.filterExpression(), fromCube(cube));
+            var subSelectWithMeasure = subSelectWithMeasureFilter(measureFilterCondition, allLevels, subSelect);
+            return ObjectUtils.isEmpty(subSelectWithMeasure) ? subSelect : subSelectWithMeasure;
         }
 
         // Recursively build the cube restriction object
@@ -874,21 +903,6 @@ public class CubeQueryService {
             }
             // throw new NotImplementedException("Not implemented yet");
             //            return new HashSet<>(values);
-        }
-
-        static boolean containsMeasureFilter(LogicalCondition queryCondition) {
-            return switch (queryCondition) {
-                case MeasureCondition measureCondition -> true;
-                case AndLogicalCondition andLogicalCondition ->
-                    andLogicalCondition.getSubConditions().stream()
-                            .anyMatch(CubeQueryService.CubeQuerier::containsMeasureFilter);
-                case OrLogicalCondition orLogicalCondition ->
-                    orLogicalCondition.getSubConditions().stream()
-                            .anyMatch(CubeQueryService.CubeQuerier::containsMeasureFilter);
-                case NotLogicalCondition notLogicalCondition ->
-                    containsMeasureFilter(notLogicalCondition.getCondition());
-                default -> false;
-            };
         }
 
         static Set<String> getMeasureFilterLevels(LogicalCondition queryCondition) {
