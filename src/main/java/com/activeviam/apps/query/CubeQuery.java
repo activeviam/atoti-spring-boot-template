@@ -105,7 +105,7 @@ public class CubeQuery {
         var measureFilter = ObjectUtils.isEmpty(dto.getMeasureFilterExpression())
                 ? new TrueLogicalCondition()
                 : FilterExpressionConditionVisitor.parseFilterExpression(dto.getMeasureFilterExpression());
-        if (containsOtherFilter(measureFilter)) {
+        if (!ObjectUtils.isEmpty(dto.getMeasureFilterExpression()) && containsOtherFilter(measureFilter)) {
             throw new IllegalArgumentException("Measure filter expression '" + dto.getMeasureFilterExpression()
                     + "' does not contain only measure filter");
         }

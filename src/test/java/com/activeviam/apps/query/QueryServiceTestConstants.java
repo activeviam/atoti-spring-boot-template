@@ -318,8 +318,8 @@ public class QueryServiceTestConstants {
                                 .withMetric(NOTIONAL_SUM_METRIC_DTO)
                                 .withLevel(COUNTERPARTY_LEVEL.getLevelName())
                                 .withSortBy(CubeQueryDTO.SortDTO.builder()
-                                        .withMetric(postfixMeasure(NOTIONAL, SUM))
-                                        .withLevel(COUNTERPARTY_LEVEL.getLevelName())
+                                        //.withMetric(postfixMeasure(NOTIONAL, SUM))
+                                        .withColumn(COUNTERPARTY_LEVEL.getLevelName())
                                         .withAscending(false)
                                         .build())
                                 .build(),

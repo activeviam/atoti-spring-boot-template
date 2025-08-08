@@ -7,6 +7,7 @@
 package com.activeviam.apps.cfg.source;
 
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTIES_STORE_NAME;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 
@@ -43,4 +44,11 @@ public class CsvSourceConfig {
         return CsvTopicDescription.builder(TRADE_ATTRIBUTES_CSV_TOPIC, TRADE_ATTRIBUTES_PATTERN)
                 .build();
     }
+
+    @Bean
+    CsvTopicDescription shiftCobDatesCsvTopic(NamedEntityResolverService namedEntityResolverService) {
+        return CsvTopicDescription.builder(SHIFT_COB_DATE_STORE_NAME, "TRADE_ATTRIBUTES_PATTERN")
+                .build();
+    }
+
 }
