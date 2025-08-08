@@ -32,8 +32,6 @@ public class CubeQueryDTO {
 
     private String filtersExpression;
 
-    private String measureFilterExpression;
-
     @Valid
     private TopCountDTO topCount;
 

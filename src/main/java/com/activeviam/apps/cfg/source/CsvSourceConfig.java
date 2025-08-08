@@ -50,5 +50,4 @@ public class CsvSourceConfig {
         return CsvTopicDescription.builder(SHIFT_COB_DATE_STORE_NAME, "TRADE_ATTRIBUTES_PATTERN")
                 .build();
     }
-
 }
