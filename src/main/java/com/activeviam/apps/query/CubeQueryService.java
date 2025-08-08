@@ -9,6 +9,7 @@ package com.activeviam.apps.query;
 import static com.activeviam.activepivot.core.intf.api.cube.hierarchy.IHierarchy.ALLMEMBER;
 import static com.activeviam.activepivot.server.json.api.dataexport.IJsonOutputConfiguration.FORMAT_PROPERTY;
 import static com.activeviam.apps.constants.CubeConstants.FORMATTER_STRING;
+import static com.activeviam.apps.query.conditions.TrueLogicalCondition.isTrueCondition;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -392,7 +393,9 @@ public class CubeQueryService {
         }
 
         IQueryBasedCubeRestriction buildCubeRestrictions(CubeQuery cubeQuery) {
-            return QueryBasedCubeRestriction.create(convertQueryConditionToCubeRestriction(cubeQuery.getFilter()));
+            // We add the date condition just in case....
+            return QueryBasedCubeRestriction.create(convertQueryConditionToCubeRestriction(
+                    cubeQuery.getQueryFilter().generateOtherAndCobDateCondition()));
         }
 
         private static List<String> extractAllMetricNames(CubeQuery cubeQuery, boolean includeCalculatedMetrics) {
@@ -446,11 +449,18 @@ public class CubeQueryService {
                         metrics.stream().map(CubeQuerier::metricToMdxMeasure).collect(Collectors.joining(","))));
             }
 
-            // If we are using a subselect to add filters, add them here
-            if (!(cubeQuery.getFilter() instanceof TrueLogicalCondition) && fullMdxQuery) {
+            var cobDateFilter = cubeQuery.getQueryFilter().generateCobDateCondition();
+            // If we are not using the fullMdxQuery, then these conditions are in the cube restrictions!
+            var otherFilters =
+                    fullMdxQuery ? cubeQuery.getQueryFilter().generateOtherCondition() : TrueLogicalCondition.INSTANCE;
+            var measureFilters = cubeQuery.getQueryFilter().generateMeasuresCondition();
+            // If we need to add a subselect do it here:
+            // - there is a cobDate filter OR
+            // - there is a measure filter OR
+            // - there are other filters and we are adding all filters to the mdx query
+            if (!isTrueCondition(cobDateFilter) || !isTrueCondition(measureFilters) || !isTrueCondition(otherFilters)) {
                 query.append(System.lineSeparator());
-                query.append(subSelectWithFilter(
-                        cubeQuery.getFilter(), cubeQuery.getMeasureFilter(), cubeQuery.getLevels()));
+                query.append(subSelectWithFilter(cobDateFilter, otherFilters, measureFilters, cubeQuery.getLevels()));
             } else {
                 query.append(System.lineSeparator());
                 query.append(fromCube(cube));
@@ -653,6 +663,12 @@ public class CubeQueryService {
             return String.format("[%s].[%s].CurrentMember", level.getDimensionName(), level.getHierarchyName());
         }
 
+        private static String levelToMemberValueMdx(LevelIdentifier level, Object member) {
+            return String.format(
+                    "[%s].[%s].[%s].[%s]",
+                    level.getDimensionName(), level.getHierarchyName(), level.getLevelName(), member);
+        }
+
         private static String measureToMemberMdx(String measure) {
             return String.format("[Measures].[%s]", measure);
         }
@@ -771,12 +787,19 @@ public class CubeQueryService {
         }
 
         private String subSelectWithFilter(
-                LogicalCondition queryCondition,
+                LogicalCondition cobDateCondition,
+                LogicalCondition otherConditions,
                 LogicalCondition measureFilterCondition,
                 List<LevelIdentifier> allLevels) {
-            var subSelectData = convertQueryConditionToMdxSubSelectData(queryCondition);
+            var dateSubselect = isTrueCondition(cobDateCondition)
+                    ? fromCube(cube)
+                    : String.format(
+                            "FROM (SELECT %s ON COLUMNS %s)",
+                            inConditionOnSlicingHierarchyToMdx((InLogicalCondition<LocalDate>) cobDateCondition),
+                            fromCube(cube));
+            var subSelectData = convertQueryConditionToMdxSubSelectData(otherConditions);
             if (ObjectUtils.isEmpty(subSelectData)) {
-                return subSelectWithMeasureFilter(measureFilterCondition, allLevels, fromCube(cube));
+                return subSelectWithMeasureFilter(measureFilterCondition, allLevels, dateSubselect);
             }
 
             var levels = new HashSet<>(subSelectData.levels());
@@ -792,9 +815,16 @@ public class CubeQueryService {
                             .collect(Collectors.joining(",")));
             var subSelect = String.format(
                     "FROM (SELECT FILTER(%s,%s) ON COLUMNS %s)",
-                    crossJoin, subSelectData.filterExpression(), fromCube(cube));
+                    crossJoin, subSelectData.filterExpression(), dateSubselect);
             var subSelectWithMeasure = subSelectWithMeasureFilter(measureFilterCondition, allLevels, subSelect);
             return ObjectUtils.isEmpty(subSelectWithMeasure) ? subSelect : subSelectWithMeasure;
+        }
+
+        private String inConditionOnSlicingHierarchyToMdx(InLogicalCondition<?> inCondition) {
+            return inCondition.getValues().stream()
+                    .map(member -> levelToMemberValueMdx(
+                            levelsConverter.stringToLevelIdentifier(inCondition.getField()), member))
+                    .collect(Collectors.joining(","));
         }
 
         // Recursively build the cube restriction object

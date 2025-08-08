@@ -6,4 +6,15 @@
  */
 package com.activeviam.apps.query.conditions;
 
-public class TrueLogicalCondition implements LogicalCondition {}
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class TrueLogicalCondition implements LogicalCondition {
+
+    public static final TrueLogicalCondition INSTANCE = new TrueLogicalCondition();
+
+    public static boolean isTrueCondition(LogicalCondition condition) {
+        return condition.equals(TrueLogicalCondition.INSTANCE);
+    }
+}

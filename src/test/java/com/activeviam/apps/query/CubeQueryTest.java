@@ -24,9 +24,10 @@ class CubeQueryTest {
             "CobDate IN [2025-01-01] AND Notional.Sum AT Desk >= 1.0 AND NOT Desk IN ['Desk_1']",
             "CobDate IN [2025-01-01] AND Notional.Sum AT Desk >= 1.0 AND (NOT Desk IN ['Desk_1'] OR Portfolio IN ['PF_1'])",
             "CobDate IN [2025-01-01] AND (NOT Desk IN ['Desk_1'] OR Portfolio IN ['PF_1']) AND Notional.Sum AT Desk >= 1.0",
-            "CobDate IN [2025-01-01] OR (NOT Desk IN ['Desk_1'] OR Portfolio IN ['PF_1']) AND Notional.Sum AT Desk >= 1.0",
+            "CobDate IN [2025-01-01] AND (NOT Desk IN ['Desk_1'] OR Portfolio IN ['PF_1']) AND Notional.Sum AT Desk >= 1.0",
             "CobDate IN [2025-01-01] AND (NOT Desk IN ['Desk_1'] OR Portfolio IN ['PF_1']) AND (Notional.Sum AT Desk >= 1.0 OR Notional.Mean AT Desk >= 1.0)",
-            "CobDate IN [2025-01-01] AND Notional.Mean AT Desk >= 1.0 AND (NOT Desk IN ['Desk_1'] OR Portfolio IN ['PF_1']) AND Notional.Sum AT Desk >= 1.0");
+            "CobDate IN [2025-01-01] AND Notional.Mean AT Desk >= 1.0 AND (NOT Desk IN ['Desk_1'] OR Portfolio IN ['PF_1']) AND Notional.Sum AT Desk >= 1.0",
+            "Notional.Mean AT Desk >= 1.0 AND (NOT Desk IN ['Desk_1'] OR Portfolio IN ['PF_1']) AND CobDate IN [2025-01-01] AND Notional.Sum AT Desk >= 1.0");
 
     // Measure filter is mixed together with other filters in an OR condition
     private static final List<String> INVALID_EXPRESSIONS = List.of(
@@ -38,14 +39,17 @@ class CubeQueryTest {
                 .map(expression -> DynamicTest.dynamicTest(expression, () -> {
                     var filter = FilterExpressionConditionVisitor.parseFilterExpression(expression);
                     var splitFilter = CubeQuery.splitMeasureFilter(filter);
-                    var measureFilter = splitFilter.getRight();
-                    var otherFilter = splitFilter.getLeft();
+                    var measureFilter = splitFilter.generateMeasuresCondition();
+                    var cobDateFilter = splitFilter.generateCobDateCondition();
+                    var otherFilter = splitFilter.generateOtherCondition();
                     Assertions.assertThat(CubeQuery.containsMeasureFilter(measureFilter))
                             .isTrue();
                     Assertions.assertThat(CubeQuery.containsOtherFilter(measureFilter))
                             .isFalse();
                     Assertions.assertThat(CubeQuery.containsMeasureFilter(otherFilter))
                             .isFalse();
+                    Assertions.assertThat(CubeQuery.isCobDateFilter(cobDateFilter))
+                            .isTrue();
                 }));
     }
 

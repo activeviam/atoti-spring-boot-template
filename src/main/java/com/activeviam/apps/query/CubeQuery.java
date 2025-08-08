@@ -7,6 +7,7 @@
 package com.activeviam.apps.query;
 
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
+import static com.activeviam.apps.query.conditions.TrueLogicalCondition.isTrueCondition;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,13 +21,13 @@ import org.springframework.util.ObjectUtils;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
 import com.activeviam.apps.query.conditions.AndLogicalCondition;
 import com.activeviam.apps.query.conditions.FilterExpressionConditionVisitor;
+import com.activeviam.apps.query.conditions.InLogicalCondition;
 import com.activeviam.apps.query.conditions.LogicalCondition;
 import com.activeviam.apps.query.conditions.MeasureCondition;
 import com.activeviam.apps.query.conditions.NotLogicalCondition;
 import com.activeviam.apps.query.conditions.OrLogicalCondition;
 import com.activeviam.apps.query.conditions.TrueLogicalCondition;
 import com.activeviam.apps.query.rest.CubeQueryDTO;
-import com.activeviam.tech.core.api.util.Pair;
 
 import lombok.Data;
 
@@ -34,8 +35,7 @@ import lombok.Data;
 public class CubeQuery {
     private final List<String> metrics;
     private final List<LevelIdentifier> levels;
-    private final LogicalCondition filter;
-    private final LogicalCondition measureFilter;
+    private final SplitQueryCondition queryFilter;
     private final CubeQuery.TopCount topCount;
     private final CubeQuery.Sort<?> sortBy;
     private final CubeQuery.TopRank topRank;
@@ -96,29 +96,38 @@ public class CubeQuery {
         }
     }
 
-    static Pair<LogicalCondition, LogicalCondition> splitMeasureFilter(LogicalCondition filter) {
+    static SplitQueryCondition splitMeasureFilter(LogicalCondition filter) {
         var andConditions = splitAndLogicalConditions(filter);
         var measureFiltersList = andConditions.stream()
                 .filter(CubeQuery::containsOnlyMeasureFilter)
                 .toList();
+        var cobDateFiltersList =
+                andConditions.stream().filter(CubeQuery::isCobDateFilter).toList();
+        if (cobDateFiltersList.size() > 1) {
+            throw new IllegalArgumentException("Filter expression contais multiple CobDate filters");
+        }
         var otherFiltersList = new ArrayList<>(andConditions);
         otherFiltersList.removeAll(measureFiltersList);
+        otherFiltersList.removeAll(cobDateFiltersList);
         var otherFiltersCondition =
-                otherFiltersList.isEmpty() ? new TrueLogicalCondition() : new AndLogicalCondition(otherFiltersList);
-        var measureFiltersCondition =
-                measureFiltersList.isEmpty() ? new TrueLogicalCondition() : new AndLogicalCondition(measureFiltersList);
+                otherFiltersList.isEmpty() ? TrueLogicalCondition.INSTANCE : new AndLogicalCondition(otherFiltersList);
+        var measureFiltersCondition = measureFiltersList.isEmpty()
+                ? TrueLogicalCondition.INSTANCE
+                : new AndLogicalCondition(measureFiltersList);
         // Validate output
         // Make sure the otherFilters dont contains a measure filter
         // And viceversa
-        if (!(otherFiltersCondition instanceof TrueLogicalCondition) && containsMeasureFilter(otherFiltersCondition)) {
+        if (!isTrueCondition(otherFiltersCondition) && containsMeasureFilter(otherFiltersCondition)) {
             throw new IllegalArgumentException("Filter expression contains measure filter that is not AND");
         }
         // should never happen?
-        if (!(measureFiltersCondition instanceof TrueLogicalCondition)
-                && containsOtherFilter(measureFiltersCondition)) {
+        if (!(isTrueCondition(measureFiltersCondition)) && containsOtherFilter(measureFiltersCondition)) {
             throw new IllegalArgumentException("Measure filter cannot be split from other filters");
         }
-        return new Pair<>(otherFiltersCondition, measureFiltersCondition);
+        return new SplitQueryCondition(
+                cobDateFiltersList.isEmpty() ? null : cobDateFiltersList.getFirst(),
+                otherFiltersList,
+                measureFiltersList);
     }
 
     static List<LogicalCondition> splitAndLogicalConditions(LogicalCondition condition) {
@@ -132,7 +141,7 @@ public class CubeQuery {
 
     public static CubeQuery fromDTO(CubeQueryDTO dto, LevelsConverter levelsConverter, Set<String> measures) {
         var filter = ObjectUtils.isEmpty(dto.getFiltersExpression())
-                ? new TrueLogicalCondition()
+                ? TrueLogicalCondition.INSTANCE
                 : FilterExpressionConditionVisitor.parseFilterExpression(dto.getFiltersExpression());
         var splitFilter = splitMeasureFilter(filter);
         // If we dont force the use of context or not, we always use context
@@ -142,8 +151,7 @@ public class CubeQuery {
                 Optional.ofNullable(dto.getLevels()).orElse(Collections.emptyList()).stream()
                         .map(levelsConverter::stringToLevelIdentifier)
                         .toList(),
-                splitFilter.getLeft(),
-                splitFilter.getRight(),
+                splitFilter,
                 TopCount.fromDTO(dto.getTopCount(), levelsConverter),
                 Optional.ofNullable(dto.getSortBy())
                         .map(s -> {
@@ -174,7 +182,7 @@ public class CubeQuery {
 
     private static String computeSortType(String level, boolean isAscending) {
         // COB_DATE is sorted in reverse order so we need to reverse this
-        return level.equals(COB_DATE) != isAscending ? "ASC" : "DESC";
+        return level.equalsIgnoreCase(COB_DATE) != isAscending ? "ASC" : "DESC";
     }
 
     public static boolean containsMeasureFilter(LogicalCondition queryCondition) {
@@ -187,6 +195,11 @@ public class CubeQuery {
             case NotLogicalCondition notLogicalCondition -> containsMeasureFilter(notLogicalCondition.getCondition());
             default -> false;
         };
+    }
+
+    public static boolean isCobDateFilter(LogicalCondition queryCondition) {
+        return queryCondition instanceof InLogicalCondition<?> inLogicalCondition
+                && inLogicalCondition.getField().equalsIgnoreCase(COB_DATE);
     }
 
     public static boolean containsOtherFilter(LogicalCondition queryCondition) {
@@ -203,5 +216,34 @@ public class CubeQuery {
 
     public static boolean containsOnlyMeasureFilter(LogicalCondition queryCondition) {
         return !containsOtherFilter(queryCondition) && containsMeasureFilter(queryCondition);
+    }
+
+    public record SplitQueryCondition(
+            LogicalCondition cobDateCondition,
+            List<LogicalCondition> otherConditions,
+            List<LogicalCondition> measureConditions) {
+        public LogicalCondition generateCobDateCondition() {
+            return Optional.ofNullable(cobDateCondition).orElse(TrueLogicalCondition.INSTANCE);
+        }
+
+        public LogicalCondition generateOtherCondition() {
+            return ObjectUtils.isEmpty(otherConditions)
+                    ? TrueLogicalCondition.INSTANCE
+                    : new AndLogicalCondition(otherConditions);
+        }
+
+        public LogicalCondition generateMeasuresCondition() {
+            return ObjectUtils.isEmpty(measureConditions)
+                    ? TrueLogicalCondition.INSTANCE
+                    : new AndLogicalCondition(measureConditions);
+        }
+
+        public LogicalCondition generateOtherAndCobDateCondition() {
+            var otherAndDateCondition = new ArrayList<LogicalCondition>(otherConditions);
+            otherAndDateCondition.add(cobDateCondition);
+            return ObjectUtils.isEmpty(otherAndDateCondition)
+                    ? TrueLogicalCondition.INSTANCE
+                    : new AndLogicalCondition(otherAndDateCondition);
+        }
     }
 }
