@@ -180,8 +180,6 @@ public class CubeQueryService {
         }
 
         private void applyFullContext(CubeQuery cubeQuery, MdxContext mdxContext) {
-            // FIXME: workaround, remove once https://github.com/activeviam/activepivot/pull/12984 is merged
-            // mdxContext.setLightCrossJoinEnabled(true);
             // Add TopRank Set and Member
             if (!ObjectUtils.isEmpty(cubeQuery.getTopRank())) {
                 var topRank = cubeQuery.getTopRank();
@@ -367,7 +365,7 @@ public class CubeQueryService {
             return setMdx(TOP_RANK_SET, topRankSetExpression(topRank));
         }
 
-        private static String topCountSetMdx(CubeQuery.TopCount topCount, List<LevelIdentifier> levels) {
+        private String topCountSetMdx(CubeQuery.TopCount topCount, List<LevelIdentifier> levels) {
             return setMdx(TOP_N_SET, topNSetExpression(topCount, getPreviousLevelOrNull(topCount.level(), levels)));
         }
 
@@ -674,14 +672,14 @@ public class CubeQueryService {
             return String.format("[Measures].[%s]", measure);
         }
 
-        private static String topNSetExpression(CubeQuery.TopCount topCount, LevelIdentifier previousLevel) {
+        private String topNSetExpression(CubeQuery.TopCount topCount, LevelIdentifier previousLevel) {
             // If we have multiple levels in the query we need to use the Generate statement
             return Objects.isNull(previousLevel)
                     ? topNWithSingleLevelExpression(topCount)
                     : topNWithMultiLevelExpression(topCount, previousLevel);
         }
 
-        private static String topNWithSingleLevelExpression(CubeQuery.TopCount topCount) {
+        private String topNWithSingleLevelExpression(CubeQuery.TopCount topCount) {
             return String.format(
                     "%sCount(%s, %d, %s)",
                     topCount.bottom() ? "Bottom" : "Top",
@@ -690,14 +688,19 @@ public class CubeQueryService {
                     metricToMdxMeasure(topCount.metric()));
         }
 
-        private static String topNWithMultiLevelExpression(CubeQuery.TopCount topCount, LevelIdentifier previousLevel) {
+        private String topNWithMultiLevelExpression(CubeQuery.TopCount topCount, LevelIdentifier previousLevel) {
             // FIXME: add totals?
+            var topCountLevel = topCount.level();
             return String.format(
                     "Generate(%s,{%sCount( {%s} * %s,%d,%s)})",
-                    levelToMdxAllMemberChildren(previousLevel),
+                    isSlicingHierarchy(previousLevel.getHierarchy())
+                            ? levelToMdxPath(previousLevel)
+                            : levelToMdxAllMemberChildren(previousLevel),
                     topCount.bottom() ? "Bottom" : "Top",
                     levelToCurrentMemberMdx(previousLevel),
-                    levelToMdxAllMemberChildren(topCount.level()),
+                    isSlicingHierarchy(topCountLevel.getHierarchy())
+                            ? levelToMdxPath(topCountLevel)
+                            : levelToMdxAllMemberChildren(topCountLevel),
                     topCount.count(),
                     metricToMdxMeasure(topCount.metric()));
         }
@@ -797,11 +800,11 @@ public class CubeQueryService {
 
         private String subSelectWithMeasureFilter(
                 LogicalCondition measureFilterCondition, List<LevelIdentifier> allLevels, String subSelect) {
-            var subSelectData = convertQueryConditionToMdxSubSelectData(measureFilterCondition);
-            if (ObjectUtils.isEmpty(subSelectData)) {
-                return "";
+            var measureSubSelectData = convertQueryConditionToMdxSubSelectData(measureFilterCondition);
+            if (ObjectUtils.isEmpty(measureSubSelectData)) {
+                return subSelect;
             }
-            var levels = new HashSet<>(subSelectData.levels());
+            var levels = new HashSet<>(measureSubSelectData.levels());
             var measureFilterLevels = getMeasureFilterLevels(measureFilterCondition);
             if (!measureFilterLevels.isEmpty()) {
                 // Add the required levels for the measure filter
@@ -824,7 +827,7 @@ public class CubeQueryService {
 
             return String.format(
                     "FROM (SELECT FILTER(%s,%s) ON COLUMNS %s)",
-                    crossJoin, subSelectData.filterExpression(), subSelect);
+                    crossJoin, measureSubSelectData.filterExpression(), subSelect);
         }
 
         private String subSelectWithFilter(
