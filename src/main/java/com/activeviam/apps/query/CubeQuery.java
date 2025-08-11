@@ -240,7 +240,9 @@ public class CubeQuery {
 
         public LogicalCondition generateOtherAndCobDateCondition() {
             var otherAndDateCondition = new ArrayList<LogicalCondition>(otherConditions);
-            otherAndDateCondition.add(cobDateCondition);
+            if (Objects.nonNull(cobDateCondition)) {
+                otherAndDateCondition.add(cobDateCondition);
+            }
             return ObjectUtils.isEmpty(otherAndDateCondition)
                     ? TrueLogicalCondition.INSTANCE
                     : new AndLogicalCondition(otherAndDateCondition);

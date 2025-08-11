@@ -40,6 +40,7 @@ import com.activeviam.activepivot.core.intf.api.contextvalues.mdx.IMdxContext;
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.cube.IMultiVersionActivePivot;
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IAxisHierarchy;
+import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IAxisMember;
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IMeasureHierarchy;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.HierarchyIdentifier;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
@@ -734,23 +735,66 @@ public class CubeQueryService {
                             getMembersForLevel(levelsConverter.stringToLevelIdentifier(likeCondition.getField()));
                     var criteria = likeCondition.getMatchingCriteria();
                     var valuesToFilter = allMembers.stream()
-                            .filter(m -> m.contains(criteria))
+                            .filter(m -> ((String) m).contains(criteria))
                             .toList();
                     var level = levelsConverter.stringToLevelIdentifier(likeCondition.getField());
                     yield ICubeRestriction.inPath(level.getHierarchy(), inPathValues(level, valuesToFilter));
+                }
+                case BetweenLogicalCondition betweenLogicalCondition -> {
+                    var left = betweenLogicalCondition.getLeft();
+                    var right = betweenLogicalCondition.getRight();
+                    var level = levelsConverter.stringToLevelIdentifier(betweenLogicalCondition.getField());
+                    var allMembers = getMembersForLevel(
+                            levelsConverter.stringToLevelIdentifier(betweenLogicalCondition.getField()));
+                    if (Objects.isNull(left) && Objects.isNull(right)) {
+                        throw new ActiveViamRuntimeException("Left and right must not be null");
+                    }
+
+                    var membersStream = allMembers.stream();
+
+                    if (Objects.nonNull(left)) {
+                        membersStream = membersStream.filter(m -> compareObjects(m, left) >= 0);
+                    }
+                    if (Objects.nonNull(right)) {
+                        membersStream = membersStream.filter(m -> compareObjects(m, right) <= 0);
+                    }
+                    yield ICubeRestriction.inPath(level.getHierarchy(), inPathValues(level, membersStream.toList()));
                 }
                 default -> ICubeRestriction.trueRestriction();
             };
         }
 
-        private Collection<String> getMembersForLevel(LevelIdentifier level) {
+        private static int compareObjects(Object o1, Object o2) {
+            if (o1 instanceof LocalDate date1 && o2 instanceof LocalDate date2) {
+                return date1.compareTo(date2);
+            }
+            if (o1 instanceof String string1 && o2 instanceof String string2) {
+                return string1.compareTo(string2);
+            }
+            if (o1 instanceof Integer int1 && o2 instanceof Integer int2) {
+                return int1.compareTo(int2);
+            }
+            if (o1 instanceof Long long1 && o2 instanceof Long long2) {
+                return long1.compareTo(long2);
+            }
+            if (o1 instanceof Double d1 && o2 instanceof Double d2) {
+                return d1.compareTo(d2);
+            }
+            if (o1 instanceof Float float1 && o2 instanceof Float float2) {
+                return float1.compareTo(float2);
+            }
+            throw new UnsupportedOperationException(
+                    "DataType of " + o1.getClass().getSimpleName() + " not supported or types not matching");
+        }
+
+        private Collection<Object> getMembersForLevel(LevelIdentifier level) {
             var hierarchy = HierarchiesUtil.getHierarchy(activePivot.getHead(), level.getHierarchy());
             // NOTE: We assume this is a single level hierarchy!
             return Objects.requireNonNull(
                             CubeFilterUtil.getAll(activePivot.getContext()).getSecurityAndFilter())
                     .retrieveMembers((IAxisHierarchy) hierarchy, 1)
                     .stream()
-                    .map(m -> (String) m.getDiscriminator())
+                    .map(IAxisMember::getDiscriminator)
                     .toList();
         }
 
@@ -870,10 +914,10 @@ public class CubeQueryService {
                                     .collect(Collectors.joining(" OR ", "(", ")")),
                             Set.of(level));
                 }
-                case BetweenLogicalCondition<?> betweenDatesLogicalCondition -> {
-                    var left = betweenDatesLogicalCondition.getLeft();
-                    var right = betweenDatesLogicalCondition.getRight();
-                    var level = levelsConverter.stringToLevelIdentifier(betweenDatesLogicalCondition.getField());
+                case BetweenLogicalCondition<?> betweenLogicalCondition -> {
+                    var left = betweenLogicalCondition.getLeft();
+                    var right = betweenLogicalCondition.getRight();
+                    var level = levelsConverter.stringToLevelIdentifier(betweenLogicalCondition.getField());
                     var mdxMemberValue = levelToCurrentMemberValue(level);
                     var subConditions = new ArrayList<String>();
                     if (Objects.isNull(left) && Objects.isNull(right)) {
