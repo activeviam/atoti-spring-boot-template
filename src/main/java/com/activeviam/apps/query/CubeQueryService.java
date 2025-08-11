@@ -593,9 +593,13 @@ public class CubeQueryService {
 
         private static LevelIdentifier getPreviousLevelOrNull(
                 LevelIdentifier topCountLevel, List<LevelIdentifier> levels) {
-            return (Objects.nonNull(topCountLevel) && levels.size() > 1)
-                    ? levels.get(levels.indexOf(topCountLevel) - 1)
-                    : null;
+            if (Objects.nonNull(topCountLevel) && levels.size() > 1) {
+                var topCountLevelIndex = levels.indexOf(topCountLevel);
+                if (topCountLevelIndex > 0) {
+                    return levels.get(topCountLevelIndex - 1);
+                }
+            }
+            return null;
         }
 
         static String levelToMdxPath(LevelIdentifier levelIdentifier) {
