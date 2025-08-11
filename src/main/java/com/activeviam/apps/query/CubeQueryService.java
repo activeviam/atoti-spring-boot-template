@@ -727,31 +727,24 @@ public class CubeQueryService {
                     yield ICubeRestriction.inPath(
                             level.getHierarchy(), inPathValues(level, inLogicalCondition.getValues()));
                 }
-                case MeasureCondition measureCondition ->
-                    throw new UnsupportedOperationException(
-                            MeasureCondition.class.getSimpleName() + " not supported in CubeRestrictions");
                 case LikeLogicalCondition likeCondition -> {
-                    var allMembers =
-                            getMembersForLevel(levelsConverter.stringToLevelIdentifier(likeCondition.getField()));
+                    var level = levelsConverter.stringToLevelIdentifier(likeCondition.getField());
+                    var allMembers = getMembersForLevel(level);
                     var criteria = likeCondition.getMatchingCriteria();
                     var valuesToFilter = allMembers.stream()
                             .filter(m -> ((String) m).contains(criteria))
                             .toList();
-                    var level = levelsConverter.stringToLevelIdentifier(likeCondition.getField());
                     yield ICubeRestriction.inPath(level.getHierarchy(), inPathValues(level, valuesToFilter));
                 }
-                case BetweenLogicalCondition betweenLogicalCondition -> {
+                case BetweenLogicalCondition<?> betweenLogicalCondition -> {
                     var left = betweenLogicalCondition.getLeft();
                     var right = betweenLogicalCondition.getRight();
                     var level = levelsConverter.stringToLevelIdentifier(betweenLogicalCondition.getField());
-                    var allMembers = getMembersForLevel(
-                            levelsConverter.stringToLevelIdentifier(betweenLogicalCondition.getField()));
+                    var allMembers = getMembersForLevel(level);
                     if (Objects.isNull(left) && Objects.isNull(right)) {
                         throw new ActiveViamRuntimeException("Left and right must not be null");
                     }
-
                     var membersStream = allMembers.stream();
-
                     if (Objects.nonNull(left)) {
                         membersStream = membersStream.filter(m -> compareObjects(m, left) >= 0);
                     }
@@ -760,6 +753,9 @@ public class CubeQueryService {
                     }
                     yield ICubeRestriction.inPath(level.getHierarchy(), inPathValues(level, membersStream.toList()));
                 }
+                case MeasureCondition measureCondition ->
+                    throw new UnsupportedOperationException(
+                            MeasureCondition.class.getSimpleName() + " not supported in CubeRestrictions");
                 default -> ICubeRestriction.trueRestriction();
             };
         }
@@ -777,8 +773,8 @@ public class CubeQueryService {
             if (o1 instanceof Long long1 && o2 instanceof Long long2) {
                 return long1.compareTo(long2);
             }
-            if (o1 instanceof Double d1 && o2 instanceof Double d2) {
-                return d1.compareTo(d2);
+            if (o1 instanceof Double double1 && o2 instanceof Double double2) {
+                return double1.compareTo(double2);
             }
             if (o1 instanceof Float float1 && o2 instanceof Float float2) {
                 return float1.compareTo(float2);
@@ -790,9 +786,10 @@ public class CubeQueryService {
         private Collection<Object> getMembersForLevel(LevelIdentifier level) {
             var hierarchy = HierarchiesUtil.getHierarchy(activePivot.getHead(), level.getHierarchy());
             // NOTE: We assume this is a single level hierarchy!
+            var ordinal = isSlicingHierarchy(level.getHierarchy()) ? 0 : 1;
             return Objects.requireNonNull(
                             CubeFilterUtil.getAll(activePivot.getContext()).getSecurityAndFilter())
-                    .retrieveMembers((IAxisHierarchy) hierarchy, 1)
+                    .retrieveMembers((IAxisHierarchy) hierarchy, ordinal)
                     .stream()
                     .map(IAxisMember::getDiscriminator)
                     .toList();
