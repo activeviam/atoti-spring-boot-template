@@ -737,6 +737,9 @@ public class CubeQueryService {
                     var valuesToFilter = allMembers.stream()
                             .filter(m -> ((String) m).contains(criteria))
                             .toList();
+                    if (valuesToFilter.isEmpty()) {
+                        yield ICubeRestriction.falseRestriction();
+                    }
                     yield ICubeRestriction.inPath(level.getHierarchy(), inPathValues(level, valuesToFilter));
                 }
                 case BetweenLogicalCondition<?> betweenLogicalCondition -> {
@@ -754,7 +757,11 @@ public class CubeQueryService {
                     if (Objects.nonNull(right)) {
                         membersStream = membersStream.filter(m -> compareObjects(m, right) <= 0);
                     }
-                    yield ICubeRestriction.inPath(level.getHierarchy(), inPathValues(level, membersStream.toList()));
+                    var valuesToFilter = membersStream.toList();
+                    if (valuesToFilter.isEmpty()) {
+                        yield ICubeRestriction.falseRestriction();
+                    }
+                    yield ICubeRestriction.inPath(level.getHierarchy(), inPathValues(level, valuesToFilter));
                 }
                 case MeasureCondition measureCondition ->
                     throw new UnsupportedOperationException(
