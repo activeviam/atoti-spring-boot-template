@@ -571,7 +571,7 @@ public class CubeQueryService {
                     .toList();
 
             var hierarchizeTemplate = new StringBuilder();
-            var crossJoinOrNot = actualLevels.size() == 1 ? "%s" : "Crossjoin(%s)";
+            var crossJoinOrNot = crossJoinOrNot(actualLevels);
             // Sort by topRank
             if (Objects.nonNull(topRankDefinition)) {
                 hierarchizeTemplate.append(orderMdx(crossJoinOrNot, TOP_RANK_MEMBER, "BDESC"));
@@ -589,6 +589,10 @@ public class CubeQueryService {
                                     : sortedHierarchizedLevels(
                                             level, sortByDefinition, isSlicingHierarchy(level.getHierarchy())))
                             .collect(Collectors.joining(",")));
+        }
+
+        private static String crossJoinOrNot(Collection<LevelIdentifier> levels) {
+            return levels.size() == 1 ? "%s" : "Crossjoin(%s)";
         }
 
         private static LevelIdentifier getPreviousLevelOrNull(
@@ -831,7 +835,7 @@ public class CubeQueryService {
             // FIXME: if we dont have any levels?
 
             var crossJoin = String.format(
-                    levels.size() == 1 ? "%s" : "Crossjoin(%s)",
+                    crossJoinOrNot(levels),
                     levels.stream()
                             .map(l -> hierarchizedMembersForFilter(l, isSlicingHierarchy(l.getHierarchy())))
                             .collect(Collectors.joining(",")));
@@ -864,7 +868,7 @@ public class CubeQueryService {
             }
             // FIXME: if we dont have any levels?
             var crossJoin = String.format(
-                    levels.size() == 1 ? "%s" : "Crossjoin(%s)",
+                    crossJoinOrNot(levels),
                     levels.stream()
                             .map(l -> hierarchizedMembersForFilter(l, isSlicingHierarchy(l.getHierarchy())))
                             .collect(Collectors.joining(",")));
