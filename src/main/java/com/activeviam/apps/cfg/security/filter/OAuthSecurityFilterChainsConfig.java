@@ -29,7 +29,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.ParameterRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -113,14 +113,14 @@ public class OAuthSecurityFilterChainsConfig {
     @RequiredArgsConstructor
     public static class UiLoginFilter extends OncePerRequestFilter {
         public static final RequestMatcher LOGIN_MATCHER = RequestMatchers.allOf(
-                new AntPathRequestMatcher(LOGIN_ENTRYPOINT_URL),
+                PathPatternRequestMatcher.withDefaults().matcher(LOGIN_ENTRYPOINT_URL),
                 new OrRequestMatcher(
                         new ParameterRequestMatcher(
                                 com.activeviam.apps.cfg.security.auth
                                         .SavedRequestAwareTargetUrlAuthenticationSuccessHandler.TARGET_URL_PARAM),
                         new ParameterRequestMatcher("error")));
         public static final RequestMatcher REDIRECT_MATCHER = RequestMatchers.allOf(
-                new AntPathRequestMatcher(LOGIN_ENTRYPOINT_URL),
+                PathPatternRequestMatcher.withDefaults().matcher(LOGIN_ENTRYPOINT_URL),
                 new ParameterRequestMatcher(
                         com.activeviam.apps.cfg.security.auth.SavedRequestAwareTargetUrlAuthenticationSuccessHandler
                                 .TARGET_URL_PARAM));

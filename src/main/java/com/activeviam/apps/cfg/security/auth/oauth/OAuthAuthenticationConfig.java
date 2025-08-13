@@ -4,13 +4,13 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-
 package com.activeviam.apps.cfg.security.auth.oauth;
 
 import static com.activeviam.apps.cfg.security.auth.AuthenticationProperties.MODE_OAUTH;
 import static com.activeviam.apps.cfg.security.auth.AuthenticationProperties.MODE_PROP;
 import static com.activeviam.springboot.atoti.server.starter.api.AtotiSecurityProperties.ROLE_ADMIN;
 import static com.activeviam.springboot.atoti.server.starter.api.AtotiSecurityProperties.ROLE_USER;
+import static com.activeviam.springboot.atoti.server.starter.api.LoginLogoutUrls.LOGOUT_PAGE_URL;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -90,8 +90,9 @@ public class OAuthAuthenticationConfig {
             @Override
             protected void configureLoginAccess(HttpSecurity http) throws Exception {
                 http.oauth2Login(oauth2 -> oauth2.userInfoEndpoint(
-                                userInfo -> userInfo.oidcUserService(oidcUserService(oauthUserDetailsService)))
-                        .successHandler(new SavedRequestAwareTargetUrlAuthenticationSuccessHandler()));
+                                        userInfo -> userInfo.oidcUserService(oidcUserService(oauthUserDetailsService)))
+                                .successHandler(new SavedRequestAwareTargetUrlAuthenticationSuccessHandler()))
+                        .logout(c -> c.logoutSuccessUrl(LOGOUT_PAGE_URL));
             }
         };
     }

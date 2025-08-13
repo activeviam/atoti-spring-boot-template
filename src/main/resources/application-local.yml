@@ -1,4 +1,7 @@
 spring:
+  h2:
+    console:
+      enabled: true
   security:
     saml2:
       relyingparty:

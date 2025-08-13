@@ -4,20 +4,20 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.4.6</version>
+    <version>3.5.4</version>
     <relativePath/>
     <!-- lookup parent from repository -->
   </parent>
 
   <groupId>com.activeviam.apps</groupId>
   <artifactId>atoti-spring-boot-template</artifactId>
-  <version>6.1.9</version>
+  <version>6.1.11</version>
   <description>Template project for Spring Boot</description>
 
   <properties>
     <java.version>21</java.version>
     <spring-boot.version>${project.parent.version}</spring-boot.version>
-    <atoti-server.version>6.1.9</atoti-server.version>
+    <atoti-server.version>6.1.11</atoti-server.version>
     <springdoc.version>2.8.9</springdoc.version>
     <dlc.version>5.0.7</dlc.version>
 
@@ -25,8 +25,8 @@
     <opentelemetry-instrumentation.version>2.16.0</opentelemetry-instrumentation.version>
     <opentelemetry-logback-mdc.version>2.16.0-alpha</opentelemetry-logback-mdc.version>
 
-    <spotless-maven-plugin.version>2.44.5</spotless-maven-plugin.version>
-    <palantir-java-format.version>2.68.0</palantir-java-format.version>
+    <spotless-maven-plugin.version>2.46.1</spotless-maven-plugin.version>
+    <palantir-java-format.version>2.73.0</palantir-java-format.version>
   </properties>
 
   <dependencyManagement>
