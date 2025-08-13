@@ -547,10 +547,6 @@ public class CubeQueryService {
             return String.format("Hierarchize(Descendants({%s},1,SELF_AND_BEFORE))", levelToMdxAllMember(level));
         }
 
-        //        private static String hierarchizedDescendantsMembers(LevelIdentifier level) {
-        //            return String.format("Hierarchize(Descendants({%s},1,SELF_AND_BEFORE))",
-        // levelToMdxMembers(level));
-        //        }
 
         private static String hierarchizedDescendantsMembersForFilter(LevelIdentifier level) {
             return String.format("Hierarchize(Descendants({%s}))", levelToMdxMembers(level));
