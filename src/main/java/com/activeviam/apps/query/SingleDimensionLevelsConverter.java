@@ -22,13 +22,13 @@ public class SingleDimensionLevelsConverter implements LevelsConverter {
 
     @Override
     public LevelIdentifier stringToLevelIdentifier(String level) {
-        var name = level.replace("'","").strip();
+        var name = level.replace("'", "").strip();
         return new LevelIdentifier(defaultDimension, name, name);
     }
 
     @Override
     public HierarchyIdentifier stringToHierarchyIdentifier(String hierarchy) {
-        var name = hierarchy.replace("'","").strip();
+        var name = hierarchy.replace("'", "").strip();
         return new HierarchyIdentifier(defaultDimension, name);
     }
 }

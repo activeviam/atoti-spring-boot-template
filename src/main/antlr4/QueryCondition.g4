@@ -13,7 +13,7 @@ query
    | 'NOT' notConditition=query #notConditionQuery
    | field=fieldName 'LIKE' criteria=criteriaType #likeConditionQuery
    | field=fieldName 'BETWEEN' leftParentesis=(LSQPAREN | LPAREN) left=betweenArg ',' right=betweenArg rightParentesis=(RPAREN | RSQPAREN) #betweenConditionQuery
-   | measure=measureName 'AT' field=fieldName operator=('<='|'<'|'>'|'>='|'=') operand=operandType #measureConditionQuery
+   | measure=measureName operator=('<='|'<'|'>'|'>='|'=') operand=operandType #measureConditionQuery
    ;
 
 valuesList
