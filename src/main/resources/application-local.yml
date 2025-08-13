@@ -1,7 +1,8 @@
+spring:
+  h2:
+    console:
+      enabled: true
+
 otel:
-  logs:
-    exporter: none
-  metrics:
-    exporter: none
-  traces:
-    exporter: none
+  sdk:
+    disabled: true

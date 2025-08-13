@@ -13,7 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springdoc.core.properties.SwaggerUiConfigProperties;
 import org.springdoc.core.utils.Constants;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.h2.H2ConsoleProperties;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -22,7 +22,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
 import com.activeviam.apps.rest.EndpointConstants;
 import com.activeviam.springboot.atoti.server.starter.api.LoginLogoutUrls;
@@ -38,17 +38,13 @@ public class CustomWebSecurityFiltersConfig {
 
     @Bean
     @Order(0)
-    protected SecurityFilterChain jolokiaFilterChain(HttpSecurity httpSecurity, MvcRequestMatcher.Builder mvc)
+    protected SecurityFilterChain jolokiaFilterChain(HttpSecurity httpSecurity, MachineToMachineSecurityDsl dsl)
             throws Exception {
+        var servlet = PathPatternRequestMatcher.withDefaults().basePath("/actuator/jolokia");
         return httpSecurity
-                // As of Spring Security 4.0, CSRF protection is enabled by default.
-                .csrf(AbstractHttpConfigurer::disable)
-                // Configure CORS
-                .cors(Customizer.withDefaults())
-                .securityMatcher(mvc.servletPath("/actuator/jolokia").pattern(url(WILDCARD)))
+                .with(dsl, Customizer.withDefaults())
+                .securityMatcher(servlet.matcher(url(WILDCARD)))
                 .authorizeHttpRequests(auth -> auth.anyRequest().hasAnyAuthority("ROLE_ACTUATOR"))
-                .httpBasic(Customizer.withDefaults())
-                .securityContext(securityContext -> securityContext.requireExplicitSave(false))
                 .build();
     }
 
@@ -56,19 +52,16 @@ public class CustomWebSecurityFiltersConfig {
      * Add the H2 console which is by default secured in itself. In a real project this should be exposed only for
      * a local profile as a "standard" DB would be used.
      * @param http
-     * @param mvc
-     * @param h2ConsoleProperties
      * @return
      * @throws Exception
      */
     @ConditionalOnProperty(prefix = "spring.h2.console", name = "enabled", havingValue = "true")
     @Bean
     @Order(4)
-    public SecurityFilterChain h2ConsoleSecurityFilterChain(
-            HttpSecurity http, MvcRequestMatcher.Builder mvc, H2ConsoleProperties h2ConsoleProperties)
-            throws Exception {
-        return http.securityMatcher(
-                        mvc.servletPath(h2ConsoleProperties.getPath()).pattern(url(WILDCARD)))
+    public SecurityFilterChain h2ConsoleSecurityFilterChain(HttpSecurity http) throws Exception {
+        return http.securityMatcher(PathRequest.toH2Console())
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
                 .headers(httpSecurityHeadersConfigurer ->
                         httpSecurityHeadersConfigurer.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
@@ -92,9 +85,10 @@ public class CustomWebSecurityFiltersConfig {
     @Bean
     @Order(6)
     public SecurityFilterChain customRestEndpointsSecurityFilterChain(
-            HttpSecurity http, MvcRequestMatcher.Builder mvc, MachineToMachineSecurityDsl dsl) throws Exception {
+            HttpSecurity http, PathPatternRequestMatcher.Builder mvc, MachineToMachineSecurityDsl dsl)
+            throws Exception {
         return http.with(dsl, Customizer.withDefaults())
-                .securityMatcher(mvc.pattern(url(EndpointConstants.CUSTOM_REST_PATH, WILDCARD)))
+                .securityMatcher(mvc.matcher(url(EndpointConstants.CUSTOM_REST_PATH, WILDCARD)))
                 .authorizeHttpRequests(auth -> auth.anyRequest().hasAnyAuthority(ROLE_USER))
                 .build();
     }

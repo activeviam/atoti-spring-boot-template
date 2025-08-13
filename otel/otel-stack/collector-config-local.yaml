@@ -3,7 +3,7 @@ receivers:
   otlp:
     protocols:
       http:
-        endpoint: 0.0.0.0:4318
+        endpoint: 0.0.0.0:4318 #https://opentelemetry.io/blog/2024/hardening-the-collector-one/
 
 # processors
 processors:
@@ -13,33 +13,39 @@ processors:
 
 # exporters
 exporters:
+  #tempo for traces
   otlp:
     endpoint: tempo:7777
     tls:
       insecure: true
+  #loki for logs
+  otlphttp:
+    endpoint: http://loki:3100/otlp
+    tls:
+      insecure: true
+  #prometheus for metrics
   prometheus:
     endpoint: collector:6666
-  loki:
-    endpoint: http://loki:3100/loki/api/v1/push
-  debug:
-    verbosity: detailed # this is useful for troubleshooting, change it to "normal" once issues fixed
+
+  debug: # the logging exporter logs all messages, useful for troubleshooting, change it to "normal" once issues fixed
+    verbosity: detailed
 
 # service
 service:
   pipelines:
     traces:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp]
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ otlp ]
     metrics:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [prometheus]
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ prometheus ]
     logs:
-      receivers: [otlp]
-      exporters: [loki]
+      receivers: [ otlp ]
+      exporters: [ otlphttp ]
 
-# the collector itself can be configured , see https://opentelemetry.io/docs/collector/configuration/    
+  # the collector itself can be configured , see https://opentelemetry.io/docs/collector/configuration/
   telemetry:
     logs:
       level: info
