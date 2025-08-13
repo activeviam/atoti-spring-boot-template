@@ -15,4 +15,6 @@ public class BetweenLogicalCondition<T> implements LogicalCondition {
     private final String field;
     private final T left;
     private final T right;
+    private final boolean leftInclusive;
+    private final boolean rightInclusive;
 }

@@ -753,6 +753,8 @@ public class CubeQueryService {
                 case BetweenLogicalCondition<?> betweenLogicalCondition -> {
                     var left = betweenLogicalCondition.getLeft();
                     var right = betweenLogicalCondition.getRight();
+                    var leftInclusive = betweenLogicalCondition.isLeftInclusive();
+                    var rightInclusive = betweenLogicalCondition.isRightInclusive();
                     var level = levelsConverter.stringToLevelIdentifier(betweenLogicalCondition.getField());
                     var allMembers = getMembersForLevel(level);
                     if (Objects.isNull(left) && Objects.isNull(right)) {
@@ -760,10 +762,16 @@ public class CubeQueryService {
                     }
                     var membersStream = allMembers.stream();
                     if (Objects.nonNull(left)) {
-                        membersStream = membersStream.filter(m -> compareObjects(m, left) >= 0);
+                        membersStream = membersStream.filter(m -> {
+                            var x = compareObjects(m, left);
+                            return leftInclusive ? x >= 0 : x > 0;
+                        });
                     }
                     if (Objects.nonNull(right)) {
-                        membersStream = membersStream.filter(m -> compareObjects(m, right) <= 0);
+                        membersStream = membersStream.filter(m -> {
+                            var x = compareObjects(m, right);
+                            return rightInclusive ? x <= 0 : x < 0;
+                        });
                     }
                     var valuesToFilter = membersStream.toList();
                     if (valuesToFilter.isEmpty()) {
@@ -932,6 +940,8 @@ public class CubeQueryService {
                 case BetweenLogicalCondition<?> betweenLogicalCondition -> {
                     var left = betweenLogicalCondition.getLeft();
                     var right = betweenLogicalCondition.getRight();
+                    var leftInclusive = betweenLogicalCondition.isLeftInclusive();
+                    var rightInclusive = betweenLogicalCondition.isRightInclusive();
                     var level = levelsConverter.stringToLevelIdentifier(betweenLogicalCondition.getField());
                     var mdxMemberValue = levelToCurrentMemberValue(level);
                     var subConditions = new ArrayList<String>();
@@ -943,10 +953,14 @@ public class CubeQueryService {
                         subConditions.add(String.format("IsDate(%s)", mdxMemberValue));
                     }
                     if (Objects.nonNull(left)) {
-                        subConditions.add(String.format("%s >= %s", mdxMemberValue, valueToString(left)));
+                        var compareString = leftInclusive ? ">=" : ">";
+                        subConditions.add(
+                                String.format("%s %s %s", mdxMemberValue, compareString, valueToString(left)));
                     }
                     if (Objects.nonNull(right)) {
-                        subConditions.add(String.format("%s <= %s", mdxMemberValue, valueToString(right)));
+                        var compareString = rightInclusive ? "<=" : "<";
+                        subConditions.add(
+                                String.format("%s %s %s", mdxMemberValue, compareString, valueToString(right)));
                     }
                     yield new MdxSubSelectData(
                             subConditions.stream().collect(Collectors.joining(" AND ", "(", ")")), Set.of(level));

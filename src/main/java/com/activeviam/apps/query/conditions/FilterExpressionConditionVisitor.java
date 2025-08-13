@@ -102,7 +102,9 @@ public class FilterExpressionConditionVisitor extends QueryConditionBaseVisitor<
     public LogicalCondition visitBetweenConditionQuery(QueryConditionParser.BetweenConditionQueryContext ctx) {
         var left = parseDateOrInt(ctx.left);
         var right = parseDateOrInt(ctx.right);
-        return new BetweenLogicalCondition<Object>(ctx.field.getText(), left, right);
+        var leftInclusive = ctx.leftParentesis.getText().equalsIgnoreCase("[");
+        var rightInclusive = ctx.rightParentesis.getText().equalsIgnoreCase("]");
+        return new BetweenLogicalCondition<Object>(ctx.field.getText(), left, right, leftInclusive, rightInclusive);
     }
 
     @Override

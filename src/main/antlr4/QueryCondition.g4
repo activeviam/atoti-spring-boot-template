@@ -12,7 +12,7 @@ query
    | field=fieldName 'IN' LSQPAREN values=valuesList RSQPAREN #inConditionQuery
    | 'NOT' notConditition=query #notConditionQuery
    | field=fieldName 'LIKE' criteria=criteriaType #likeConditionQuery
-   | field=fieldName 'BETWEEN' LSQPAREN left=betweenArg ',' right=betweenArg RSQPAREN #betweenConditionQuery
+   | field=fieldName 'BETWEEN' leftParentesis=(LSQPAREN | LPAREN) left=betweenArg ',' right=betweenArg rightParentesis=(RPAREN | RSQPAREN) #betweenConditionQuery
    | measure=measureName 'AT' field=fieldName operator=('<='|'<'|'>'|'>='|'=') operand=operandType #measureConditionQuery
    ;
 
