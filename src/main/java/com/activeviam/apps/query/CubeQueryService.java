@@ -432,36 +432,37 @@ public class CubeQueryService {
             }
 
             query.append("SELECT NON EMPTY");
+            query.append(System.lineSeparator());
+
             // Levels and top rank
+            var selectItems = new ArrayList<String>();
             if (!ObjectUtils.isEmpty(levels)) {
-                query.append(System.lineSeparator());
-                query.append(hierarchizedLevels(levels, sortBy, topRank, topCount, cubeQuery.getHideTotals()));
+                selectItems.add(hierarchizedLevels(levels, sortBy, topRank, topCount, cubeQuery.getHideTotals()));
             }
 
             // Metrics
             var metrics = extractAllMetricNames(cubeQuery, true);
             if (!ObjectUtils.isEmpty(metrics)) {
-                query.append(System.lineSeparator());
-                query.append(",");
-                query.append(String.format(
+                selectItems.add(String.format(
                         "{%s} ON COLUMNS",
                         metrics.stream().map(CubeQuerier::metricToMdxMeasure).collect(Collectors.joining(","))));
             }
+
+            query.append(String.join(System.lineSeparator() + ",", selectItems));
 
             var cobDateFilter = cubeQuery.getQueryFilter().generateCobDateCondition();
             // If we are not using the fullMdxQuery, then these conditions are in the cube restrictions!
             var otherFilters =
                     fullMdxQuery ? cubeQuery.getQueryFilter().generateOtherCondition() : TrueLogicalCondition.INSTANCE;
             var measureFilters = cubeQuery.getQueryFilter().generateMeasuresCondition();
+            query.append(System.lineSeparator());
             // If we need to add a subselect do it here:
             // - there is a cobDate filter OR
             // - there is a measure filter OR
             // - there are other filters and we are adding all filters to the mdx query
             if (!isTrueCondition(cobDateFilter) || !isTrueCondition(measureFilters) || !isTrueCondition(otherFilters)) {
-                query.append(System.lineSeparator());
                 query.append(subSelectWithFilter(cobDateFilter, otherFilters, measureFilters, cubeQuery.getLevels()));
             } else {
-                query.append(System.lineSeparator());
                 query.append(fromCube(cube));
             }
 
