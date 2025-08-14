@@ -547,7 +547,6 @@ public class CubeQueryService {
             return String.format("Hierarchize(Descendants({%s},1,SELF_AND_BEFORE))", levelToMdxAllMember(level));
         }
 
-
         private static String hierarchizedDescendantsMembersForFilter(LevelIdentifier level) {
             return String.format("Hierarchize(Descendants({%s}))", levelToMdxMembers(level));
         }
@@ -808,11 +807,10 @@ public class CubeQueryService {
 
         private Collection<Object> getMembersForLevel(LevelIdentifier level) {
             var hierarchy = HierarchiesUtil.getHierarchy(activePivot.getHead(), level.getHierarchy());
-            // NOTE: We assume this is a single level hierarchy!
-            var ordinal = isSlicingHierarchy(level.getHierarchy()) ? 0 : 1;
+            var path = isSlicingHierarchy(level.getHierarchy()) ? new Object[] {null} : new Object[] {ALLMEMBER, null};
             return Objects.requireNonNull(
                             CubeFilterUtil.getAll(activePivot.getContext()).getSecurityAndFilter())
-                    .retrieveMembers((IAxisHierarchy) hierarchy, ordinal)
+                    .retrieveMembers((IAxisHierarchy) hierarchy, path)
                     .stream()
                     .map(IAxisMember::getDiscriminator)
                     .toList();
