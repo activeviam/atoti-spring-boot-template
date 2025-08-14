@@ -570,17 +570,34 @@ public class CubeQueryService {
             } else {
                 hierarchizeTemplate.append(crossJoinOrNot);
             }
-
-            return String.format(
-                    hierarchizeTemplate.append(" ON ROWS").toString(),
-                    actualLevels.stream()
-                            .map(level -> Objects.nonNull(topCountLevel) && topCountLevel.equals(level)
-                                    ?
-                                    // If level is the TopCount level, we use Top Set
-                                    topNLevels(topCount, previousLevel, !isLevelTotalHidden(hideTotals, topCountLevel))
-                                    : sortedHierarchizedLevels(
-                                            level, sortByDefinition, isSlicingHierarchy(level.getHierarchy())))
-                            .collect(Collectors.joining(",")));
+            var hierarchized = Objects.nonNull(sortByDefinition)
+                    ?
+                    // Wrap everything in the Order, ignore TopCount
+                    orderMdx(
+                            String.format(
+                                    hierarchizeTemplate.toString(),
+                                    actualLevels.stream()
+                                            .map(level -> isSlicingHierarchy(level.getHierarchy())
+                                                    ? levelToMdxMembers(level)
+                                                    : hierarchizedDescendantsAllMember(level))
+                                            .collect(Collectors.joining(","))),
+                            sortingMeasureToMdx(sortByDefinition),
+                            sortByDefinition.sortType())
+                    : String.format(
+                            hierarchizeTemplate.toString(),
+                            actualLevels.stream()
+                                    .map(level -> Objects.nonNull(topCountLevel) && topCountLevel.equals(level)
+                                            ?
+                                            // If level is the TopCount level, we use Top Set
+                                            topNLevels(
+                                                    topCount,
+                                                    previousLevel,
+                                                    !isLevelTotalHidden(hideTotals, topCountLevel))
+                                            : isSlicingHierarchy(level.getHierarchy())
+                                                    ? levelToMdxMembers(level)
+                                                    : hierarchizedDescendantsAllMember(level))
+                                    .collect(Collectors.joining(",")));
+            return hierarchized + " ON ROWS";
         }
 
         private static String crossJoinOrNot(Collection<LevelIdentifier> levels) {
@@ -813,12 +830,29 @@ public class CubeQueryService {
         }
 
         private String subSelectWithMeasureFilter(
-                LogicalCondition measureFilterCondition, List<LevelIdentifier> allLevels, String subSelect) {
+                LogicalCondition measureFilterCondition,
+                LogicalCondition cobDateCondition,
+                List<LevelIdentifier> allLevels,
+                String subSelect) {
             var measureSubSelectData = convertQueryConditionToMdxSubSelectData(measureFilterCondition);
             if (ObjectUtils.isEmpty(measureSubSelectData)) {
                 return subSelect;
             }
-            var crossJoin = crossJoinWithStar(allLevels);
+
+            String crossJoin;
+            if (cobDateCondition instanceof InLogicalCondition<?> condition) {
+                var cobDateLevel = levelsConverter.stringToLevelIdentifier(condition.getField());
+                crossJoin = levelToMemberValueMdx(
+                                cobDateLevel,
+                                condition.getValues().stream().findFirst().get())
+                        + "*"
+                        + crossJoinWithStar(allLevels.stream()
+                                .filter(level -> !cobDateLevel.equals(level))
+                                .toList());
+            } else {
+                crossJoin = crossJoinWithStar(allLevels);
+            }
+
             return String.format(
                     "FROM (SELECT FILTER(%s,%s) ON COLUMNS %s)",
                     crossJoin, measureSubSelectData.filterExpression(), subSelect);
@@ -843,7 +877,7 @@ public class CubeQueryService {
                             fromCube(cube));
             var subSelectData = convertQueryConditionToMdxSubSelectData(otherConditions);
             if (ObjectUtils.isEmpty(subSelectData)) {
-                return subSelectWithMeasureFilter(measureFilterCondition, allLevels, dateSubselect);
+                return subSelectWithMeasureFilter(measureFilterCondition, cobDateCondition, allLevels, dateSubselect);
             }
 
             var levels = new HashSet<>(subSelectData.levels());
@@ -860,7 +894,8 @@ public class CubeQueryService {
             var subSelect = String.format(
                     "FROM (SELECT FILTER(%s,%s) ON COLUMNS %s)",
                     crossJoin, subSelectData.filterExpression(), dateSubselect);
-            var subSelectWithMeasure = subSelectWithMeasureFilter(measureFilterCondition, allLevels, subSelect);
+            var subSelectWithMeasure =
+                    subSelectWithMeasureFilter(measureFilterCondition, cobDateCondition, allLevels, subSelect);
             return ObjectUtils.isEmpty(subSelectWithMeasure) ? subSelect : subSelectWithMeasure;
         }
 
@@ -981,8 +1016,6 @@ public class CubeQueryService {
             } else {
                 return new Object[] {ALLMEMBER, values};
             }
-            // throw new NotImplementedException("Not implemented yet");
-            //            return new HashSet<>(values);
         }
 
         private static String formatLocalDate(LocalDate localDate) {

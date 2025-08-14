@@ -182,7 +182,7 @@ public class CubeQuery {
 
     private static String computeSortType(String level, boolean isAscending) {
         // COB_DATE is sorted in reverse order so we need to reverse this
-        return level.equalsIgnoreCase(COB_DATE) != isAscending ? "ASC" : "DESC";
+        return level.equalsIgnoreCase(COB_DATE) != isAscending ? "BASC" : "BDESC";
     }
 
     public static boolean containsMeasureFilter(LogicalCondition queryCondition) {
