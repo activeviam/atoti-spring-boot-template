@@ -527,10 +527,6 @@ public class CubeQueryService {
                     .orElse(levelMembers);
         }
 
-        //        private static String hierarchizedMembers(LevelIdentifier level, boolean isSlicingHierarchy) {
-        //            return isSlicingHierarchy ? levelToMdxMembers(level) : hierarchizedDescendantsMembers(level);
-        //        }
-
         private static String hierarchizedMembersForFilter(LevelIdentifier level, boolean isSlicingHierarchy) {
             return isSlicingHierarchy ? levelToMdxMembers(level) : hierarchizedDescendantsMembersForFilter(level);
         }
@@ -822,30 +818,16 @@ public class CubeQueryService {
             if (ObjectUtils.isEmpty(measureSubSelectData)) {
                 return subSelect;
             }
-            var levels = new HashSet<>(measureSubSelectData.levels());
-            var measureFilterLevels = getMeasureFilterLevels(measureFilterCondition);
-            if (!measureFilterLevels.isEmpty()) {
-                // Add the required levels for the measure filter
-                levels.addAll(measureFilterLevels.stream()
-                        .map(levelsConverter::stringToLevelIdentifier)
-                        .filter(l -> !levels.contains(l))
-                        .toList());
-            }
-            // Add a default level to the crossjoin
-            if (levels.isEmpty()) {
-                levels.add(allLevels.getLast());
-            }
-            // FIXME: if we dont have any levels?
-
-            var crossJoin = String.format(
-                    crossJoinOrNot(levels),
-                    levels.stream()
-                            .map(l -> hierarchizedMembersForFilter(l, isSlicingHierarchy(l.getHierarchy())))
-                            .collect(Collectors.joining(",")));
-
+            var crossJoin = crossJoinWithStar(allLevels);
             return String.format(
                     "FROM (SELECT FILTER(%s,%s) ON COLUMNS %s)",
                     crossJoin, measureSubSelectData.filterExpression(), subSelect);
+        }
+
+        private String crossJoinWithStar(List<LevelIdentifier> levels) {
+            return levels.stream()
+                    .map(l -> isSlicingHierarchy(l.getHierarchy()) ? levelToMdxPath(l) : levelToMdxAllMemberChildren(l))
+                    .collect(Collectors.joining("*"));
         }
 
         private String subSelectWithFilter(
@@ -1001,25 +983,6 @@ public class CubeQueryService {
             }
             // throw new NotImplementedException("Not implemented yet");
             //            return new HashSet<>(values);
-        }
-
-        static Set<String> getMeasureFilterLevels(LogicalCondition queryCondition) {
-            return switch (queryCondition) {
-                case MeasureCondition measureCondition -> Set.of(measureCondition.getAtLevel());
-                case AndLogicalCondition andLogicalCondition ->
-                    andLogicalCondition.getSubConditions().stream()
-                            .map(CubeQueryService.CubeQuerier::getMeasureFilterLevels)
-                            .flatMap(Collection::stream)
-                            .collect(Collectors.toSet());
-                case OrLogicalCondition orLogicalCondition ->
-                    orLogicalCondition.getSubConditions().stream()
-                            .map(CubeQueryService.CubeQuerier::getMeasureFilterLevels)
-                            .flatMap(Collection::stream)
-                            .collect(Collectors.toSet());
-                case NotLogicalCondition notLogicalCondition ->
-                    getMeasureFilterLevels(notLogicalCondition.getCondition());
-                default -> Collections.emptySet();
-            };
         }
 
         private static String formatLocalDate(LocalDate localDate) {

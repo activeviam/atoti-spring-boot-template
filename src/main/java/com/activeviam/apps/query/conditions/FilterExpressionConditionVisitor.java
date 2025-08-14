@@ -92,10 +92,7 @@ public class FilterExpressionConditionVisitor extends QueryConditionBaseVisitor<
     @Override
     public LogicalCondition visitMeasureConditionQuery(QueryConditionParser.MeasureConditionQueryContext ctx) {
         return new MeasureCondition(
-                ctx.measure.getText(),
-                ctx.operator.getText(),
-                Double.parseDouble(ctx.operand.getText()),
-                ctx.field.getText());
+                ctx.measure.getText(), ctx.operator.getText(), Double.parseDouble(ctx.operand.getText()));
     }
 
     @Override
