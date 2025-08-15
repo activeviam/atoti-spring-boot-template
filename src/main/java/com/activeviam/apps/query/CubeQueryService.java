@@ -151,8 +151,7 @@ public class CubeQueryService {
                 var cubeRestrictions = buildCubeRestrictions(cubeQuery);
                 contextValues.add(cubeRestrictions);
                 var cobDateFilter = cubeQuery.getQueryFilter().generateCobDateCondition();
-                if (Objects.nonNull(cobDateFilter)) {
-                    var cobDateCondition = (InLogicalCondition<LocalDate>) cobDateFilter;
+                if (cobDateFilter instanceof InLogicalCondition<?> cobDateCondition) {
                     var cobDateLevel = levelsConverter.stringToLevelIdentifier(cobDateCondition.getField());
                     contextValues.add(CubeFilter.builder()
                             .includeMembersWithConditions(
