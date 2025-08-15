@@ -151,7 +151,7 @@ public class CubeQueryService {
                 var cubeRestrictions = buildCubeRestrictions(cubeQuery);
                 contextValues.add(cubeRestrictions);
                 var cobDateFilter = cubeQuery.getQueryFilter().generateCobDateCondition();
-                if (Objects.nonNull(cobDateFilter)) {
+                if (!TrueLogicalCondition.isTrueCondition(cobDateFilter)) {
                     var cobDateCondition = (InLogicalCondition<LocalDate>) cobDateFilter;
                     var cobDateLevel = levelsConverter.stringToLevelIdentifier(cobDateCondition.getField());
                     contextValues.add(CubeFilter.builder()
@@ -761,15 +761,11 @@ public class CubeQueryService {
                 }
                 case LikeLogicalCondition likeCondition -> {
                     var level = levelsConverter.stringToLevelIdentifier(likeCondition.getField());
-                    var allMembers = getMembersForLevel(level);
                     var criteria = likeCondition.getMatchingCriteria();
-                    var valuesToFilter = allMembers.stream()
-                            .filter(m -> ((String) m).contains(criteria))
-                            .toList();
-                    if (valuesToFilter.isEmpty()) {
-                        yield ICubeRestriction.falseRestriction();
-                    }
-                    yield ICubeRestriction.inPath(level.getHierarchy(), inPathValues(level, valuesToFilter));
+                    var path = isSlicingHierarchy(level.getHierarchy())
+                            ? new Object[] {criteria}
+                            : new Object[] {ALLMEMBER, criteria};
+                    yield ICubeRestriction.likePath(level.getHierarchy(), path);
                 }
                 case BetweenLogicalCondition<?> betweenLogicalCondition -> {
                     var left = betweenLogicalCondition.getLeft();
