@@ -4,7 +4,7 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-package com.activeviam.apps.query.rest;
+package com.activeviam.apps.rest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +19,10 @@ import com.activeviam.activepivot.core.intf.api.mdx.MdxException;
 import com.activeviam.tech.core.api.exceptions.ActiveViamRuntimeException;
 import com.google.common.base.Throwables;
 
+import lombok.extern.slf4j.Slf4j;
+
 @ControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -32,6 +35,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MdxException.class)
     public ResponseEntity<Object> handleMdxQueryException(MdxException ex) {
+        log.error("MDX Exception: {}", ex.getMessage(), ex);
         return buildBadRequestResponseEntity(ex);
     }
 

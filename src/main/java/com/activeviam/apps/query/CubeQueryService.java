@@ -12,6 +12,7 @@ import static com.activeviam.apps.constants.CubeConstants.FORMATTER_STRING;
 import static com.activeviam.apps.query.conditions.TrueLogicalCondition.isTrueCondition;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -31,6 +32,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.impl.api.contextvalues.QueryMonitoring;
 import com.activeviam.activepivot.core.impl.api.contextvalues.mdx.MdxContext;
+import com.activeviam.activepivot.core.impl.api.contextvalues.subcube.CubeFilter;
 import com.activeviam.activepivot.core.impl.api.cube.hierarchy.HierarchiesUtil;
 import com.activeviam.activepivot.core.impl.api.experimental.context.filter.QueryBasedCubeRestriction;
 import com.activeviam.activepivot.core.impl.internal.context.impl.ContextUtils;
@@ -148,6 +150,18 @@ public class CubeQueryService {
             if (cubeQuery.isUseContext()) {
                 var cubeRestrictions = buildCubeRestrictions(cubeQuery);
                 contextValues.add(cubeRestrictions);
+                var cobDateFilter = cubeQuery.getQueryFilter().generateCobDateCondition();
+                if (Objects.nonNull(cobDateFilter)) {
+                    var cobDateCondition = (InLogicalCondition<LocalDate>) cobDateFilter;
+                    var cobDateLevel = levelsConverter.stringToLevelIdentifier(cobDateCondition.getField());
+                    contextValues.add(CubeFilter.builder()
+                            .includeMembers(
+                                    levelsConverter.stringToHierarchyIdentifier(cobDateLevel.getHierarchyName()),
+                                    cobDateCondition.getValues().stream()
+                                            .map(d -> d.format(DateTimeFormatter.BASIC_ISO_DATE))
+                                            .toList())
+                            .build());
+                }
             }
             contextValues.add(
                     new QueryMonitoring().enableExecutionPlanningPrint().enableQueryPlanSummary());
