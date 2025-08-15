@@ -12,7 +12,6 @@ import static com.activeviam.apps.constants.CubeConstants.FORMATTER_STRING;
 import static com.activeviam.apps.query.conditions.TrueLogicalCondition.isTrueCondition;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -62,6 +61,7 @@ import com.activeviam.apps.query.conditions.OrLogicalCondition;
 import com.activeviam.apps.query.conditions.TrueLogicalCondition;
 import com.activeviam.apps.query.rest.CubeQueryDTO;
 import com.activeviam.tech.core.api.exceptions.ActiveViamRuntimeException;
+import com.activeviam.tech.core.api.filtering.impl.InCondition;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -155,11 +155,9 @@ public class CubeQueryService {
                     var cobDateCondition = (InLogicalCondition<LocalDate>) cobDateFilter;
                     var cobDateLevel = levelsConverter.stringToLevelIdentifier(cobDateCondition.getField());
                     contextValues.add(CubeFilter.builder()
-                            .includeMembers(
+                            .includeMembersWithConditions(
                                     levelsConverter.stringToHierarchyIdentifier(cobDateLevel.getHierarchyName()),
-                                    cobDateCondition.getValues().stream()
-                                            .map(d -> d.format(DateTimeFormatter.BASIC_ISO_DATE))
-                                            .toList())
+                                    new InCondition(cobDateCondition.getValues()))
                             .build());
                 }
             }
