@@ -55,13 +55,18 @@ public class CubeQuery {
         }
     }
 
-    public record TopCount(String metric, LevelIdentifier level, int count, boolean bottom, boolean aggregateOthers) {
+    public record TopCount(
+            String metric, List<LevelIdentifier> groupBy, int count, boolean bottom, boolean aggregateOthers) {
 
         public static TopCount fromDTO(CubeQueryDTO.TopCountDTO dto, LevelsConverter levelsConverter) {
             return Objects.nonNull(dto)
                     ? new TopCount(
                             dto.getMetric(),
-                            levelsConverter.stringToLevelIdentifier(dto.getLevel()),
+                            Optional.ofNullable(dto.getGroupBy())
+                                    .map(group -> group.stream()
+                                            .map(levelsConverter::stringToLevelIdentifier)
+                                            .toList())
+                                    .orElse(Collections.emptyList()),
                             dto.getCount(),
                             dto.isBottom(),
                             dto.isAggregateOthers())
@@ -185,6 +190,10 @@ public class CubeQuery {
         return level.equalsIgnoreCase(COB_DATE) != isAscending ? "BASC" : "BDESC";
     }
 
+    public static boolean isCobDateLevel(LevelIdentifier levelIdentifier) {
+        return levelIdentifier.getLevelName().equals(COB_DATE);
+    }
+
     public static boolean containsMeasureFilter(LogicalCondition queryCondition) {
         return switch (queryCondition) {
             case MeasureCondition measureCondition -> true;
@@ -228,6 +237,8 @@ public class CubeQuery {
 
         public LogicalCondition generateOtherCondition() {
             return ObjectUtils.isEmpty(otherConditions)
+                            || (otherConditions.size() == 1
+                                    && TrueLogicalCondition.isTrueCondition(otherConditions.getFirst()))
                     ? TrueLogicalCondition.INSTANCE
                     : new AndLogicalCondition(otherConditions);
         }

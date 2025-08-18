@@ -29,7 +29,7 @@
   <!-- ############################################################################# -->
   <!-- # Explicit configuration of the various loggers (core and custom)           # -->
   <!-- #                                                                           # -->
-  <!-- # Available levels are:                                                     # -->
+  <!-- # Available groupBy are:                                                     # -->
   <!-- # ERROR (highest filtering)                                                 # -->
   <!-- # WARN                                                                      # -->
   <!-- # INFO                                                                      # -->
@@ -49,7 +49,7 @@
   </root>
 
   <!--
-      Apply the levels defined here to the JUL loggers.
+      Apply the groupBy defined here to the JUL loggers.
       Has to be called at the end, once all the loggers are defined
   -->
   <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
