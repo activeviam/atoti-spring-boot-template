@@ -755,14 +755,17 @@ public class CubeQueryService {
         private String topNWithoutGroupingExpression(CubeQuery.TopCount topCount, List<LevelIdentifier> allLevels) {
             // FIXME: add totals?
             // Take the CobDate level out
-            var levelsExcludingCobDate =
-                    allLevels.stream().filter(l -> !CubeQuery.isCobDateLevel(l)).toList();
+            var levelsExcludingCobDate = excludeCobDateFilter(allLevels);
             return String.format(
                     "%sCount(%s,%d,%s)",
                     topCount.bottom() ? "Bottom" : "Top",
                     crossJoinWithStar(levelsExcludingCobDate),
                     topCount.count(),
                     metricToMdxMeasure(topCount.metric()));
+        }
+
+        private List<LevelIdentifier> excludeCobDateFilter(List<LevelIdentifier> allLevels) {
+            return allLevels.stream().filter(l -> !CubeQuery.isCobDateLevel(l)).toList();
         }
 
         private static String topNOthersMemberExpression(CubeQuery.TopCount topCount) {
@@ -885,19 +888,19 @@ public class CubeQueryService {
                 return subSelect;
             }
 
-            String crossJoin;
-            if (cobDateCondition instanceof InLogicalCondition<?> condition) {
-                var cobDateLevel = levelsConverter.stringToLevelIdentifier(condition.getField());
-                crossJoin = levelToMemberValueMdx(
-                                cobDateLevel,
-                                condition.getValues().stream().findFirst().get())
-                        + "*"
-                        + crossJoinWithStar(allLevels.stream()
-                                .filter(level -> !cobDateLevel.equals(level))
-                                .toList());
-            } else {
-                crossJoin = crossJoinWithStar(allLevels);
-            }
+            var crossJoin = crossJoinWithStar(excludeCobDateFilter(allLevels));
+            //            if (cobDateCondition instanceof InLogicalCondition<?> condition) {
+            //                var cobDateLevel = levelsConverter.stringToLevelIdentifier(condition.getField());
+            //                crossJoin = levelToMemberValueMdx(
+            //                                cobDateLevel,
+            //                                condition.getValues().stream().findFirst().get())
+            //                        + "*"
+            //                        + crossJoinWithStar(allLevels.stream()
+            //                                .filter(level -> !cobDateLevel.equals(level))
+            //                                .toList());
+            //            } else {
+            //                crossJoin = crossJoinWithStar(allLevels);
+            //            }
 
             return String.format(
                     "FROM (SELECT FILTER(%s,%s) ON COLUMNS %s)",
