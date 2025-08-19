@@ -769,31 +769,35 @@ public class CubeQueryService {
                 case BetweenLogicalCondition<?> betweenLogicalCondition -> {
                     var left = betweenLogicalCondition.getLeft();
                     var right = betweenLogicalCondition.getRight();
-                    var leftInclusive = betweenLogicalCondition.isLeftInclusive();
-                    var rightInclusive = betweenLogicalCondition.isRightInclusive();
                     var level = levelsConverter.stringToLevelIdentifier(betweenLogicalCondition.getField());
-                    var allMembers = getMembersForLevel(level);
                     if (Objects.isNull(left) && Objects.isNull(right)) {
                         throw new ActiveViamRuntimeException("Left and right must not be null");
                     }
-                    var membersStream = allMembers.stream();
+
+                    List<ICubeRestriction> conditions = new ArrayList<>();
                     if (Objects.nonNull(left)) {
-                        membersStream = membersStream.filter(m -> {
-                            var x = compareObjects(m, left);
-                            return leftInclusive ? x >= 0 : x > 0;
-                        });
+                        var path = isSlicingHierarchy(level.getHierarchy())
+                                ? new Object[] {left}
+                                : new Object[] {ALLMEMBER, left};
+                        conditions.add(betweenLogicalCondition.isLeftInclusive()
+                                ? ICubeRestriction.greaterEqualPath(level.getHierarchy(), path)
+                                : ICubeRestriction.greaterPath(level.getHierarchy(), path));
                     }
                     if (Objects.nonNull(right)) {
-                        membersStream = membersStream.filter(m -> {
-                            var x = compareObjects(m, right);
-                            return rightInclusive ? x <= 0 : x < 0;
-                        });
+                        var path = isSlicingHierarchy(level.getHierarchy())
+                                ? new Object[] {right}
+                                : new Object[] {ALLMEMBER, right};
+                      conditions.add(betweenLogicalCondition.isRightInclusive()
+                                ? ICubeRestriction.lowerEqualPath(level.getHierarchy(), path)
+                                : ICubeRestriction.lowerPath(level.getHierarchy(), path));
                     }
-                    var valuesToFilter = membersStream.toList();
-                    if (valuesToFilter.isEmpty()) {
-                        yield ICubeRestriction.falseRestriction();
+                    if (Objects.nonNull(left)) {}
+                    if (Objects.nonNull(leftCondition)) {
+                        yield rightCondition;
+                    } else if (Objects.nonNull(rightCondition)) {
+                        yield leftCondition;
                     }
-                    yield ICubeRestriction.inPath(level.getHierarchy(), inPathValues(level, valuesToFilter));
+                    yield ICubeRestriction.and(leftCondition, rightCondition);
                 }
                 case MeasureCondition measureCondition ->
                     throw new UnsupportedOperationException(
@@ -802,39 +806,39 @@ public class CubeQueryService {
             };
         }
 
-        private static int compareObjects(Object o1, Object o2) {
-            if (o1 instanceof LocalDate date1 && o2 instanceof LocalDate date2) {
-                return date1.compareTo(date2);
-            }
-            if (o1 instanceof String string1 && o2 instanceof String string2) {
-                return string1.compareTo(string2);
-            }
-            if (o1 instanceof Integer int1 && o2 instanceof Integer int2) {
-                return int1.compareTo(int2);
-            }
-            if (o1 instanceof Long long1 && o2 instanceof Long long2) {
-                return long1.compareTo(long2);
-            }
-            if (o1 instanceof Double double1 && o2 instanceof Double double2) {
-                return double1.compareTo(double2);
-            }
-            if (o1 instanceof Float float1 && o2 instanceof Float float2) {
-                return float1.compareTo(float2);
-            }
-            throw new UnsupportedOperationException(
-                    "DataType of " + o1.getClass().getSimpleName() + " not supported or types not matching");
-        }
-
-        private Collection<Object> getMembersForLevel(LevelIdentifier level) {
-            var hierarchy = HierarchiesUtil.getHierarchy(activePivot.getHead(), level.getHierarchy());
-            var path = isSlicingHierarchy(level.getHierarchy()) ? new Object[] {null} : new Object[] {ALLMEMBER, null};
-            return Objects.requireNonNull(
-                            CubeFilterUtil.getAll(activePivot.getContext()).getSecurityAndFilter())
-                    .retrieveMembers((IAxisHierarchy) hierarchy, path)
-                    .stream()
-                    .map(IAxisMember::getDiscriminator)
-                    .toList();
-        }
+//        private static int compareObjects(Object o1, Object o2) {
+//            if (o1 instanceof LocalDate date1 && o2 instanceof LocalDate date2) {
+//                return date1.compareTo(date2);
+//            }
+//            if (o1 instanceof String string1 && o2 instanceof String string2) {
+//                return string1.compareTo(string2);
+//            }
+//            if (o1 instanceof Integer int1 && o2 instanceof Integer int2) {
+//                return int1.compareTo(int2);
+//            }
+//            if (o1 instanceof Long long1 && o2 instanceof Long long2) {
+//                return long1.compareTo(long2);
+//            }
+//            if (o1 instanceof Double double1 && o2 instanceof Double double2) {
+//                return double1.compareTo(double2);
+//            }
+//            if (o1 instanceof Float float1 && o2 instanceof Float float2) {
+//                return float1.compareTo(float2);
+//            }
+//            throw new UnsupportedOperationException(
+//                    "DataType of " + o1.getClass().getSimpleName() + " not supported or types not matching");
+//        }
+//
+//        private Collection<Object> getMembersForLevel(LevelIdentifier level) {
+//            var hierarchy = HierarchiesUtil.getHierarchy(activePivot.getHead(), level.getHierarchy());
+//            var path = isSlicingHierarchy(level.getHierarchy()) ? new Object[] {null} : new Object[] {ALLMEMBER, null};
+//            return Objects.requireNonNull(
+//                            CubeFilterUtil.getAll(activePivot.getContext()).getSecurityAndFilter())
+//                    .retrieveMembers((IAxisHierarchy) hierarchy, path)
+//                    .stream()
+//                    .map(IAxisMember::getDiscriminator)
+//                    .toList();
+//        }
 
         private String subSelectWithMeasureFilter(
                 LogicalCondition measureFilterCondition,
