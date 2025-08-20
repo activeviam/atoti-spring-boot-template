@@ -96,13 +96,18 @@ public class DataCubeConfig {
                     .end()
                     .withProtocolPath(distributionProperties.getProtocolPath())
                     .end()
-                    .withCubeIdentifierInCluster(isInMemory ? DATASTORE_NODE_IDENTIFIER : DIRECT_QUERY_NODE_IDENTIFIER)
+                    .withCubeIdentifierInCluster(
+                            isInMemory
+                                    ? String.format(
+                                            "%s-%s", DATASTORE_NODE_IDENTIFIER, cobDatesProperties.getFixedCobDates())
+                                    : DIRECT_QUERY_NODE_IDENTIFIER)
                     .withPort(serverPort)
                     .withAddress(address)
                     .withApplicationId(APPLICATION_NAME)
                     .withAllHierarchies()
                     .withAllMeasures()
-                    .withProperty(IDataClusterDefinition.DATA_NODE_PRIORITY, String.valueOf(overlapPriority))
+                    .withProperty(
+                            IDataClusterDefinition.DATA_NODE_PRIORITY, String.valueOf(cobDatesProperties.getPriority()))
                     .end()
                     .build();
         } else {

@@ -51,6 +51,8 @@ public class CubeQueryDTO {
 
     private HideTotalsDTO hideTotals;
 
+    private boolean executionPlanning;
+
     @Data
     @Builder(setterPrefix = "with")
     @AllArgsConstructor
@@ -75,9 +77,7 @@ public class CubeQueryDTO {
         @NotBlank
         private String metric;
 
-        @NonNull
-        @NotBlank
-        private String level;
+        private List<String> groupBy;
 
         @Builder.Default
         private int count = 5;
@@ -86,7 +86,7 @@ public class CubeQueryDTO {
         private boolean bottom = false;
 
         @Builder.Default
-        private boolean aggregateOthers = true;
+        private boolean aggregateOthers = false;
     }
 
     @Data

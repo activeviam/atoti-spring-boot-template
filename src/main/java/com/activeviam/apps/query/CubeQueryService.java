@@ -157,8 +157,12 @@ public class CubeQueryService {
                             .build());
                 }
             }
-            contextValues.add(
-                    new QueryMonitoring().enableExecutionPlanningPrint().enableQueryPlanSummary());
+            if (cubeQuery.isExecutionPlanning()) {
+                contextValues.add(
+                        new QueryMonitoring().enableExecutionPlanningPrint().enableQueryPlanSummary());
+            } else {
+                contextValues.add(new QueryMonitoring().enableQueryPlanSummary());
+            }
             var contextSnapshot = ContextUtils.applyContextValues(activePivot.getContext(), contextValues, true);
             var mdx = buildMdxQuery(cubeQuery);
             log.info("Mdx Query: {}", mdx);
@@ -177,7 +181,7 @@ public class CubeQueryService {
                 mdxContext.setHiddenGrandTotals(new int[] {1, 0});
             }
             if (hideTotals.all()) {
-                mdxContext.setHiddenSubtotals(allLevels); // these are all the levels
+                mdxContext.setHiddenSubtotals(allLevels); // these are all the groupBy
             } else if (!hideTotals.levels().isEmpty()) {
                 mdxContext.setHiddenSubtotals(hideTotals.levels()); // these are only
             }
@@ -223,15 +227,15 @@ public class CubeQueryService {
                 var topCounts = cubeQuery.getTopCount();
                 mdxContext.addNamedSet(StartBuilding.namedSet()
                         .withName(TOP_N_SET)
-                        .withExpression(topNSetExpression(
-                                topCounts, getPreviousLevelOrNull(topCounts.level(), cubeQuery.getLevels())))
+                        .withExpression(topNSetExpression(topCounts, cubeQuery.getLevels()))
                         .build());
                 // Create the Others member
                 if (topCounts.aggregateOthers()) {
-                    mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
-                            .withName(topNOthersMemberName(topCounts))
-                            .withExpression(topNOthersMemberExpression(topCounts))
-                            .build());
+                    throw new UnsupportedOperationException("TopN others not supported.");
+                    //                    mdxContext.addCalculatedMember(StartBuilding.calculatedMember()
+                    //                            .withName(topNOthersMemberName(topCounts))
+                    //                            .withExpression(topNOthersMemberExpression(topCounts))
+                    //                            .build());
                 }
             }
             if (!ObjectUtils.isEmpty(cubeQuery.getMetricDefinitions())) {
@@ -345,8 +349,9 @@ public class CubeQueryService {
                     query.append(topCountSetMdx(topCount, cubeQuery.getLevels()));
                     // Create the Others member
                     if (topCount.aggregateOthers()) {
-                        query.append(System.lineSeparator());
-                        query.append(topCountOthersCalculatedMeasureMdx(topCount));
+                        throw new UnsupportedOperationException("TopN others not supported.");
+                        //                        query.append(System.lineSeparator());
+                        //                        query.append(topCountOthersCalculatedMeasureMdx(topCount));
                     }
                 }
 
@@ -373,8 +378,8 @@ public class CubeQueryService {
             return setMdx(TOP_RANK_SET, topRankSetExpression(topRank));
         }
 
-        private String topCountSetMdx(CubeQuery.TopCount topCount, List<LevelIdentifier> levels) {
-            return setMdx(TOP_N_SET, topNSetExpression(topCount, getPreviousLevelOrNull(topCount.level(), levels)));
+        private String topCountSetMdx(CubeQuery.TopCount topCount, List<LevelIdentifier> allLevels) {
+            return setMdx(TOP_N_SET, topNSetExpression(topCount, allLevels));
         }
 
         private String calculatedMemberMdx(String memberName, String expression) {
@@ -504,28 +509,30 @@ public class CubeQueryService {
             return slicingHierarchies.contains(hierarchyIdentifier);
         }
 
-        private String topNLevels(CubeQuery.TopCount topCount, LevelIdentifier previousLevel, boolean includeTotal) {
-            if (includeTotal) {
-                String topCountTotalExpression;
-                if (topCount.aggregateOthers()) {
-                    topCountTotalExpression = topNOthersMemberName(topCount);
-                } else {
-                    if (Objects.isNull(previousLevel)) {
-                        topCountTotalExpression =
-                                isSlicingHierarchy(topCount.level().getHierarchy())
-                                        ? levelToMdxAll(topCount.level())
-                                        : levelToMdxAllMember(topCount.level());
-                    } else {
-                        topCountTotalExpression = String.format(
-                                "{(%s,%s)}",
-                                levelToCurrentMemberMdx(previousLevel), levelToMdxAllMember(topCount.level()));
-                    }
-                }
-                return String.format("{%s, {%s}}", topCountTotalExpression, TOP_N_SET);
-            } else {
-                return TOP_N_SET;
-            }
-        }
+        //        private String topNLevels(CubeQuery.TopCount topCount, LevelIdentifier previousLevel, boolean
+        // includeTotal) {
+        //            if (includeTotal) {
+        //                String topCountTotalExpression;
+        //                if (topCount.aggregateOthers()) {
+        //                    topCountTotalExpression = topNOthersMemberName(topCount);
+        //                } else {
+        //                    if (Objects.isNull(previousLevel)) {
+        //                        topCountTotalExpression =
+        //                                isSlicingHierarchy(topCount.level().getHierarchy())
+        //                                        ? levelToMdxAll(topCount.level())
+        //                                        : levelToMdxAllMember(topCount.level());
+        //                    } else {
+        //                        topCountTotalExpression = String.format(
+        //                                "{(%s,%s)}",
+        //                                levelToCurrentMemberMdx(previousLevel),
+        // levelToMdxAllMember(topCount.level()));
+        //                    }
+        //                }
+        //                return String.format("{%s, {%s}}", topCountTotalExpression, TOP_N_SET);
+        //            } else {
+        //                return TOP_N_SET;
+        //            }
+        //        }
 
         private static String sortedHierarchizedLevels(
                 LevelIdentifier level, CubeQuery.Sort<?> sort, boolean isSlicingHierarchy) {
@@ -561,14 +568,16 @@ public class CubeQueryService {
                 CubeQuery.TopRank topRankDefinition,
                 CubeQuery.TopCount topCount,
                 CubeQuery.HideTotals hideTotals) {
-            // First check if we need to exclude levels because they are in the top count expression
-            var topCountLevel = Objects.nonNull(topCount) ? topCount.level() : null;
-            // If there are multiple levels, the level above the topCount level must be removed because it will be
+            // First check if we need to exclude groupBy because they are in the top count expression
+            // var topCountLevel = Objects.nonNull(topCount) ? topCount.level() : null;
+            // If there are multiple groupBy, the level above the topCount level must be removed because it will be
             // included in the topCount set
-            var previousLevel = getPreviousLevelOrNull(topCountLevel, levels);
-            var actualLevels = levels.stream()
-                    .filter(levelIdentifier -> Objects.isNull(previousLevel) || !previousLevel.equals(levelIdentifier))
-                    .toList();
+            // var previousLevel = getPreviousLevelOrNull(topCountLevel, levels);
+            var actualLevels = levels;
+            //            levels.stream()
+            //                    .filter(levelIdentifier -> Objects.isNull(previousLevel) ||
+            // !previousLevel.equals(levelIdentifier))
+            //                    .toList();
 
             var hierarchizeTemplate = new StringBuilder();
             var crossJoinOrNot = crossJoinOrNot(actualLevels);
@@ -578,33 +587,52 @@ public class CubeQueryService {
             } else {
                 hierarchizeTemplate.append(crossJoinOrNot);
             }
-            var hierarchized = Objects.nonNull(sortByDefinition)
-                    ?
-                    // Wrap everything in the Order, ignore TopCount
-                    orderMdx(
-                            String.format(
-                                    hierarchizeTemplate.toString(),
-                                    actualLevels.stream()
-                                            .map(level -> isSlicingHierarchy(level.getHierarchy())
-                                                    ? levelToMdxMembers(level)
-                                                    : hierarchizedDescendantsAllMember(level))
-                                            .collect(Collectors.joining(","))),
-                            sortingMeasureToMdx(sortByDefinition),
-                            sortByDefinition.sortType())
-                    : String.format(
-                            hierarchizeTemplate.toString(),
-                            actualLevels.stream()
-                                    .map(level -> Objects.nonNull(topCountLevel) && topCountLevel.equals(level)
-                                            ?
-                                            // If level is the TopCount level, we use Top Set
-                                            topNLevels(
-                                                    topCount,
-                                                    previousLevel,
-                                                    !isLevelTotalHidden(hideTotals, topCountLevel))
-                                            : isSlicingHierarchy(level.getHierarchy())
-                                                    ? levelToMdxMembers(level)
-                                                    : hierarchizedDescendantsAllMember(level))
-                                    .collect(Collectors.joining(",")));
+            String hierarchized;
+            if (Objects.nonNull(sortByDefinition)) {
+                // Wrap everything in the Order, ignore TopCount
+                hierarchized = orderMdx(
+                        String.format(
+                                hierarchizeTemplate.toString(),
+                                actualLevels.stream()
+                                        .map(level -> isSlicingHierarchy(level.getHierarchy())
+                                                ? levelToMdxMembers(level)
+                                                : hierarchizedDescendantsAllMember(level))
+                                        .collect(Collectors.joining(","))),
+                        sortingMeasureToMdx(sortByDefinition),
+                        sortByDefinition.sortType());
+            } else if (Objects.isNull(topCount)) {
+                hierarchized = String.format(
+                        hierarchizeTemplate.toString(),
+                        actualLevels.stream()
+                                .map(level -> isSlicingHierarchy(level.getHierarchy())
+                                        ? levelToMdxMembers(level)
+                                        : hierarchizedDescendantsAllMember(level))
+                                .collect(Collectors.joining(",")));
+            } else if (topCount.groupBy().isEmpty()) {
+                // Check if we have cobDate or not
+                hierarchized = actualLevels.stream()
+                        .filter(CubeQuery::isCobDateLevel)
+                        .findFirst()
+                        .map(cobDateLevel -> String.format(
+                                hierarchizeTemplate.toString(),
+                                String.join(",", levelToMdxMembers(cobDateLevel), TOP_N_SET)))
+                        .orElse(TOP_N_SET);
+            } else {
+                throw new UnsupportedOperationException("TopN groupBy not supported.");
+                //                            actualLevels.stream()
+                //                                    .map(level -> Objects.nonNull(topCountLevel) &&
+                // topCountLevel.equals(level)
+                //                                            ?
+                //                                            // If level is the TopCount level, we use Top Set
+                //                                            topNLevels(
+                //                                                    topCount,
+                //                                                    previousLevel,
+                //                                                    !isLevelTotalHidden(hideTotals, topCountLevel))
+                //                                            : isSlicingHierarchy(level.getHierarchy())
+                //                                                    ? levelToMdxMembers(level)
+                //                                                    : hierarchizedDescendantsAllMember(level))
+                //                                    .collect(Collectors.joining(",")));
+            }
             return hierarchized + " ON ROWS";
         }
 
@@ -612,16 +640,16 @@ public class CubeQueryService {
             return levels.size() == 1 ? "%s" : "Crossjoin(%s)";
         }
 
-        private static LevelIdentifier getPreviousLevelOrNull(
-                LevelIdentifier topCountLevel, List<LevelIdentifier> levels) {
-            if (Objects.nonNull(topCountLevel) && levels.size() > 1) {
-                var topCountLevelIndex = levels.indexOf(topCountLevel);
-                if (topCountLevelIndex > 0) {
-                    return levels.get(topCountLevelIndex - 1);
-                }
-            }
-            return null;
-        }
+        //        private static LevelIdentifier getPreviousLevelOrNull(
+        //                LevelIdentifier topCountLevel, List<LevelIdentifier> levels) {
+        //            if (Objects.nonNull(topCountLevel) && levels.size() > 1) {
+        //                var topCountLevelIndex = levels.indexOf(topCountLevel);
+        //                if (topCountLevelIndex > 0) {
+        //                    return levels.get(topCountLevelIndex - 1);
+        //                }
+        //            }
+        //            return null;
+        //        }
 
         static String levelToMdxPath(LevelIdentifier levelIdentifier) {
             return String.format(
@@ -662,7 +690,7 @@ public class CubeQueryService {
         }
 
         private static String sortingCalculatedMemberExpression(LevelIdentifier level) {
-            return String.format("Rank(%s,%s)", levelToCurrentMemberMdx(level), levelToMdxMembers(level));
+            return String.format("%s", levelToCurrentMemberMdx(level));
         }
 
         private static String levelToCurrentMemberValue(LevelIdentifier level) {
@@ -697,48 +725,62 @@ public class CubeQueryService {
             return String.format("[Measures].[%s]", measure);
         }
 
-        private String topNSetExpression(CubeQuery.TopCount topCount, LevelIdentifier previousLevel) {
-            // If we have multiple levels in the query we need to use the Generate statement
-            return Objects.isNull(previousLevel)
-                    ? topNWithSingleLevelExpression(topCount)
-                    : topNWithMultiLevelExpression(topCount, previousLevel);
+        private String topNSetExpression(CubeQuery.TopCount topCount, List<LevelIdentifier> allLevels) {
+            if (topCount.groupBy().isEmpty()) {
+                return topNWithoutGroupingExpression(topCount, allLevels);
+            }
+            throw new UnsupportedOperationException("TopN with grouping level not yet supported.");
+            //            else if (topCount.groupBy().size() == 1) {
+            //                return topNWithSingleGroupByLevelExpression(topCount);
+            //            }
+            //            else {
+            //                return topNWithMultipleGroupByLevelsExpression(topCount,allLevels);
+            //            }
         }
 
-        private String topNWithSingleLevelExpression(CubeQuery.TopCount topCount) {
-            return String.format(
-                    "%sCount(%s, %d, %s)",
-                    topCount.bottom() ? "Bottom" : "Top",
-                    levelToMdxMembers(topCount.level()),
-                    topCount.count(),
-                    metricToMdxMeasure(topCount.metric()));
+        private String topNWithSingleGroupByLevelExpression(CubeQuery.TopCount topCount) {
+            return null;
+            //            return String.format(
+            //                    "%sCount(%s, %d, %s)",
+            //                    topCount.bottom() ? "Bottom" : "Top",
+            //                    levelToMdxMembers(topCount.level()),
+            //                    topCount.count(),
+            //                    metricToMdxMeasure(topCount.metric()));
         }
 
-        private String topNWithMultiLevelExpression(CubeQuery.TopCount topCount, LevelIdentifier previousLevel) {
+        private String topNWithMultipleGroupByLevelsExpression(
+                CubeQuery.TopCount topCount, List<LevelIdentifier> allLevels) {
+            return null;
+        }
+
+        private String topNWithoutGroupingExpression(CubeQuery.TopCount topCount, List<LevelIdentifier> allLevels) {
             // FIXME: add totals?
-            var topCountLevel = topCount.level();
+            // Take the CobDate level out
+            var levelsExcludingCobDate = excludeCobDateFilter(allLevels);
             return String.format(
-                    "Generate(%s,{%sCount( {%s} * %s,%d,%s)})",
-                    isSlicingHierarchy(previousLevel.getHierarchy())
-                            ? levelToMdxPath(previousLevel)
-                            : levelToMdxAllMemberChildren(previousLevel),
+                    "%sCount(%s,%d,%s)",
                     topCount.bottom() ? "Bottom" : "Top",
-                    levelToCurrentMemberMdx(previousLevel),
-                    isSlicingHierarchy(topCountLevel.getHierarchy())
-                            ? levelToMdxPath(topCountLevel)
-                            : levelToMdxAllMemberChildren(topCountLevel),
+                    crossJoinWithStar(levelsExcludingCobDate),
                     topCount.count(),
                     metricToMdxMeasure(topCount.metric()));
+        }
+
+        private List<LevelIdentifier> excludeCobDateFilter(List<LevelIdentifier> allLevels) {
+            return allLevels.stream().filter(l -> !CubeQuery.isCobDateLevel(l)).toList();
         }
 
         private static String topNOthersMemberExpression(CubeQuery.TopCount topCount) {
-            return String.format("Aggregate(%s - [%s])", levelToMdxMembers(topCount.level()), TOP_N_SET);
+            return null;
+            // return String.format("Aggregate(%s - [%s])", levelToMdxMembers(topCount.level()), TOP_N_SET);
         }
 
         private String topNOthersMemberName(CubeQuery.TopCount topCount) {
-            var level = topCount.level();
-            var levelMembers =
-                    isSlicingHierarchy(level.getHierarchy()) ? levelToMdxAll(level) : levelToMdxAllMember(level);
-            return String.format("%s.[%s]", levelMembers, OTHERS_MEMBER);
+            return null;
+            //            var level = topCount.level();
+            //            var levelMembers =
+            //                    isSlicingHierarchy(level.getHierarchy()) ? levelToMdxAll(level) :
+            // levelToMdxAllMember(level);
+            //            return String.format("%s.[%s]", levelMembers, OTHERS_MEMBER);
         }
 
         // Recursively build the cube restriction object
@@ -848,19 +890,19 @@ public class CubeQueryService {
                 return subSelect;
             }
 
-            String crossJoin;
-            if (cobDateCondition instanceof InLogicalCondition<?> condition) {
-                var cobDateLevel = levelsConverter.stringToLevelIdentifier(condition.getField());
-                crossJoin = levelToMemberValueMdx(
-                                cobDateLevel,
-                                condition.getValues().stream().findFirst().get())
-                        + "*"
-                        + crossJoinWithStar(allLevels.stream()
-                                .filter(level -> !cobDateLevel.equals(level))
-                                .toList());
-            } else {
-                crossJoin = crossJoinWithStar(allLevels);
-            }
+            var crossJoin = crossJoinWithStar(excludeCobDateFilter(allLevels));
+            //            if (cobDateCondition instanceof InLogicalCondition<?> condition) {
+            //                var cobDateLevel = levelsConverter.stringToLevelIdentifier(condition.getField());
+            //                crossJoin = levelToMemberValueMdx(
+            //                                cobDateLevel,
+            //                                condition.getValues().stream().findFirst().get())
+            //                        + "*"
+            //                        + crossJoinWithStar(allLevels.stream()
+            //                                .filter(level -> !cobDateLevel.equals(level))
+            //                                .toList());
+            //            } else {
+            //                crossJoin = crossJoinWithStar(allLevels);
+            //            }
 
             return String.format(
                     "FROM (SELECT FILTER(%s,%s) ON COLUMNS %s)",

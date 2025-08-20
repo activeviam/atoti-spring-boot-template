@@ -43,6 +43,7 @@ public class CubeQuery {
     private final List<MetricDefinition> metricDefinitions;
     private final boolean useContext;
     private final HideTotals hideTotals;
+    private final boolean executionPlanning;
 
     public static String calculatedMemberDefaultName(String metric, String level) {
         return metric + "@" + level;
@@ -55,13 +56,18 @@ public class CubeQuery {
         }
     }
 
-    public record TopCount(String metric, LevelIdentifier level, int count, boolean bottom, boolean aggregateOthers) {
+    public record TopCount(
+            String metric, List<LevelIdentifier> groupBy, int count, boolean bottom, boolean aggregateOthers) {
 
         public static TopCount fromDTO(CubeQueryDTO.TopCountDTO dto, LevelsConverter levelsConverter) {
             return Objects.nonNull(dto)
                     ? new TopCount(
                             dto.getMetric(),
-                            levelsConverter.stringToLevelIdentifier(dto.getLevel()),
+                            Optional.ofNullable(dto.getGroupBy())
+                                    .map(group -> group.stream()
+                                            .map(levelsConverter::stringToLevelIdentifier)
+                                            .toList())
+                                    .orElse(Collections.emptyList()),
                             dto.getCount(),
                             dto.isBottom(),
                             dto.isAggregateOthers())
@@ -177,12 +183,17 @@ public class CubeQuery {
                 HideTotals.fromDTO(
                         Optional.ofNullable(dto.getHideTotals())
                                 .orElse(CubeQueryDTO.HideTotalsDTO.builder().build()),
-                        levelsConverter));
+                        levelsConverter),
+                dto.isExecutionPlanning());
     }
 
     private static String computeSortType(String level, boolean isAscending) {
         // COB_DATE is sorted in reverse order so we need to reverse this
         return level.equalsIgnoreCase(COB_DATE) != isAscending ? "BASC" : "BDESC";
+    }
+
+    public static boolean isCobDateLevel(LevelIdentifier levelIdentifier) {
+        return levelIdentifier.getLevelName().equals(COB_DATE);
     }
 
     public static boolean containsMeasureFilter(LogicalCondition queryCondition) {
@@ -228,6 +239,8 @@ public class CubeQuery {
 
         public LogicalCondition generateOtherCondition() {
             return ObjectUtils.isEmpty(otherConditions)
+                            || (otherConditions.size() == 1
+                                    && TrueLogicalCondition.isTrueCondition(otherConditions.getFirst()))
                     ? TrueLogicalCondition.INSTANCE
                     : new AndLogicalCondition(otherConditions);
         }

@@ -12,7 +12,7 @@ import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Implementation of LevelsConverter that assumes all hierarchies belong to the default dimension, and all levels
+ * Implementation of LevelsConverter that assumes all hierarchies belong to the default dimension, and all groupBy
  * belong to a single level hierarchy with the same name of the level itself
  */
 @RequiredArgsConstructor
