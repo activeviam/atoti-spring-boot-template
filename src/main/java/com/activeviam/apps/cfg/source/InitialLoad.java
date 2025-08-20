@@ -54,8 +54,8 @@ public class InitialLoad {
                             .toList());
             t.forceCommit();
         });
-        startDistributionMessenger(applicationWithDatastore.getManager());
         initialInMemoryLoad();
+        startDistributionMessenger(applicationWithDatastore.getManager());
     }
 
     private void initialInMemoryLoad() {
@@ -63,13 +63,13 @@ public class InitialLoad {
         var datesToLoad = new HashSet<LocalDate>(cobDatesProperties.getFixedCobDates());
         datesToLoad.addAll(cobDatesProperties.computeInMemoryDates());
         try {
-            cobDateLoadController.loadCobDates(datesToLoad);
-            log.info("Generating fake trades for today and yesterday...");
-            var dates = IntStream.range(0, 3)
-                    .mapToObj(i -> LocalDate.now().minusDays(i))
-                    .toList();
+            // cobDateLoadController.loadCobDates(datesToLoad);
+            log.info("Generating fake trades for dates {}...", datesToLoad);
+            //            var dates = IntStream.range(0, 3)
+            //                    .mapToObj(i -> LocalDate.now().minusDays(i))
+            //                    .toList();
             applicationWithDatastore.getDatastore().edit(t -> {
-                dates.forEach(date -> {
+                datesToLoad.forEach(date -> {
                     t.addAll(TRADES_STORE_NAME, dataGenerator.generateTradeData(date, TRADES_COUNT));
                     t.addAll(
                             TRADE_ATTRIBUTES_STORE_NAME, dataGenerator.generateTradeAttributesData(date, TRADES_COUNT));
@@ -79,7 +79,6 @@ public class InitialLoad {
             log.info("Initial data load completed");
             DatabasePrinter.printTableSizes(
                     applicationWithDatastore.getDatastore().getMasterHead());
-            startDistributionMessenger(applicationWithDatastore.getManager());
         } catch (Exception e) {
             log.warn("Failed to load initial data", e);
         }

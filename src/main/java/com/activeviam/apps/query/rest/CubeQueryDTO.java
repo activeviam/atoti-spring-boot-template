@@ -51,6 +51,8 @@ public class CubeQueryDTO {
 
     private HideTotalsDTO hideTotals;
 
+    private boolean executionPlanning;
+
     @Data
     @Builder(setterPrefix = "with")
     @AllArgsConstructor

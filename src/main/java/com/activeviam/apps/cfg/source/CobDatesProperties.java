@@ -23,6 +23,8 @@ public class CobDatesProperties {
 
     private String source = "local-dremio";
 
+    private int priority = 1;
+
     public List<LocalDate> computeInMemoryDates() {
         return computeInMemoryDates(LocalDate.now());
     }

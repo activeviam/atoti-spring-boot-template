@@ -43,6 +43,7 @@ public class CubeQuery {
     private final List<MetricDefinition> metricDefinitions;
     private final boolean useContext;
     private final HideTotals hideTotals;
+    private final boolean executionPlanning;
 
     public static String calculatedMemberDefaultName(String metric, String level) {
         return metric + "@" + level;
@@ -182,7 +183,8 @@ public class CubeQuery {
                 HideTotals.fromDTO(
                         Optional.ofNullable(dto.getHideTotals())
                                 .orElse(CubeQueryDTO.HideTotalsDTO.builder().build()),
-                        levelsConverter));
+                        levelsConverter),
+                dto.isExecutionPlanning());
     }
 
     private static String computeSortType(String level, boolean isAscending) {

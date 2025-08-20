@@ -6,7 +6,7 @@ otel:
   traces:
     exporter: none
 server:
-  port: 9091
+  port: 9092
 database.type: datastore
 dlc:
   csv:
@@ -26,5 +26,5 @@ dlc:
 cob-dates:
   source: default
   days-in-memory: 0
-  fixed-cob-dates: 2025-08-20,2025-08-19
-  priority: 1
+  fixed-cob-dates: 2025-08-19, 2025-08-18
+  priority: 2

@@ -160,8 +160,12 @@ public class CubeQueryService {
                             .build());
                 }
             }
-            contextValues.add(
-                    new QueryMonitoring().enableExecutionPlanningPrint().enableQueryPlanSummary());
+            if (cubeQuery.isExecutionPlanning()) {
+                contextValues.add(
+                        new QueryMonitoring().enableExecutionPlanningPrint().enableQueryPlanSummary());
+            } else {
+                contextValues.add(new QueryMonitoring().enableQueryPlanSummary());
+            }
             var contextSnapshot = ContextUtils.applyContextValues(activePivot.getContext(), contextValues, true);
             var mdx = buildMdxQuery(cubeQuery);
             log.info("Mdx Query: {}", mdx);
@@ -689,7 +693,7 @@ public class CubeQueryService {
         }
 
         private static String sortingCalculatedMemberExpression(LevelIdentifier level) {
-            return String.format("Rank(%s,%s)", levelToCurrentMemberMdx(level), levelToMdxMembers(level));
+            return String.format("%s", levelToCurrentMemberMdx(level));
         }
 
         private static String levelToCurrentMemberValue(LevelIdentifier level) {
