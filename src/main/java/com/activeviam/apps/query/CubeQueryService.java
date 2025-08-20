@@ -9,6 +9,7 @@ package com.activeviam.apps.query;
 import static com.activeviam.activepivot.core.intf.api.cube.hierarchy.IHierarchy.ALLMEMBER;
 import static com.activeviam.activepivot.server.json.api.dataexport.IJsonOutputConfiguration.FORMAT_PROPERTY;
 import static com.activeviam.apps.constants.CubeConstants.FORMATTER_STRING;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 import static com.activeviam.apps.query.conditions.TrueLogicalCondition.isTrueCondition;
 
 import java.time.LocalDate;
@@ -22,6 +23,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -34,14 +36,13 @@ import com.activeviam.activepivot.core.impl.api.contextvalues.mdx.MdxContext;
 import com.activeviam.activepivot.core.impl.api.contextvalues.subcube.CubeFilter;
 import com.activeviam.activepivot.core.impl.api.cube.hierarchy.HierarchiesUtil;
 import com.activeviam.activepivot.core.impl.api.experimental.context.filter.QueryBasedCubeRestriction;
+import com.activeviam.activepivot.core.impl.api.location.LocationUtil;
+import com.activeviam.activepivot.core.impl.api.query.IActivePivotQueryRunner;
 import com.activeviam.activepivot.core.impl.internal.context.impl.ContextUtils;
-import com.activeviam.activepivot.core.impl.internal.contextvalues.subcube.CubeFilterUtil;
 import com.activeviam.activepivot.core.intf.api.contextvalues.IContextValue;
 import com.activeviam.activepivot.core.intf.api.contextvalues.mdx.IMdxContext;
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.cube.IMultiVersionActivePivot;
-import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IAxisHierarchy;
-import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IAxisMember;
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IMeasureHierarchy;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.HierarchyIdentifier;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
@@ -62,6 +63,7 @@ import com.activeviam.apps.query.conditions.TrueLogicalCondition;
 import com.activeviam.apps.query.rest.CubeQueryDTO;
 import com.activeviam.tech.core.api.exceptions.ActiveViamRuntimeException;
 import com.activeviam.tech.core.api.filtering.impl.InCondition;
+import com.activeviam.tech.core.api.query.QueryException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -107,6 +109,7 @@ public class CubeQueryService {
         private final String calculatedMeasuresFormatter;
         private final IMultiVersionActivePivot activePivot;
         private final IDataExportService dataExportService;
+        private final LevelIdentifier cobDateLevelIdentifier;
         Set<HierarchyIdentifier> slicingHierarchies;
         Set<String> existingMeasures;
         Map<String, String> formatters = new HashMap<>();
@@ -122,6 +125,7 @@ public class CubeQueryService {
             this.activePivot = activePivot;
             this.dataExportService = dataExportService;
             levelsConverter = new SingleDimensionLevelsConverter(cubeDefaults.getDefaultDimension());
+            cobDateLevelIdentifier = levelsConverter.stringToLevelIdentifier(COB_DATE);
         }
 
         private String getFormatter(String metric) {
@@ -410,7 +414,8 @@ public class CubeQueryService {
         IQueryBasedCubeRestriction buildCubeRestrictions(CubeQuery cubeQuery) {
             // We add the date condition just in case....
             return QueryBasedCubeRestriction.create(convertQueryConditionToCubeRestriction(
-                    cubeQuery.getQueryFilter().generateOtherAndCobDateCondition()));
+                    cubeQuery.getQueryFilter().generateOtherAndCobDateCondition(),
+                    cubeQuery.getQueryFilter().getFilteredCobDates()));
         }
 
         private static List<String> extractAllMetricNames(CubeQuery cubeQuery, boolean includeCalculatedMetrics) {
@@ -787,14 +792,16 @@ public class CubeQueryService {
         }
 
         // Recursively build the cube restriction object
-        private ICubeRestriction convertQueryConditionToCubeRestriction(LogicalCondition queryCondition) {
+        private ICubeRestriction convertQueryConditionToCubeRestriction(
+                LogicalCondition queryCondition, Collection<LocalDate> dates) {
             return switch (queryCondition) {
                 case AndLogicalCondition andLogicalCondition ->
-                    ICubeRestriction.and(toListOfRestrictions(andLogicalCondition.getSubConditions()));
+                    ICubeRestriction.and(toListOfRestrictions(andLogicalCondition.getSubConditions(), dates));
                 case OrLogicalCondition orLogicalCondition ->
-                    ICubeRestriction.or(toListOfRestrictions(orLogicalCondition.getSubConditions()));
+                    ICubeRestriction.or(toListOfRestrictions(orLogicalCondition.getSubConditions(), dates));
                 case NotLogicalCondition notLogicalCondition ->
-                    ICubeRestriction.not(convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
+                    ICubeRestriction.not(
+                            convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition(), dates));
                 case InLogicalCondition<?> inLogicalCondition -> {
                     var level = levelsConverter.stringToLevelIdentifier(inLogicalCondition.getField());
                     yield ICubeRestriction.inPath(
@@ -802,10 +809,10 @@ public class CubeQueryService {
                 }
                 case LikeLogicalCondition likeCondition -> {
                     var level = levelsConverter.stringToLevelIdentifier(likeCondition.getField());
-                    var allMembers = getMembersForLevel(level);
-                    var criteria = likeCondition.getMatchingCriteria();
+                    var allMembers = getMembersForLevel(level, dates);
+                    var pattern = Pattern.compile(likeCondition.getMatchingCriteria());
                     var valuesToFilter = allMembers.stream()
-                            .filter(m -> ((String) m).contains(criteria))
+                            .filter(m -> pattern.matcher((String) m).find())
                             .toList();
                     if (valuesToFilter.isEmpty()) {
                         yield ICubeRestriction.falseRestriction();
@@ -818,7 +825,7 @@ public class CubeQueryService {
                     var leftInclusive = betweenLogicalCondition.isLeftInclusive();
                     var rightInclusive = betweenLogicalCondition.isRightInclusive();
                     var level = levelsConverter.stringToLevelIdentifier(betweenLogicalCondition.getField());
-                    var allMembers = getMembersForLevel(level);
+                    var allMembers = getMembersForLevel(level, dates);
                     if (Objects.isNull(left) && Objects.isNull(right)) {
                         throw new ActiveViamRuntimeException("Left and right must not be null");
                     }
@@ -871,15 +878,28 @@ public class CubeQueryService {
                     "DataType of " + o1.getClass().getSimpleName() + " not supported or types not matching");
         }
 
-        private Collection<Object> getMembersForLevel(LevelIdentifier level) {
-            var hierarchy = HierarchiesUtil.getHierarchy(activePivot.getHead(), level.getHierarchy());
-            var path = isSlicingHierarchy(level.getHierarchy()) ? new Object[] {null} : new Object[] {ALLMEMBER, null};
-            return Objects.requireNonNull(
-                            CubeFilterUtil.getAll(activePivot.getContext()).getSecurityAndFilter())
-                    .retrieveMembers((IAxisHierarchy) hierarchy, path)
-                    .stream()
-                    .map(IAxisMember::getDiscriminator)
-                    .toList();
+        private Collection<Object> getMembersForLevel(LevelIdentifier level, Collection<LocalDate> dates) {
+            var gaq = dates.isEmpty()
+                    ? IActivePivotQueryRunner.create()
+                            .withWildcardCoordinate(level)
+                            .forMeasures(IMeasureHierarchy.COUNT_ID)
+                    : IActivePivotQueryRunner.create()
+                            .withCoordinate(cobDateLevelIdentifier, dates)
+                            .withWildcardCoordinate(level)
+                            .forMeasures(IMeasureHierarchy.COUNT_ID);
+            var apVersion = activePivot.getHead();
+            try {
+                var values = new HashSet<Object>();
+                var result = gaq.run(apVersion);
+                var levelInfo = HierarchiesUtil.getLevel(apVersion, level);
+                result.forEachCell((location, measure, value) -> {
+                    values.add(LocationUtil.getCoordinate(location, levelInfo));
+                    return true;
+                });
+                return values;
+            } catch (QueryException e) {
+                throw new ActiveViamRuntimeException(e);
+            }
         }
 
         private String subSelectWithMeasureFilter(
@@ -1057,9 +1077,10 @@ public class CubeQueryService {
             }
         }
 
-        private List<ICubeRestriction> toListOfRestrictions(Collection<LogicalCondition> conditions) {
+        private List<ICubeRestriction> toListOfRestrictions(
+                Collection<LogicalCondition> conditions, Collection<LocalDate> dateCondition) {
             return conditions.stream()
-                    .map(this::convertQueryConditionToCubeRestriction)
+                    .map(c -> this.convertQueryConditionToCubeRestriction(c, dateCondition))
                     .toList();
         }
 
