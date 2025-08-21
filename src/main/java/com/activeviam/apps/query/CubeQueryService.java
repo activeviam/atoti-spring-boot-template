@@ -698,7 +698,7 @@ public class CubeQueryService {
         }
 
         private static String sortingCalculatedMemberExpression(LevelIdentifier level) {
-            return String.format("%s", levelToCurrentMemberMdx(level));
+            return String.format("%s", levelToCurrentMemberValue(level));
         }
 
         private static String levelToCurrentMemberValue(LevelIdentifier level) {

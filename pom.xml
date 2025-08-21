@@ -60,6 +60,13 @@
       <artifactId>spring-boot-starter-validation</artifactId>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-text</artifactId>
+      <version>1.14.0</version>
+    </dependency>
+
     <!-- Direct query -->
     <dependency>
       <groupId>com.activeviam.activepivot</groupId>

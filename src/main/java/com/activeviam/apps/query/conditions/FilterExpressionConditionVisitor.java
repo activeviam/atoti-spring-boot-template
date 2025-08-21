@@ -11,6 +11,9 @@ import java.util.List;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.apache.commons.text.StringEscapeUtils;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import com.activeviam.apps.query.grammar.QueryConditionBaseVisitor;
 import com.activeviam.apps.query.grammar.QueryConditionParser;
@@ -61,9 +64,7 @@ public class FilterExpressionConditionVisitor extends QueryConditionBaseVisitor<
         } else if (!values.STRING().isEmpty()) {
             return new InLogicalCondition<String>(
                     field,
-                    values.STRING().stream()
-                            .map(v -> v.getText().replace("'", ""))
-                            .toList());
+                    values.STRING().stream().map(v -> unescapeText(v.getText())).toList());
         } else if (!values.NUMBER().isEmpty()) {
             return new InLogicalCondition<Number>(
                     field,
@@ -80,13 +81,26 @@ public class FilterExpressionConditionVisitor extends QueryConditionBaseVisitor<
     }
 
     @Override
-    public LogicalCondition visitPriorityQuery(QueryConditionParser.PriorityQueryContext ctx) {
-        return visit(ctx.query());
+    public LogicalCondition visitLikeConditionQuery(QueryConditionParser.LikeConditionQueryContext ctx) {
+        var expression = unescapeText(ctx.criteria.getText());
+        if (ObjectUtils.isEmpty(expression)) {
+            return TrueLogicalCondition.INSTANCE;
+        }
+        return new LikeLogicalCondition(ctx.field.getText(), expression);
+    }
+
+    private static String unescapeText(String text) {
+        text = StringUtils.trimLeadingCharacter(text, '\'');
+        text = StringUtils.trimTrailingCharacter(text, '\'');
+        if (ObjectUtils.isEmpty(text)) {
+            return null;
+        }
+        return StringEscapeUtils.unescapeJava(text);
     }
 
     @Override
-    public LogicalCondition visitLikeConditionQuery(QueryConditionParser.LikeConditionQueryContext ctx) {
-        return new LikeLogicalCondition(ctx.field.getText(), ctx.criteria.getText());
+    public LogicalCondition visitPriorityQuery(QueryConditionParser.PriorityQueryContext ctx) {
+        return visit(ctx.query());
     }
 
     @Override
