@@ -7,6 +7,7 @@
 package com.activeviam.apps.cfg.pivot.querynode;
 
 import static com.activeviam.apps.cfg.pivot.datanode.DataCubeConfig.DATASTORE_NODE_IDENTIFIER;
+import static com.activeviam.apps.cfg.pivot.datanode.DataCubeConfig.DIRECT_QUERY_NODE_IDENTIFIER;
 import static com.activeviam.apps.cfg.pivot.querynode.QueryCubeConfig.DISTRIBUTING_LEVEL;
 import static com.activeviam.apps.constants.CubeConstants.CUBE_NAME;
 import static com.activeviam.apps.rest.CobDateLoadController.COB_DATE_ENDPOINT;
@@ -42,7 +43,7 @@ public class RolloverService {
     private final CobDatesProperties cobDatesProperties;
     private static final String AUTH_HEADER = "Basic " + Base64.getEncoder().encodeToString(("pivot:pivot").getBytes());
 
-    private static Optional<WebClient> restClient(IMultiVersionDistributedActivePivot activePivot) {
+    private static Optional<WebClient> datastoreRestClient(IMultiVersionDistributedActivePivot activePivot) {
         var datastoreNodeAddress = activePivot.getClusterMembersRestAddresses().get(DATASTORE_NODE_IDENTIFIER);
         if (Objects.nonNull(datastoreNodeAddress)) {
             return Optional.of(WebClient.create(datastoreNodeAddress));
@@ -50,9 +51,17 @@ public class RolloverService {
         return Optional.empty();
     }
 
+    private static Optional<WebClient> dqRestClient(IMultiVersionDistributedActivePivot activePivot) {
+        var nodeAddress = activePivot.getClusterMembersRestAddresses().get(DIRECT_QUERY_NODE_IDENTIFIER);
+        if (Objects.nonNull(nodeAddress)) {
+            return Optional.of(WebClient.create(nodeAddress));
+        }
+        return Optional.empty();
+    }
+
     private void loadAndRemoveDates(Collection<LocalDate> cobDatesToLoad, Collection<LocalDate> cobDatesToRemove) {
         var activePivot = (IMultiVersionDistributedActivePivot) activePivotManager.getActivePivot(CUBE_NAME);
-        restClient(activePivot)
+        datastoreRestClient(activePivot)
                 .ifPresentOrElse(
                         restClient -> {
                             // Load the new cob date
@@ -75,8 +84,13 @@ public class RolloverService {
                             }
                         },
                         () -> log.warn("Could not retrieve REST address for {}", DATASTORE_NODE_IDENTIFIER));
+        dqRestClient(activePivot)
+                .ifPresentOrElse(
+                        restClient -> loadRequiredDates(cobDatesToLoad, restClient),
+                        () -> log.warn("Could not retrieve REST address for {}", DIRECT_QUERY_NODE_IDENTIFIER));
     }
 
+    // DQ and datastore nodes have the same API, but internally they do different things!
     private static void loadRequiredDates(Collection<LocalDate> cobDatesToLoad, WebClient restClient) {
         restClient
                 .post()
@@ -105,7 +119,7 @@ public class RolloverService {
     public void rollover(LocalDate lastDate) {
         // Check what dates already exist
         var activePivot = (IMultiVersionDistributedActivePivot) activePivotManager.getActivePivot(CUBE_NAME);
-        restClient(activePivot)
+        datastoreRestClient(activePivot)
                 .ifPresentOrElse(
                         restClient -> {
                             var existingDates = restClient

@@ -13,9 +13,11 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBU
 import static com.activeviam.apps.rest.EndpointConstants.CUSTOM_REST_PATH;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,7 +47,7 @@ public class CobDateIncrementalRefreshController {
     private final InitStandaloneStores initStandaloneStores;
 
     @PostMapping
-    public void loadCobDates(@RequestBody Collection<LocalDate> cobDates) {
+    public String refreshCobDates(@RequestBody Collection<LocalDate> cobDates) {
         var tradesUpdate = TableUpdateDetail.create(
                 TRADES_STORE_NAME, ChangeType.ADD_ROWS, ConditionFactory.in(COB_DATE, Set.of(cobDates)));
         var tradeAttributesUpdate = TableUpdateDetail.create(
@@ -55,5 +57,8 @@ public class CobDateIncrementalRefreshController {
         application.refresh(ChangeDescription.create(List.of(tradeAttributesUpdate, tradesUpdate, counterpartyUpdate)));
         // Re-create the shift-cob-dates!!
         initStandaloneStores.refreshShiftCobDateStore();
+        return cobDates.stream()
+                .map(d -> d.format(DateTimeFormatter.BASIC_ISO_DATE))
+                .collect(Collectors.joining(",", "Refresh performed on CoDates: [", "]"));
     }
 }
