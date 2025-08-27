@@ -21,9 +21,9 @@
     <springdoc.version>2.8.9</springdoc.version>
     <dlc.version>5.0.7</dlc.version>
 
-    <opentelemetry.version>1.50.0</opentelemetry.version>
-    <opentelemetry-instrumentation.version>2.16.0</opentelemetry-instrumentation.version>
-    <opentelemetry-logback-mdc.version>2.16.0-alpha</opentelemetry-logback-mdc.version>
+    <opentelemetry.version>1.53.0</opentelemetry.version>
+    <opentelemetry-instrumentation.version>2.19.0</opentelemetry-instrumentation.version>
+    <opentelemetry-logback-mdc.version>2.19.0-alpha</opentelemetry-logback-mdc.version>
 
     <spotless-maven-plugin.version>2.46.1</spotless-maven-plugin.version>
     <palantir-java-format.version>2.73.0</palantir-java-format.version>

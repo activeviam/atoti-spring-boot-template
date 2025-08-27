@@ -36,5 +36,9 @@ atoti:
               enabled: false
 
 otel:
-  sdk:
-    disabled: true
+  metrics:
+    exporter: none
+  traces:
+    exporter: none
+  logs:
+    exporter: none
