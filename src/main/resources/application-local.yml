@@ -4,5 +4,9 @@ spring:
       enabled: true
 
 otel:
-  sdk:
-    disabled: true
+  metrics:
+    exporter: none
+  traces:
+    exporter: none
+  logs:
+    exporter: none
