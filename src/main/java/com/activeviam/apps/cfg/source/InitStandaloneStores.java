@@ -33,6 +33,10 @@ public class InitStandaloneStores {
     @EventListener(value = ApplicationReadyEvent.class)
     void onApplicationReady() {
         log.info("ApplicationReadyEvent triggered");
+        refreshShiftCobDateStore();
+    }
+
+    public void refreshShiftCobDateStore() {
         // Fill the SHIFT cob dates
         datastore.edit(t -> {
             t.addAll(
