@@ -90,10 +90,14 @@ security:
 # You can execute JwtUtil to generate new keys.
 atoti:
   server:
-    # Enable Dr.Pivot
     endpoint:
+      # Enable the Measure lineage in AdminUI
       diagnostics:
         enabled: true
+      # Enable the Database in AdminUI
+      database:
+        security:
+          enabled: true
     security:
       cookie-name: ${server.servlet.session.cookie.name}
     content-service:

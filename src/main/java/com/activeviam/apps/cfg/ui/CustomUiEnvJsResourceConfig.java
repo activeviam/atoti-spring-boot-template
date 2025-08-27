@@ -51,7 +51,7 @@ public class CustomUiEnvJsResourceConfig {
                 // WARNING: Changing the keys of atotiServers will break previously saved widgets and dashboards.
                 // If you must do it, then you also need to update each one's serverKey attribute on your content server.
                 "atotiServers": {
-                    "FRTB": {
+                    "demo": {
                         "url": baseUrl,
                         "version": atotiVersion
                     },
