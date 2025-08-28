@@ -20,6 +20,7 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_NAME;
 import static com.activeviam.database.api.types.ILiteralType.DOUBLE;
 import static com.activeviam.database.api.types.ILiteralType.INT;
 import static com.activeviam.database.api.types.ILiteralType.LOCAL_DATE;
@@ -67,6 +68,7 @@ public class StoreDefinitionsConfig {
                 .withField(DESK, STRING)
                 .withField(PORTFOLIO, STRING)
                 .withField(NUMERIC, INT)
+                .withField(TRADE_NAME, STRING)
                 .build();
     }
 

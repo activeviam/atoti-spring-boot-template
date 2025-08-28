@@ -17,6 +17,7 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DAT
 import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_NAME;
 
 import com.activeviam.activepivot.core.intf.api.cube.metadata.ILevelInfo;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
@@ -51,8 +52,11 @@ public class Dimensions implements ICanStartBuildingDimensions.DimensionsAdder {
                 .withHierarchy(TRADE_ID)
                 .virtual()
                 .withLevelOfSameName()
+                .withHierarchy(TRADE_NAME)
+                //                .virtual()
+                .withLevelOfSameName()
                 .withHierarchy(COUNTERPARTY_ID)
-                .virtual()
+                //                .virtual()
                 .withLevelOfSameName()
                 .withHierarchy(PORTFOLIO)
                 .virtual()
@@ -61,7 +65,7 @@ public class Dimensions implements ICanStartBuildingDimensions.DimensionsAdder {
                 .virtual()
                 .withLevelOfSameName()
                 .withHierarchy(DESK)
-                .virtual()
+                //                .virtual()
                 .withLevelOfSameName()
                 .withComparator(CustomStringComparator.CUSTOM_STRING_COMPARATOR_PLUGIN_KEY)
                 .withSingleLevelHierarchy(TRADE_DATE)

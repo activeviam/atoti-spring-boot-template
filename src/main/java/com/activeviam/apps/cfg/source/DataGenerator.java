@@ -57,14 +57,17 @@ public class DataGenerator {
 
     public List<Object[]> generateTradeAttributesData(LocalDate asOfDate, int tradesCount) {
         return IntStream.range(0, tradesCount)
-                .mapToObj(i -> new Object[] {
-                    asOfDate,
-                    i,
-                    asOfDate.minusDays(RANDOM_GENERATOR.nextInt(60)),
-                    getCpty(i),
-                    getDesk(i),
-                    getPortfolio(i),
-                    RANDOM_GENERATOR.nextInt(20)
+                .mapToObj(i -> {
+                    return new Object[] {
+                        asOfDate,
+                        i,
+                        asOfDate.minusDays(RANDOM_GENERATOR.nextInt(60)),
+                        getCpty(i),
+                        getDesk(i),
+                        getPortfolio(i),
+                        RANDOM_GENERATOR.nextInt(20),
+                        Integer.toString(i)
+                    };
                 })
                 .toList();
     }

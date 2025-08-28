@@ -26,6 +26,8 @@ public class StoreAndFieldConstants {
     public static final String SHIFT_COB_DATE = "ShiftCobDate";
 
     public static final String TRADE_ID = "TradeID";
+    public static final String TRADE_NAME = "Trade Name";
+
     public static final String NOTIONAL = "Notional";
 
     public static final String DESK = "Desk";
