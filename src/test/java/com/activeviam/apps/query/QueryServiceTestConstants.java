@@ -413,7 +413,6 @@ public class QueryServiceTestConstants {
                                 .withLevel(COUNTERPARTY_LEVEL.getLevelName())
                                 .withLevel(TRADE_ID_LEVEL.getLevelName())
                                 .withTopCount(CubeQueryDTO.TopCountDTO.builder()
-                                        .withLevel(TRADE_ID_LEVEL.getLevelName())
                                         .withMetric(NOTIONAL_SUM_METRIC_DTO)
                                         .withCount(2)
                                         .withAggregateOthers(true)
