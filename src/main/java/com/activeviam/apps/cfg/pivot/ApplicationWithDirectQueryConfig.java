@@ -41,6 +41,12 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class ApplicationWithDirectQueryConfig implements IActivePivotConfig, IDatabaseConfig {
+
+    static {
+        System.setProperty(
+                "activeviam.feature.experimental.dynamic_aggregate_provider.enabled", Boolean.TRUE.toString());
+    }
+
     private final SchemaDescription schemaDescription;
     private final IActivePivotManagerDescription activePivotManagerDescription;
     private final IEpochManagementPolicy epochManagementPolicy;
