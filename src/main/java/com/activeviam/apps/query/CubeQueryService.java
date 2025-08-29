@@ -10,6 +10,7 @@ import static com.activeviam.activepivot.core.intf.api.cube.hierarchy.IHierarchy
 import static com.activeviam.activepivot.server.json.api.dataexport.IJsonOutputConfiguration.FORMAT_PROPERTY;
 import static com.activeviam.apps.constants.CubeConstants.FORMATTER_STRING;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
+import static com.activeviam.apps.query.CubeQuery.BDESC;
 import static com.activeviam.apps.query.conditions.TrueLogicalCondition.isTrueCondition;
 
 import java.time.LocalDate;
@@ -577,55 +578,42 @@ public class CubeQueryService {
                 CubeQuery.TopRank topRankDefinition,
                 CubeQuery.TopCount topCount,
                 CubeQuery.HideTotals hideTotals) {
-            // First check if we need to exclude groupBy because they are in the top count expression
-            // var topCountLevel = Objects.nonNull(topCount) ? topCount.level() : null;
-            // If there are multiple groupBy, the level above the topCount level must be removed because it will be
-            // included in the topCount set
-            // var previousLevel = getPreviousLevelOrNull(topCountLevel, levels);
-            var actualLevels = levels;
-            //            levels.stream()
-            //                    .filter(levelIdentifier -> Objects.isNull(previousLevel) ||
-            // !previousLevel.equals(levelIdentifier))
-            //                    .toList();
-
+            if (Objects.nonNull(topCount) && !topCount.groupBy().isEmpty()) {
+                throw new UnsupportedOperationException("TopN groupBy not supported.");
+            }
             var hierarchizeTemplate = new StringBuilder();
-            var crossJoinOrNot = crossJoinOrNot(actualLevels);
+            var crossJoinOrNot = crossJoinOrNot(levels);
             // Sort by topRank
             if (Objects.nonNull(topRankDefinition)) {
                 hierarchizeTemplate.append(orderMdx(crossJoinOrNot, TOP_RANK_MEMBER, "BDESC"));
             } else {
                 hierarchizeTemplate.append(crossJoinOrNot);
             }
-            String hierarchized;
+            var lastLevel = Objects.nonNull(topCount) ? levels.getLast() : null;
+            var hierarchized = String.format(
+                    hierarchizeTemplate.toString(),
+                    levels.stream()
+                            .map(level -> {
+                                // If we are doing TopN, we replace the last level with the TopN set
+                                if (Objects.nonNull(lastLevel) && level.equals(lastLevel)) {
+                                    return TOP_N_SET;
+                                }
+                                return isSlicingHierarchy(level.getHierarchy())
+                                        ? levelToMdxMembers(level)
+                                        : hierarchizedDescendantsAllMember(level);
+                            })
+                            .collect(Collectors.joining(",")));
+            // IF there is no SortBy and we do a Top Count, we need to apply sorting on the measure used for the
+            // topcount
+            if (Objects.isNull(sortByDefinition)
+                    && Objects.nonNull(topCount)
+                    && excludeCobDateFilter(levels).size() > 1) {
+                sortByDefinition = new CubeQuery.Sort<>(topCount.metric(), BDESC);
+            }
             if (Objects.nonNull(sortByDefinition)) {
                 // Wrap everything in the Order, ignore TopCount
-                hierarchized = orderMdx(
-                        String.format(
-                                hierarchizeTemplate.toString(),
-                                actualLevels.stream()
-                                        .map(level -> isSlicingHierarchy(level.getHierarchy())
-                                                ? levelToMdxMembers(level)
-                                                : hierarchizedDescendantsAllMember(level))
-                                        .collect(Collectors.joining(","))),
-                        sortingMeasureToMdx(sortByDefinition),
-                        sortByDefinition.sortType());
-            } else if (Objects.isNull(topCount) || topCount.groupBy().isEmpty()) {
-                var lastLevel = Objects.nonNull(topCount) ? actualLevels.getLast() : null;
-                hierarchized = String.format(
-                        hierarchizeTemplate.toString(),
-                        actualLevels.stream()
-                                .map(level -> {
-                                    // If we are doing TopN, we replace the last level with the TopN set
-                                    if (Objects.nonNull(lastLevel) && level.equals(lastLevel)) {
-                                        return TOP_N_SET;
-                                    }
-                                    return isSlicingHierarchy(level.getHierarchy())
-                                            ? levelToMdxMembers(level)
-                                            : hierarchizedDescendantsAllMember(level);
-                                })
-                                .collect(Collectors.joining(",")));
-            } else {
-                throw new UnsupportedOperationException("TopN groupBy not supported.");
+                hierarchized =
+                        orderMdx(hierarchized, sortingMeasureToMdx(sortByDefinition), sortByDefinition.sortType());
             }
             return hierarchized + " ON ROWS";
         }

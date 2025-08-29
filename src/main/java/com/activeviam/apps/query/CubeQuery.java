@@ -35,6 +35,10 @@ import lombok.Data;
 
 @Data
 public class CubeQuery {
+
+    public static final String BDESC = "BDESC";
+    public static final String BASC = "BASC";
+
     private final List<String> metrics;
     private final List<LevelIdentifier> levels;
     private final SplitQueryCondition queryFilter;
@@ -191,7 +195,7 @@ public class CubeQuery {
 
     private static String computeSortType(String level, boolean isAscending) {
         // COB_DATE is sorted in reverse order so we need to reverse this
-        return level.equalsIgnoreCase(COB_DATE) != isAscending ? "BASC" : "BDESC";
+        return level.equalsIgnoreCase(COB_DATE) != isAscending ? BASC : BDESC;
     }
 
     public static boolean isCobDateLevel(LevelIdentifier levelIdentifier) {
