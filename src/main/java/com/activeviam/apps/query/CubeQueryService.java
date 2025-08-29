@@ -64,6 +64,7 @@ import com.activeviam.apps.query.rest.CubeQueryDTO;
 import com.activeviam.tech.core.api.exceptions.ActiveViamRuntimeException;
 import com.activeviam.tech.core.api.query.QueryException;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -103,7 +104,9 @@ public class CubeQueryService {
 
     @Slf4j
     public static class CubeQuerier {
+        @Getter
         private final String cube;
+
         private final LevelsConverter levelsConverter;
         private final String calculatedMeasuresFormatter;
         private final IMultiVersionActivePivot activePivot;

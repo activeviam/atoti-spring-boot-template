@@ -6,6 +6,8 @@
  */
 package com.activeviam.apps.cfg.source;
 
+import static com.activeviam.apps.cfg.pivot.datanode.DataCubeConfig.DATASTORE_NODE_IDENTIFIER;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -24,6 +26,8 @@ public class CobDatesProperties {
     private String source = "local-dremio";
 
     private int priority = 1;
+
+    private String nodeName = DATASTORE_NODE_IDENTIFIER;
 
     public List<LocalDate> computeInMemoryDates() {
         return computeInMemoryDates(LocalDate.now());

@@ -28,3 +28,4 @@ cob-dates:
   days-in-memory: 0
   fixed-cob-dates: 2025-08-19, 2025-08-18
   priority: 2
+  node-name: directQueryDataNode # FAKING IT

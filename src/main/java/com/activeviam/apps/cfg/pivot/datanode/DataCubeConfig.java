@@ -97,10 +97,7 @@ public class DataCubeConfig {
                     .withProtocolPath(distributionProperties.getProtocolPath())
                     .end()
                     .withCubeIdentifierInCluster(
-                            isInMemory
-                                    ? String.format(
-                                            "%s-%s", DATASTORE_NODE_IDENTIFIER, cobDatesProperties.getFixedCobDates())
-                                    : DIRECT_QUERY_NODE_IDENTIFIER)
+                            isInMemory ? cobDatesProperties.getNodeName() : DIRECT_QUERY_NODE_IDENTIFIER)
                     .withPort(serverPort)
                     .withAddress(address)
                     .withApplicationId(APPLICATION_NAME)

@@ -12,14 +12,13 @@ import static com.activeviam.apps.cfg.pivot.querynode.QueryCubeConfig.DISTRIBUTI
 import static com.activeviam.apps.constants.CubeConstants.CUBE_NAME;
 import static com.activeviam.apps.rest.CobDateLoadController.COB_DATE_ENDPOINT;
 import static com.activeviam.apps.rest.CobDateLoadController.DATE_FORMATTER;
+import static com.activeviam.apps.rest.RemoteRestServiceUtils.AUTH_HEADER;
+import static com.activeviam.apps.rest.RemoteRestServiceUtils.datastoreRestClient;
+import static com.activeviam.apps.rest.RemoteRestServiceUtils.dqRestClient;
 
 import java.time.LocalDate;
-import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,6 +28,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.dist.impl.api.cube.IMultiVersionDistributedActivePivot;
 import com.activeviam.apps.cfg.source.CobDatesProperties;
+import com.activeviam.apps.rest.RemoteRestServiceUtils;
 import com.activeviam.tech.core.api.exceptions.ActiveViamRuntimeException;
 import com.activeviam.tech.mvcc.api.IEpoch;
 
@@ -41,23 +41,6 @@ public class RolloverService {
 
     private final IActivePivotManager activePivotManager;
     private final CobDatesProperties cobDatesProperties;
-    private static final String AUTH_HEADER = "Basic " + Base64.getEncoder().encodeToString(("pivot:pivot").getBytes());
-
-    private static Optional<WebClient> datastoreRestClient(IMultiVersionDistributedActivePivot activePivot) {
-        var datastoreNodeAddress = activePivot.getClusterMembersRestAddresses().get(DATASTORE_NODE_IDENTIFIER);
-        if (Objects.nonNull(datastoreNodeAddress)) {
-            return Optional.of(WebClient.create(datastoreNodeAddress));
-        }
-        return Optional.empty();
-    }
-
-    private static Optional<WebClient> dqRestClient(IMultiVersionDistributedActivePivot activePivot) {
-        var nodeAddress = activePivot.getClusterMembersRestAddresses().get(DIRECT_QUERY_NODE_IDENTIFIER);
-        if (Objects.nonNull(nodeAddress)) {
-            return Optional.of(WebClient.create(nodeAddress));
-        }
-        return Optional.empty();
-    }
 
     private void loadAndRemoveDates(Collection<LocalDate> cobDatesToLoad, Collection<LocalDate> cobDatesToRemove) {
         var activePivot = (IMultiVersionDistributedActivePivot) activePivotManager.getActivePivot(CUBE_NAME);
@@ -122,15 +105,7 @@ public class RolloverService {
         datastoreRestClient(activePivot)
                 .ifPresentOrElse(
                         restClient -> {
-                            var existingDates = restClient
-                                    .get()
-                                    .uri(COB_DATE_ENDPOINT)
-                                    .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER)
-                                    .retrieve()
-                                    .bodyToMono(LocalDate[].class)
-                                    .map(List::of)
-                                    .log()
-                                    .block();
+                            var existingDates = RemoteRestServiceUtils.getNodeDates(restClient);
                             var requiredDates = cobDatesProperties.computeInMemoryDates(lastDate);
                             if (ObjectUtils.isEmpty(existingDates)) {
                                 loadAndRemoveDates(requiredDates, Collections.emptyList());
