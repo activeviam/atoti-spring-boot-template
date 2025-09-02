@@ -6,6 +6,8 @@
  */
 package com.activeviam.apps.cfg.pivot;
 
+import java.util.function.Supplier;
+
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,14 +38,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ApplicationWithDatastoreConfig implements IActivePivotConfig, IDatastoreConfig {
     private final IDatastoreSchemaDescription datastoreSchemaDescription;
-    private final IActivePivotManagerDescription activePivotManagerDescription;
+    private final Supplier<IActivePivotManagerDescription> activePivotManagerDescription;
     private final IEpochManagementPolicy epochManagementPolicy;
 
     @Bean
     public ApplicationWithDatastore applicationWithDatastore() {
         return StartBuilding.application()
                 .withDatastore(datastoreSchemaDescription)
-                .withManager(activePivotManagerDescription)
+                .withManager(activePivotManagerDescription.get())
                 .withEpochPolicy(epochManagementPolicy)
                 .withoutBranchRestrictions()
                 .build();

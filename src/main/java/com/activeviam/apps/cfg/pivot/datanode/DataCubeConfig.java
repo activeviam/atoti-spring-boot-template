@@ -18,6 +18,7 @@ import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,72 +47,75 @@ public class DataCubeConfig {
     public static String DIRECT_QUERY_NODE_IDENTIFIER = "directQueryDataNode";
 
     @Bean
-    public IActivePivotInstanceDescription activePivotInstanceDescription(
+    public Supplier<IActivePivotInstanceDescription> activePivotInstanceDescription(
             Dimensions dimensions,
             Measures calculations,
             DatabaseProperties databaseProperties,
             CobDatesProperties cobDatesProperties,
             @Autowired(required = false) DistributionProperties distributionProperties,
             @Value("${server.port:9090}") int serverPort) {
+        return () -> {
+            var isInMemory = databaseProperties.isDatastoreType();
+            var builder =
+                    StartBuilding.cube(CUBE_NAME).withCalculations(calculations).withDimensions(dimensions);
 
-        var isInMemory = databaseProperties.isDatastoreType();
-        var builder =
-                StartBuilding.cube(CUBE_NAME).withCalculations(calculations).withDimensions(dimensions);
+            if (isInMemory) {
+                builder = builder.withAggregateProvider()
+                        .leaf()
+                        .withModuloPartitioning(DATASTORE_PARTITIONING_MODULO, TRADE_ID);
+            } else {
+                builder = builder.withAggregateProvider()
+                        .jit()
+                        .withPartialProvider()
+                        .leaf()
+                        .includingOnlyLevels(DISTRIBUTING_LEVEL)
+                        .includingOnlyMeasures(Measures.postfixMeasure(NOTIONAL, SUM))
+                        .filteredOn(Map.of(DISTRIBUTING_LEVEL, List.of(cobDatesProperties.computeEndOfMonthDates())));
+            }
+            // Shared context values
+            // Query maximum execution time (before timeout cancellation): 30s
+            builder = builder.withSharedContextValue(QueriesTimeLimit.of(2, TimeUnit.MINUTES))
+                    .withSharedContextValue(QueriesResultLimit.withoutLimit())
+                    .withSharedMdxContext()
+                    .aggressiveFormulaEvaluation(true)
+                    .end()
+                    .withSharedDrillthroughProperties()
+                    .withMaxRows(10_000)
+                    .end();
 
-        if (isInMemory) {
-            builder = builder.withAggregateProvider()
-                    .leaf()
-                    .withModuloPartitioning(DATASTORE_PARTITIONING_MODULO, TRADE_ID);
-        } else {
-            builder = builder.withAggregateProvider()
-                    .jit()
-                    .withPartialProvider()
-                    .leaf()
-                    .includingOnlyLevels(DISTRIBUTING_LEVEL)
-                    .includingOnlyMeasures(Measures.postfixMeasure(NOTIONAL, SUM))
-                    .filteredOn(Map.of(DISTRIBUTING_LEVEL, List.of(cobDatesProperties.computeEndOfMonthDates())));
-        }
-        // Shared context values
-        // Query maximum execution time (before timeout cancellation): 30s
-        builder = builder.withSharedContextValue(QueriesTimeLimit.of(2, TimeUnit.MINUTES))
-                .withSharedContextValue(QueriesResultLimit.withoutLimit())
-                .withSharedMdxContext()
-                .aggressiveFormulaEvaluation(true)
-                .end()
-                .withSharedDrillthroughProperties()
-                .withMaxRows(10_000)
-                .end();
-
-        if (distributionProperties != null) {
-            // In memory node has the highest priority (0)
-            var overlapPriority = isInMemory ? 1 : Integer.MAX_VALUE;
-            var address = InetAddress.getLoopbackAddress().getHostAddress();
-            return builder.asDataCube()
-                    .withClusterDefinition()
-                    .withClusterId(distributionProperties.getClusterId())
-                    .withMessengerDefinition()
-                    .withNettyMessenger()
-                    // Dont connect to the cluster at startup. We do this after we load the data
-                    .withProperty(IMessengerDefinition.AUTO_START, Boolean.FALSE.toString())
-                    .end()
-                    .withProtocolPath(distributionProperties.getProtocolPath())
-                    .end()
-                    .withCubeIdentifierInCluster(
-                            isInMemory
-                                    ? String.format(
-                                            "%s-%s", DATASTORE_NODE_IDENTIFIER, cobDatesProperties.getFixedCobDates())
-                                    : DIRECT_QUERY_NODE_IDENTIFIER)
-                    .withPort(serverPort)
-                    .withAddress(address)
-                    .withApplicationId(APPLICATION_NAME)
-                    .withAllHierarchies()
-                    .withAllMeasures()
-                    .withProperty(
-                            IDataClusterDefinition.DATA_NODE_PRIORITY, String.valueOf(cobDatesProperties.getPriority()))
-                    .end()
-                    .build();
-        } else {
-            return builder.build();
-        }
+            if (distributionProperties != null) {
+                // In memory node has the highest priority (0)
+                var overlapPriority = isInMemory ? 1 : Integer.MAX_VALUE;
+                var address = InetAddress.getLoopbackAddress().getHostAddress();
+                return builder.asDataCube()
+                        .withClusterDefinition()
+                        .withClusterId(distributionProperties.getClusterId())
+                        .withMessengerDefinition()
+                        .withNettyMessenger()
+                        // Dont connect to the cluster at startup. We do this after we load the data
+                        .withProperty(IMessengerDefinition.AUTO_START, Boolean.FALSE.toString())
+                        .end()
+                        .withProtocolPath(distributionProperties.getProtocolPath())
+                        .end()
+                        .withCubeIdentifierInCluster(
+                                isInMemory
+                                        ? String.format(
+                                                "%s-%s",
+                                                DATASTORE_NODE_IDENTIFIER, cobDatesProperties.getFixedCobDates())
+                                        : DIRECT_QUERY_NODE_IDENTIFIER)
+                        .withPort(serverPort)
+                        .withAddress(address)
+                        .withApplicationId(APPLICATION_NAME)
+                        .withAllHierarchies()
+                        .withAllMeasures()
+                        .withProperty(
+                                IDataClusterDefinition.DATA_NODE_PRIORITY,
+                                String.valueOf(cobDatesProperties.getPriority()))
+                        .end()
+                        .build();
+            } else {
+                return builder.build();
+            }
+        };
     }
 }

@@ -8,6 +8,8 @@ package com.activeviam.apps.cfg.pivot;
 
 import static com.activeviam.apps.cfg.source.InitialLoad.startDistributionMessenger;
 
+import java.util.function.Supplier;
+
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,7 +30,6 @@ import com.activeviam.database.datastore.api.IDatastore;
 import com.activeviam.database.jdbc.api.GenericJdbcDatabaseSettings;
 import com.activeviam.directquery.api.DirectQueryConnector;
 import com.activeviam.directquery.api.schema.SchemaDescription;
-import com.activeviam.directquery.application.api.Application;
 import com.activeviam.tech.core.api.agent.AgentException;
 import com.activeviam.tech.mvcc.api.policy.IEpochManagementPolicy;
 
@@ -42,19 +43,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ApplicationWithDirectQueryConfig implements IActivePivotConfig, IDatabaseConfig {
     private final SchemaDescription schemaDescription;
-    private final IActivePivotManagerDescription activePivotManagerDescription;
+    private final Supplier<IActivePivotManagerDescription> activePivotManagerDescription;
     private final IEpochManagementPolicy epochManagementPolicy;
     private final DirectQueryConnector<GenericJdbcDatabaseSettings> directQueryConnector;
     private final GenericJdbcDatabaseSettings databaseSettings;
 
     @Bean
-    Application applicationWithDirectQuery() {
-        return Application.builder(directQueryConnector)
-                .managerDescription(activePivotManagerDescription)
-                .databaseSettings(databaseSettings)
-                .schema(schemaDescription)
-                .epochPolicy(epochManagementPolicy)
-                .build();
+    DelegatingApplication applicationWithDirectQuery() {
+        return new DelegatingApplication(
+                schemaDescription,
+                activePivotManagerDescription,
+                epochManagementPolicy,
+                directQueryConnector,
+                databaseSettings);
     }
 
     @Bean
