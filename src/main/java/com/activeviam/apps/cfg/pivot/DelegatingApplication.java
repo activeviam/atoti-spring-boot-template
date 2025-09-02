@@ -87,12 +87,14 @@ public class DelegatingApplication implements IApplication, IRefreshable {
     public void restart() {
         if (application != null) {
             try {
+                log.info("Closing the current application...");
                 application.close();
                 application = null;
             } catch (Exception e) {
                 log.error("Error while refreshing application", e);
             }
         }
+        log.info("Starting the application with a new configuration...");
         start();
     }
 
