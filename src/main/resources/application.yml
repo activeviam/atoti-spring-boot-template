@@ -105,29 +105,29 @@ atoti:
     security:
       cookie-name: ${server.servlet.session.cookie.name}
     content-service:
-      enabled-type: database
-      database:
-        # Content hibernate properties
-        hibernate:
-          show_sql: false
-          format_sql: true
-          use_sql_comments: false
-          generate_statistics: false
-          # The following line should be removed once the table is created
-          hbm2ddl.auto: update
-          # Connection Provider
-          connection:
-            provider_class: hikaricp
-            autocommit: false
-          hikari:
-            maximumPoolSize: 10
-            maxLifetime: 300000
-            # we rely on the max lifetime
-            idleTimeout: 0
-            dataSourceClassName: org.h2.jdbcx.JdbcDataSource
-            dataSource:
-              url: "jdbc:h2:mem:content_service;DB_CLOSE_DELAY=-1;IGNORECASE=TRUE"
-            poolName: ContentServer-ConnectionPool
+      enabled-type: in_memory
+#      database:
+#        # Content hibernate properties
+#        hibernate:
+#          show_sql: false
+#          format_sql: true
+#          use_sql_comments: false
+#          generate_statistics: false
+#          # The following line should be removed once the table is created
+#          hbm2ddl.auto: update
+#          # Connection Provider
+#          connection:
+#            provider_class: hikaricp
+#            autocommit: false
+#          hikari:
+#            maximumPoolSize: 10
+#            maxLifetime: 300000
+#            # we rely on the max lifetime
+#            idleTimeout: 0
+#            dataSourceClassName: org.h2.jdbcx.JdbcDataSource
+#            dataSource:
+#              url: "jdbc:h2:mem:content_service;DB_CLOSE_DELAY=-1;IGNORECASE=TRUE"
+#            poolName: ContentServer-ConnectionPool
       pivot-integration:
         cache:
           cache-entitlements-ttl: PT1H
