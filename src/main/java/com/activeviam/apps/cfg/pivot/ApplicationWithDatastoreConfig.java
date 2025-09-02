@@ -62,6 +62,11 @@ public class ApplicationWithDatastoreConfig implements IActivePivotConfig, IData
     public IDatastore database() {
         return applicationWithDatastore().getDatastore();
     }
+
+    @Bean
+    Supplier<IDatastore> datastoreSupplier() {
+        return this::database;
+    }
     /**
      * Initialize and start the ActivePivot Manager, after performing all the injections into the ActivePivot plug-ins.
      *

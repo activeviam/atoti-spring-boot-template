@@ -19,13 +19,11 @@ import org.springframework.context.event.EventListener;
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotManagerDescription;
 import com.activeviam.activepivot.server.spring.api.config.IActivePivotConfig;
-import com.activeviam.activepivot.server.spring.private_.config.IDatabaseConfig;
 import com.activeviam.apps.annotations.ConditionalOnApplicationWithDirectQuery;
 import com.activeviam.apps.cfg.database.DatabaseConfig;
 import com.activeviam.apps.cfg.database.directquery.DirectQueryConfig;
 import com.activeviam.apps.cfg.pivot.datanode.DataCubeConfig;
 import com.activeviam.apps.cfg.pivot.datanode.DataNodeActivePivotManagerConfig;
-import com.activeviam.database.api.IDatabase;
 import com.activeviam.database.datastore.api.IDatastore;
 import com.activeviam.database.jdbc.api.GenericJdbcDatabaseSettings;
 import com.activeviam.directquery.api.DirectQueryConnector;
@@ -41,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 @Import({DatabaseConfig.class, DirectQueryConfig.class, DataNodeActivePivotManagerConfig.class, DataCubeConfig.class})
 @RequiredArgsConstructor
 @Slf4j
-public class ApplicationWithDirectQueryConfig implements IActivePivotConfig, IDatabaseConfig {
+public class ApplicationWithDirectQueryConfig implements IActivePivotConfig {
     private final SchemaDescription schemaDescription;
     private final Supplier<IActivePivotManagerDescription> activePivotManagerDescription;
     private final IEpochManagementPolicy epochManagementPolicy;
@@ -61,19 +59,20 @@ public class ApplicationWithDirectQueryConfig implements IActivePivotConfig, IDa
     @Bean
     @Override
     public IActivePivotManager activePivotManager() {
-        return applicationWithDirectQuery().getManager();
+        return new DelegatingActivePivotManager(applicationWithDirectQuery());
     }
 
     @Bean
-    @Override
-    public IDatabase database() {
-        return applicationWithDirectQuery().getDatabase();
+    Supplier<IDatastore> datastoreSupplier() {
+        return () -> applicationWithDirectQuery().getDatabase().getInMemoryDatastore();
     }
 
-    @Bean
-    public IDatastore datastore() {
-        return applicationWithDirectQuery().getDatabase().getInMemoryDatastore();
-    }
+    //    @Bean
+    //    @Override
+    //    public IDatabase database() {
+    //        return applicationWithDirectQuery().getDatabase();
+    //    }
+
     /**
      * Initialize and start the ActivePivot Manager, after performing all the injections into the ActivePivot plug-ins.
      *

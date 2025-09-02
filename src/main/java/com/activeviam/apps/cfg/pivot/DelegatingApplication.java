@@ -36,7 +36,7 @@ public class DelegatingApplication implements IApplication, IRefreshable {
 
     private Application application;
 
-    private Application newApplicationInstace() {
+    private Application newApplicationInstance() {
         return Application.builder(directQueryConnector)
                 .managerDescription(activePivotManagerDescription.get())
                 .databaseSettings(databaseSettings)
@@ -48,7 +48,7 @@ public class DelegatingApplication implements IApplication, IRefreshable {
     @Override
     public void start() {
         if (application == null) {
-            application = newApplicationInstace();
+            application = newApplicationInstance();
         }
         application.start();
     }

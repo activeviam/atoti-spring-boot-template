@@ -10,6 +10,7 @@ import static com.activeviam.apps.cfg.database.datastore.datamodel.StoreDefiniti
 import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
 
 import java.time.LocalDate;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -28,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @ConditionalOnBean(name = SHIFT_COB_DATES_STORE_BEAN)
 public class InitStandaloneStores {
 
-    private final IDatastore datastore;
+    private final Supplier<IDatastore> datastore;
 
     @EventListener(value = ApplicationReadyEvent.class)
     void onApplicationReady() {
@@ -36,9 +37,10 @@ public class InitStandaloneStores {
         refreshShiftCobDateStore();
     }
 
+    // FIXME: this needs to be called after the DQ application is restarted!
     public void refreshShiftCobDateStore() {
         // Fill the SHIFT cob dates
-        datastore.edit(t -> {
+        datastore.get().edit(t -> {
             t.addAll(
                     SHIFT_COB_DATE_STORE_NAME,
                     IntStream.range(1, 100)
