@@ -6,9 +6,9 @@
  */
 package com.activeviam.apps.cfg.pivot.querynode;
 
-import static com.activeviam.apps.cfg.pivot.datanode.DataCubeConfig.DATASTORE_NODE_IDENTIFIER;
-import static com.activeviam.apps.cfg.pivot.datanode.DataCubeConfig.DIRECT_QUERY_NODE_IDENTIFIER;
-import static com.activeviam.apps.cfg.pivot.querynode.QueryCubeConfig.DISTRIBUTING_LEVEL;
+import static com.activeviam.apps.cfg.pivot.datanode.DataNodeActivePivotManagerConfig.DATASTORE_NODE_IDENTIFIER;
+import static com.activeviam.apps.cfg.pivot.datanode.DataNodeActivePivotManagerConfig.DIRECT_QUERY_NODE_IDENTIFIER;
+import static com.activeviam.apps.cfg.pivot.querynode.QueryNodeActivePivotManagerConfig.DISTRIBUTING_LEVEL;
 import static com.activeviam.apps.constants.CubeConstants.CUBE_NAME;
 import static com.activeviam.apps.rest.CobDateLoadController.COB_DATE_ENDPOINT;
 import static com.activeviam.apps.rest.CobDateLoadController.DATE_FORMATTER;

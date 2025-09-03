@@ -22,7 +22,6 @@ import com.activeviam.activepivot.server.spring.api.config.IActivePivotConfig;
 import com.activeviam.apps.annotations.ConditionalOnApplicationWithDirectQuery;
 import com.activeviam.apps.cfg.database.DatabaseConfig;
 import com.activeviam.apps.cfg.database.directquery.DirectQueryConfig;
-import com.activeviam.apps.cfg.pivot.datanode.DataCubeConfig;
 import com.activeviam.apps.cfg.pivot.datanode.DataNodeActivePivotManagerConfig;
 import com.activeviam.database.datastore.api.IDatastore;
 import com.activeviam.database.jdbc.api.GenericJdbcDatabaseSettings;
@@ -36,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @ConditionalOnApplicationWithDirectQuery
 @Configuration
-@Import({DatabaseConfig.class, DirectQueryConfig.class, DataNodeActivePivotManagerConfig.class, DataCubeConfig.class})
+@Import({DatabaseConfig.class, DirectQueryConfig.class, DataNodeActivePivotManagerConfig.class})
 @RequiredArgsConstructor
 @Slf4j
 public class ApplicationWithDirectQueryConfig implements IActivePivotConfig {

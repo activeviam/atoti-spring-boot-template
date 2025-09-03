@@ -23,7 +23,6 @@ import com.activeviam.activepivot.server.spring.api.config.IDatastoreConfig;
 import com.activeviam.apps.annotations.ConditionalOnApplicationWithDatastore;
 import com.activeviam.apps.cfg.database.DatabaseConfig;
 import com.activeviam.apps.cfg.database.datastore.DatastoreConfig;
-import com.activeviam.apps.cfg.pivot.datanode.DataCubeConfig;
 import com.activeviam.apps.cfg.pivot.datanode.DataNodeActivePivotManagerConfig;
 import com.activeviam.database.datastore.api.IDatastore;
 import com.activeviam.database.datastore.api.description.IDatastoreSchemaDescription;
@@ -34,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 
 @ConditionalOnApplicationWithDatastore
 @Configuration
-@Import({DatabaseConfig.class, DatastoreConfig.class, DataCubeConfig.class, DataNodeActivePivotManagerConfig.class})
+@Import({DatabaseConfig.class, DatastoreConfig.class, DataNodeActivePivotManagerConfig.class})
 @RequiredArgsConstructor
 public class ApplicationWithDatastoreConfig implements IActivePivotConfig, IDatastoreConfig {
     private final IDatastoreSchemaDescription datastoreSchemaDescription;
