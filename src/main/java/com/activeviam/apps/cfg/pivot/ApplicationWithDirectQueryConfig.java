@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.EventListener;
 
+import com.activeviam.activepivot.core.impl.internal.pivot.IInternalActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotManagerDescription;
 import com.activeviam.activepivot.server.spring.api.config.IActivePivotConfig;
@@ -58,7 +59,8 @@ public class ApplicationWithDirectQueryConfig implements IActivePivotConfig {
     @Bean
     @Override
     public IActivePivotManager activePivotManager() {
-        return new DelegatingActivePivotManager(applicationWithDirectQuery());
+        return new DelegatingActivePivotManager(
+                () -> (IInternalActivePivotManager) applicationWithDirectQuery().getManager());
     }
 
     @Bean

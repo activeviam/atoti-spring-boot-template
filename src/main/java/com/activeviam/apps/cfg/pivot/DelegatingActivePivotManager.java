@@ -8,91 +8,121 @@ package com.activeviam.apps.cfg.pivot;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Supplier;
 
-import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
-import com.activeviam.activepivot.core.intf.api.cube.IActivePivotSchema;
+import com.activeviam.activepivot.core.impl.internal.cube.IInternalActivePivotSchema;
+import com.activeviam.activepivot.core.impl.internal.impl.ActivePivotManagerRebuilder;
+import com.activeviam.activepivot.core.impl.internal.pivot.IInternalActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.cube.ICatalog;
 import com.activeviam.activepivot.core.intf.api.cube.IMultiVersionActivePivot;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotManagerDescription;
+import com.activeviam.activepivot.core.intf.internal.cube.IInternalMultiVersionActivePivot;
+import com.activeviam.activepivot.core.intf.internal.structure.action.listener.IStructuralTransactionListener;
 import com.activeviam.tech.core.api.agent.AgentException;
 
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class DelegatingActivePivotManager implements IActivePivotManager {
-    private final DelegatingApplication application;
+public class DelegatingActivePivotManager implements IInternalActivePivotManager {
 
-    private IActivePivotManager getInternalManager() {
-        return application.getManager();
+    private final Supplier<IInternalActivePivotManager> underlyingManager;
+
+    private IInternalActivePivotManager getUnderlyingManager() {
+        return underlyingManager.get();
     }
 
     @Override
     public String getName() {
-        return getInternalManager().getName();
+        return getUnderlyingManager().getName();
     }
 
     @Override
     public String getActivePivotVersion() {
-        return getInternalManager().getActivePivotVersion();
-    }
-
-    @Override
-    public Map<String, ? extends IActivePivotSchema> getSchemas() {
-        return getInternalManager().getSchemas();
+        return getUnderlyingManager().getActivePivotVersion();
     }
 
     @Override
     public Map<String, ICatalog> getCatalogs() {
-        return getInternalManager().getCatalogs();
+        return getUnderlyingManager().getCatalogs();
     }
 
     @Override
     public Map<String, IMultiVersionActivePivot> getActivePivots() {
-        return getInternalManager().getActivePivots();
+        return getUnderlyingManager().getActivePivots();
     }
 
     @Override
     public IActivePivotManagerDescription getDescription() {
-        return getInternalManager().getDescription();
+        return getUnderlyingManager().getDescription();
     }
 
     @Override
     public void init(Properties props) throws AgentException {
-        getInternalManager().init(props);
+        getUnderlyingManager().init(props);
     }
 
     @Override
     public Properties getProperties() {
-        return getInternalManager().getProperties();
+        return getUnderlyingManager().getProperties();
     }
 
     @Override
     public State getStatus() {
-        return getInternalManager().getStatus();
+        return getUnderlyingManager().getStatus();
     }
 
     @Override
     public void start() throws AgentException {
-        getInternalManager().start();
+        getUnderlyingManager().start();
     }
 
     @Override
     public void pause() throws AgentException {
-        getInternalManager().pause();
+        getUnderlyingManager().pause();
     }
 
     @Override
     public void resume() throws AgentException {
-        getInternalManager().resume();
+        getUnderlyingManager().resume();
     }
 
     @Override
     public void stop() throws AgentException {
-        getInternalManager().stop();
+        getUnderlyingManager().stop();
     }
 
     @Override
     public String getType() {
-        return getInternalManager().getType();
+        return getUnderlyingManager().getType();
+    }
+
+    @Override
+    public IInternalMultiVersionActivePivot getActivePivot(String id) {
+        return getUnderlyingManager().getActivePivot(id);
+    }
+
+    @Override
+    public Map<String, ? extends IInternalActivePivotSchema> getSchemas() {
+        return getUnderlyingManager().getSchemas();
+    }
+
+    @Override
+    public IStructuralTransaction startStructureUpdate() {
+        return getUnderlyingManager().startStructureUpdate();
+    }
+
+    @Override
+    public void registerStructuralTransactionListener(IStructuralTransactionListener listener) {
+        getUnderlyingManager().registerStructuralTransactionListener(listener);
+    }
+
+    @Override
+    public void unregisterStructuralTransactionListener(IStructuralTransactionListener listener) {
+        getUnderlyingManager().unregisterStructuralTransactionListener(listener);
+    }
+
+    @Override
+    public ActivePivotManagerRebuilder createRebuilder() {
+        return getUnderlyingManager().createRebuilder();
     }
 }

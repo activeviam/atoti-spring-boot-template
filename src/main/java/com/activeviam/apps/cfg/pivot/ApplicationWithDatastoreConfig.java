@@ -16,6 +16,7 @@ import org.springframework.context.event.EventListener;
 
 import com.activeviam.activepivot.core.datastore.api.builder.ApplicationWithDatastore;
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
+import com.activeviam.activepivot.core.impl.internal.pivot.IInternalActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotManagerDescription;
 import com.activeviam.activepivot.server.spring.api.config.IActivePivotConfig;
@@ -53,7 +54,8 @@ public class ApplicationWithDatastoreConfig implements IActivePivotConfig, IData
     @Bean
     @Override
     public IActivePivotManager activePivotManager() {
-        return applicationWithDatastore().getManager();
+        return new DelegatingActivePivotManager(
+                () -> (IInternalActivePivotManager) applicationWithDatastore().getManager());
     }
 
     @Bean
