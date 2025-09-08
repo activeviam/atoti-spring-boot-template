@@ -895,23 +895,12 @@ public class CubeQueryService {
                 return subSelect;
             }
 
-            var crossJoin = crossJoinWithStar(excludeCobDateFilter(allLevels));
-            //            if (cobDateCondition instanceof InLogicalCondition<?> condition) {
-            //                var cobDateLevel = levelsConverter.stringToLevelIdentifier(condition.getField());
-            //                crossJoin = levelToMemberValueMdx(
-            //                                cobDateLevel,
-            //                                condition.getValues().stream().findFirst().get())
-            //                        + "*"
-            //                        + crossJoinWithStar(allLevels.stream()
-            //                                .filter(level -> !cobDateLevel.equals(level))
-            //                                .toList());
-            //            } else {
-            //                crossJoin = crossJoinWithStar(allLevels);
-            //            }
-
+            // FIXME alternatively we need to provide a level with the measure filter
+            // like we did previously (e.g. Measure AT level < 1000)
+            var measureFilterLevel = allLevels.getLast();
             return String.format(
                     "FROM (SELECT FILTER(%s,%s) ON COLUMNS %s)",
-                    crossJoin, measureSubSelectData.filterExpression(), subSelect);
+                    levelToMdxMembers(measureFilterLevel), measureSubSelectData.filterExpression(), subSelect);
         }
 
         private String crossJoinWithStar(List<LevelIdentifier> levels) {
