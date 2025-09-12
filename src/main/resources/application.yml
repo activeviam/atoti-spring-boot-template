@@ -33,11 +33,17 @@ management:
       exposure:
         include: "*"
   health:
+    livenessstate.enabled: true
+    readinessstate.enabled: true
     elasticsearch.enabled: false
   # https://docs.spring.io/spring-boot/reference/actuator/tracing.html
   tracing:
     sampling:
       probability: 1
+  endpoint:
+    health.probes.enabled: true
+    env:
+      additional-keys-to-sanitize: "atoti.jwt.key.*"
 
 otel:
   metric:
