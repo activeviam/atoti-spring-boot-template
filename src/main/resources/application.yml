@@ -62,13 +62,7 @@ otel:
 
 dlc:
   csv:
-    local:
-      sources:
-        test_data:
-          root-base-dir: ${CSV_DATA_BASE_DIR}
-#    topics:
-#      Trades:
-#        file-pattern: "glob:**trades.csv"
+    implicit-topics-enabled: false
 
 # Security configuration
 security:
@@ -86,12 +80,17 @@ security:
       pivot: "{bcrypt}$2a$10$87iR319r7HvSvs5k9.jutuDzjuKqO6riilSjl/9u2LGDpn4/7.1he"
       sba: "{bcrypt}$2a$10$QX8Im2Qh3s/qS9ypLlpEnuaVXtQTUz1XNS7goa9Ya7ofcZyuo2IdW"
 
+
 # Properties used to configure the authentication based on JWT.
 # You can execute JwtUtil to generate new keys.
+
 atoti:
   server:
     # Enable Dr.Pivot
     endpoint:
+      database:
+        security:
+          enabled: true
       diagnostics:
         enabled: true
     security:
@@ -118,14 +117,13 @@ atoti:
             idleTimeout: 0
             dataSourceClassName: org.h2.jdbcx.JdbcDataSource
             dataSource:
-              url: "jdbc:h2:mem:content_service;DB_CLOSE_DELAY=-1;IGNORECASE=TRUE"
+              url: "jdbc:h2:file:/Users/julianna/java/atoti-spring-boot-template/content-server/mycontent;DB_CLOSE_DELAY=-1;IGNORECASE=TRUE"
             poolName: ContentServer-ConnectionPool
       pivot-integration:
         cache:
           cache-entitlements-ttl: PT1H
       ui-content-integration:
         enabled: true
-
   # APM properties (https://docs.activeviam.com/products/atoti/server/latest/docs/monitoring/application_performance_monitoring/#properties-exposed)
   apm:
     node:

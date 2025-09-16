@@ -6,8 +6,12 @@
  */
 package com.activeviam.apps.cfg.source;
 
+import static com.activeviam.apps.constants.StoreAndFieldConstants.BOOKS_STORE_NAME;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTIES_STORE_NAME;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.FX_RATES_STORE_NAME;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.NETTING_SETS_STORE_NAME;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.PFE_ADD_ON_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 @Configuration
-public class InitialCsvLoad {
+public class InitialDataLoad {
     private final DataLoadControllerService dataLoadControllerService;
     private final IDatastore datastore;
 
@@ -36,14 +40,23 @@ public class InitialCsvLoad {
 
     private void initialLoad() {
         log.info("Initial data load started...");
+        var before = System.nanoTime();
         try {
             dataLoadControllerService.execute(DlcLoadRequest.builder()
-                    .topics(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME)
+                    .topics(TRADES_STORE_NAME,
+                            NETTING_SETS_STORE_NAME,
+                            COUNTERPARTIES_STORE_NAME,
+                            FX_RATES_STORE_NAME,
+                            BOOKS_STORE_NAME,
+                            PFE_ADD_ON_STORE_NAME)
                     .build());
-            log.info("Initial data load completed");
+            var elapsed = System.nanoTime() - before;
+            log.info("Initial data load completed in [{}] ms.", elapsed / 1000000L);
             DatabasePrinter.printTableSizes(datastore.getMasterHead());
+//            DatabasePrinter.printTables(datastore.getMasterHead(),10);
         } catch (Exception e) {
             log.warn("Failed to load initial data", e);
         }
     }
+
 }

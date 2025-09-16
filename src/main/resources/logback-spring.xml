@@ -33,6 +33,7 @@
     <appender-ref ref="CONSOLE"/>
   </root>
 
+<!--  <logger name="org.springframework.beans.factory" level="trace"/>-->
   <!--
       Apply the levels defined here to the JUL loggers.
       Has to be called at the end, once all the loggers are defined

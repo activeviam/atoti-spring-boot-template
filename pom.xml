@@ -19,7 +19,7 @@
     <spring-boot.version>${project.parent.version}</spring-boot.version>
     <atoti-server.version>6.1.11</atoti-server.version>
     <springdoc.version>2.8.9</springdoc.version>
-    <dlc.version>5.0.7</dlc.version>
+    <common-lib.version>2.1.8-AS6.1</common-lib.version>
 
     <opentelemetry.version>1.50.0</opentelemetry.version>
     <opentelemetry-instrumentation.version>2.16.0</opentelemetry-instrumentation.version>
@@ -57,9 +57,15 @@
     </dependency>
 
     <dependency>
+      <groupId>com.activeviam.tech</groupId>
+      <artifactId>datastore-schema-printer</artifactId>
+      <version>${atoti-server.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>com.activeviam.io</groupId>
       <artifactId>data-load-controller</artifactId>
-      <version>${dlc.version}</version>
+      <version>${atoti-server.version}</version>
     </dependency>
 
     <!-- OpenTelemetry -->
@@ -98,6 +104,11 @@
       <groupId>com.activeviam.springboot</groupId>
       <artifactId>atoti-admin-ui-starter</artifactId>
       <version>${atoti-server.version}</version>
+    </dependency>
+    <dependency>
+      <artifactId>shared</artifactId>
+      <groupId>com.activeviam.apps</groupId>
+      <version>${common-lib.version}</version>
     </dependency>
 
     <!-- Content Server persistence -->

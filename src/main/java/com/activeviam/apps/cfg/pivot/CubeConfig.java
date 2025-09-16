@@ -6,10 +6,6 @@
  */
 package com.activeviam.apps.cfg.pivot;
 
-import static com.activeviam.apps.cfg.pivot.ActivePivotManagerConfig.INT_FORMATTER;
-import static com.activeviam.apps.cfg.pivot.ActivePivotManagerConfig.NATIVE_MEASURES;
-import static com.activeviam.apps.cfg.pivot.ActivePivotManagerConfig.TIMESTAMP_FORMATTER;
-
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.context.annotation.Bean;
@@ -24,26 +20,13 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @RequiredArgsConstructor
 public class CubeConfig {
-    public static final String CUBE_NAME = "Cube";
-
-    private final Measures measures;
-    private final Dimensions dimensions;
+    public static final String CUBE_NAME = "CCR";
 
     @Bean
     public IActivePivotInstanceDescription activePivotInstanceDescription() {
         return StartBuilding.cube(CUBE_NAME)
-                .withContributorsCount()
-                .withinFolder(NATIVE_MEASURES)
-                .withAlias("Count")
-                .withFormatter(INT_FORMATTER)
-
-                // WARN: This will not be available for AggregateProvider `jit`
-                .withUpdateTimestamp()
-                .withinFolder(NATIVE_MEASURES)
-                .withAlias("Update.Timestamp")
-                .withFormatter(TIMESTAMP_FORMATTER)
-                .withCalculations(measures::build)
-                .withDimensions(dimensions.build())
+                .withMeasures(Measures::build)
+                .withDimensions(Dimensions::build)
 
                 // Aggregate provider
                 .withAggregateProvider()

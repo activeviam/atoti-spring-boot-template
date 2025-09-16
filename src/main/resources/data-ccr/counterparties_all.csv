@@ -1,0 +1,80 @@
+CounterpartyId,CounterpartyName,Rating,Sector,CountryOfRisk
+cpty1,QFS Bank,BBB,Banking,USA
+cpty2,ActiveBank UK,AAA,Banking,UK
+cpty3,Active Securities,C,Banking,France
+cpty4,Quartet Trading,AA,Banking,Singapore
+cpty5,Summit Derivatives,AA,Banking,UK
+cpty6,Erada Captial,A,Asset Management,Dubai
+cpty7,Charlie Asset Mangement,AAA,Asset Management,Japan
+cpty8,BA Defence Systems,AA,Defence,UK
+cpty9,Crossrail,BBB,Transport,UK
+cpty10,SW Transport,CC,Transport,UK
+cpty11,GCK Pharmaceuticals,CC,Pharma,Switzerland
+cpty12,GlenMine,CC,Mining,Switzerland
+cpty13,BLC Drilling,CC,Mining,Sweden
+cpty14,Mikkiller,CC,Food and Drinks,Denmark
+cpty15,Sud France Bank,AA,Banking,France
+cpty16,Freigh Line Logistics,A,Transport,Denmark
+cpty17,VFNE Telcoms,A,Telecoms,UK
+cpty18,Orange Mobilee,BB,Telecoms,France
+cpty19,Total Oil,AA,Oil,France
+cpty20,Natural Products,AAA,Oil,USA
+cpty21,PetroChemicals Ltd,AA,Oil,Saudi Arabia
+cpty22,AbbeyInvestment,AAA,Banking,UK
+cpty23,ABN Amro,AA,Banking,Netherlands
+cpty24,ANZ,AAA,Banking,Australia
+cpty25,BAML,AA,Banking,USA
+cpty26,Barclays Bank,AAA,Banking,UK
+cpty27,Barclays Capital,AAA,Banking,UK
+cpty28,Barclays Global Investor,AAA,Banking,UK
+cpty29,BlackRock,AA,Banking,USA
+cpty30,BlackStone,AAA,Banking,USA
+cpty31,BNP Paribas,AA,Banking,France
+cpty32,BNPSS,AAA,Banking,France
+cpty33,Cantor Fitzgerald,AA,Banking,UK
+cpty34,Capstone,AAA,Banking,UK
+cpty35,Citi,AA,Banking,USA
+cpty36,Commerzbank,AAA,Banking,Germany
+cpty37,Credit Suisse,AAA,Banking,Switzerland
+cpty38,CreditAgricole,A,Banking,France
+cpty39,CreditAgricoleCIB,A,Banking,France
+cpty40,Daewoo Securities,AAA,Banking,Japan
+cpty41,Deutsche Bank,AA,Banking,USA
+cpty42,Element Capital,AAA,Banking,USA
+cpty43,Element Capital Fund A,AA,Banking,USA
+cpty44,Evercore,C,Banking,USA
+cpty45,Gartmore,AA,Banking,USA
+cpty46,Gartmore Fund A,AAA,Banking,USA
+cpty47,Gartmore Fund B,AA,Banking,USA
+cpty48,GazProm,AAA,Banking,Russia
+cpty49,Goldman Sachs,AA,Banking,USA
+cpty50,HSBC,A,Banking,UK
+cpty51,ING,A,Banking,Netherlands
+cpty52,JPMorgan,AAA,Banking,USA
+cpty53,JPMorgan Cazenove,AAA,Banking,UK
+cpty54,JPMSS,AAA,Banking,USA
+cpty55,Lazard,AA,Banking,UK
+cpty56,Lincoln International,AAA,Banking,USA
+cpty57,Macquarie,AA,Banking,Australia
+cpty58,MerrilLynch,AAA,Banking,USA
+cpty59,Morgan Stanley,AA,Banking,USA
+cpty60,Natixis,AAA,Banking,France
+cpty61,NatwestTrading,AA,Banking,UK
+cpty62,Newedge,AAA,Banking,USA
+cpty63,Nomura Tokyo,AA,Banking,Japan
+cpty64,Nomura International,AAA,Banking,USA
+cpty65,Pierce & Pierce,BB,Banking,USA
+cpty66,Rabobank,BBB,Banking,Netherlands
+cpty67,RBC,AA,Banking,Canada
+cpty68,RBS,B,Banking,UK
+cpty69,Santander,AA,Banking,Spain
+cpty70,SGIB,AAA,Banking,France
+cpty71,Societe Generale,AA,Banking,France
+cpty72,Standard Bank,AAA,Banking,South Africa
+cpty73,Standard Chartered,AA,Banking,UK
+cpty74,Tudor,AAA,Banking,USA
+cpty75,UBS,AA,Banking,Switzerland
+cpty76,UniCredit,BBB,Banking,Italy
+cpty77,Versailles Group,AA,Banking,France
+cpty78,Wachovia,AAA,Banking,Canada
+cpty79,Wells Fargo,AA,Banking,Canada

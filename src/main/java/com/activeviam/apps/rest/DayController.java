@@ -7,7 +7,7 @@
 package com.activeviam.apps.rest;
 
 import static com.activeviam.apps.cfg.pivot.CubeConfig.CUBE_NAME;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.ASOFDATE;
+//import static com.activeviam.apps.constants.StoreAndFieldConstants.ASOFDATE;
 import static com.activeviam.apps.rest.EndpointConstants.CUSTOM_REST_PATH;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,8 +32,8 @@ public class DayController {
 
     private final IQueriesService queriesService;
 
-    @GetMapping("/loaded")
-    public long getNumberOfDays() {
-        return queriesService.retrieveMembers(CUBE_NAME, ASOFDATE, ASOFDATE, ASOFDATE).length;
-    }
+//    @GetMapping("/loaded")
+//    public long getNumberOfDays() {
+//        return queriesService.retrieveMembers(CUBE_NAME, ASOFDATE, ASOFDATE, ASOFDATE).length;
+//    }
 }
