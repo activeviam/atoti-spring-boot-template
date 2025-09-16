@@ -49,6 +49,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.stream.Stream;
 
+import com.activeviam.accelerator.common.aggregator.KeepOnlyOneAggregationFunction;
 import com.activeviam.activepivot.copper.api.Copper;
 import com.activeviam.activepivot.copper.api.UnlinkedCopperStore;
 import com.activeviam.activepivot.core.intf.api.copper.ICopperContext;
@@ -101,21 +102,30 @@ public class Measures {
                 .withinFolder(INTERNAL_MEASURES_FOLDER)
                 .publish(context);
 
-        var forexJoinForTrades =
+        var forexJoin =
                 Copper.store(FX_RATES_STORE_NAME)
                         .joinToCube(UnlinkedCopperStore.JoinType.LEFT)
-                        .withMapping(AS_OF_DATE, AS_OF_DATE_COPPER_LEVEL)
-                        .withMapping(BASE_CCY,TRADE_CCY_COPPER_LEVEL)
-                        .withDefaultValue(FieldPath.of(FX_RATE), Double.NEGATIVE_INFINITY);
+                        .withMapping(AS_OF_DATE, AS_OF_DATE_COPPER_LEVEL);
 
         Copper.newHierarchy(CURRENCY_DIMENSION,DISPLAY_CURRENCY_HIERARCHY)
-                .fromField(forexJoinForTrades.field(COUNTER_CCY))
+                .fromField(forexJoin.field(COUNTER_CCY))
                 .slicing()
                 .withLevelOfSameName()
                 .withFirstObjects(DISPLAY_CCY)
                 .publish(context);
 
-        var fxRateAtTrades = Copper.newLookupMeasure(forexJoinForTrades.field(FX_RATE));
+        var forexJoinForTrades =
+                Copper.store(FX_RATES_STORE_NAME)
+                        .joinToCube(UnlinkedCopperStore.JoinType.LEFT)
+                        .withMapping(AS_OF_DATE, AS_OF_DATE_COPPER_LEVEL)
+                        .withMapping(BASE_CCY,TRADE_CCY_COPPER_LEVEL)
+                        .withMapping(COUNTER_CCY,DISPLAY_CCY_COPPER_LEVEL)
+                        .withDefaultValue(FieldPath.of(FX_RATE), Double.NaN);
+
+        var fxRateAtTrades = Copper
+                .newLookupMeasure(forexJoinForTrades.field(FX_RATE))
+                .as(FX_RATE)
+                .publish(context);
 
         Stream.of(NOTIONAL+SUM_SUFFIX, MARKET_VALUE+SUM_SUFFIX)
                 .forEach( measureName -> Copper
@@ -132,7 +142,8 @@ public class Measures {
                         .joinToCube(UnlinkedCopperStore.JoinType.LEFT)
                         .withMapping(AS_OF_DATE, AS_OF_DATE_COPPER_LEVEL)
                         .withMapping(BASE_CCY,NETTING_CCY_COPPER_LEVEL)
-                        .withMapping(COUNTER_CCY,DISPLAY_CCY_COPPER_LEVEL);
+                        .withMapping(COUNTER_CCY,DISPLAY_CCY_COPPER_LEVEL)
+                        .withDefaultValue(FieldPath.of(FX_RATE), Double.NaN);
 
         var fxRateAtNettings = Copper
                 .newLookupMeasure(forexJoinForNettings.field(FX_RATE));
