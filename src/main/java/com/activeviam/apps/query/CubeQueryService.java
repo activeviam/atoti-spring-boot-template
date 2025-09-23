@@ -9,6 +9,8 @@ package com.activeviam.apps.query;
 import static com.activeviam.activepivot.core.intf.api.cube.hierarchy.IHierarchy.ALLMEMBER;
 import static com.activeviam.activepivot.server.json.api.dataexport.IJsonOutputConfiguration.FORMAT_PROPERTY;
 import static com.activeviam.apps.constants.CubeConstants.FORMATTER_STRING;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
+import static com.activeviam.apps.query.CubeQuery.BDESC;
 import static com.activeviam.apps.query.conditions.TrueLogicalCondition.isTrueCondition;
 
 import java.time.LocalDate;
@@ -22,6 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -31,9 +34,10 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.impl.api.contextvalues.QueryMonitoring;
 import com.activeviam.activepivot.core.impl.api.contextvalues.mdx.MdxContext;
-import com.activeviam.activepivot.core.impl.api.contextvalues.subcube.CubeFilter;
 import com.activeviam.activepivot.core.impl.api.cube.hierarchy.HierarchiesUtil;
 import com.activeviam.activepivot.core.impl.api.experimental.context.filter.QueryBasedCubeRestriction;
+import com.activeviam.activepivot.core.impl.api.location.LocationUtil;
+import com.activeviam.activepivot.core.impl.api.query.IActivePivotQueryRunner;
 import com.activeviam.activepivot.core.impl.internal.context.impl.ContextUtils;
 import com.activeviam.activepivot.core.intf.api.contextvalues.IContextValue;
 import com.activeviam.activepivot.core.intf.api.contextvalues.mdx.IMdxContext;
@@ -58,7 +62,7 @@ import com.activeviam.apps.query.conditions.OrLogicalCondition;
 import com.activeviam.apps.query.conditions.TrueLogicalCondition;
 import com.activeviam.apps.query.rest.CubeQueryDTO;
 import com.activeviam.tech.core.api.exceptions.ActiveViamRuntimeException;
-import com.activeviam.tech.core.api.filtering.impl.InCondition;
+import com.activeviam.tech.core.api.query.QueryException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -104,6 +108,7 @@ public class CubeQueryService {
         private final String calculatedMeasuresFormatter;
         private final IMultiVersionActivePivot activePivot;
         private final IDataExportService dataExportService;
+        private final LevelIdentifier cobDateLevelIdentifier;
         Set<HierarchyIdentifier> slicingHierarchies;
         Set<String> existingMeasures;
         Map<String, String> formatters = new HashMap<>();
@@ -119,6 +124,7 @@ public class CubeQueryService {
             this.activePivot = activePivot;
             this.dataExportService = dataExportService;
             levelsConverter = new SingleDimensionLevelsConverter(cubeDefaults.getDefaultDimension());
+            cobDateLevelIdentifier = levelsConverter.stringToLevelIdentifier(COB_DATE);
         }
 
         private String getFormatter(String metric) {
@@ -144,22 +150,25 @@ public class CubeQueryService {
             assertIsReady();
             var contextValues = new ArrayList<IContextValue>();
             contextValues.add(buildMdxContext(cubeQuery));
+            //            var cobDateFilter = cubeQuery.getQueryFilter().generateCobDateCondition();
+            //            if (cobDateFilter instanceof InLogicalCondition<?> cobDateCondition) {
+            //                var cobDateLevel = levelsConverter.stringToLevelIdentifier(cobDateCondition.getField());
+            //                contextValues.add(CubeFilter.builder()
+            //                        .includeMembersWithConditions(
+            //
+            // levelsConverter.stringToHierarchyIdentifier(cobDateLevel.getHierarchyName()),
+            //                                new InCondition(cobDateCondition.getValues()))
+            //                        .build());
+            //            }
             if (cubeQuery.isUseContext()) {
                 var cubeRestrictions = buildCubeRestrictions(cubeQuery);
                 contextValues.add(cubeRestrictions);
-                var cobDateFilter = cubeQuery.getQueryFilter().generateCobDateCondition();
-                if (cobDateFilter instanceof InLogicalCondition<?> cobDateCondition) {
-                    var cobDateLevel = levelsConverter.stringToLevelIdentifier(cobDateCondition.getField());
-                    contextValues.add(CubeFilter.builder()
-                            .includeMembersWithConditions(
-                                    levelsConverter.stringToHierarchyIdentifier(cobDateLevel.getHierarchyName()),
-                                    new InCondition(cobDateCondition.getValues()))
-                            .build());
-                }
             }
             if (cubeQuery.isExecutionPlanning()) {
-                contextValues.add(
-                        new QueryMonitoring().enableExecutionPlanningPrint().enableQueryPlanSummary());
+                contextValues.add(new QueryMonitoring()
+                        .enableQueryPlanSummary()
+                        .enableExecutionPlanningPrint()
+                        .enableExecutionTimingPrint());
             } else {
                 contextValues.add(new QueryMonitoring().enableQueryPlanSummary());
             }
@@ -407,7 +416,8 @@ public class CubeQueryService {
         IQueryBasedCubeRestriction buildCubeRestrictions(CubeQuery cubeQuery) {
             // We add the date condition just in case....
             return QueryBasedCubeRestriction.create(convertQueryConditionToCubeRestriction(
-                    cubeQuery.getQueryFilter().generateOtherAndCobDateCondition()));
+                    cubeQuery.getQueryFilter().generateOtherCondition(),
+                    cubeQuery.getQueryFilter().getFilteredCobDates()));
         }
 
         private static List<String> extractAllMetricNames(CubeQuery cubeQuery, boolean includeCalculatedMetrics) {
@@ -568,70 +578,42 @@ public class CubeQueryService {
                 CubeQuery.TopRank topRankDefinition,
                 CubeQuery.TopCount topCount,
                 CubeQuery.HideTotals hideTotals) {
-            // First check if we need to exclude groupBy because they are in the top count expression
-            // var topCountLevel = Objects.nonNull(topCount) ? topCount.level() : null;
-            // If there are multiple groupBy, the level above the topCount level must be removed because it will be
-            // included in the topCount set
-            // var previousLevel = getPreviousLevelOrNull(topCountLevel, levels);
-            var actualLevels = levels;
-            //            levels.stream()
-            //                    .filter(levelIdentifier -> Objects.isNull(previousLevel) ||
-            // !previousLevel.equals(levelIdentifier))
-            //                    .toList();
-
+            if (Objects.nonNull(topCount) && !topCount.groupBy().isEmpty()) {
+                throw new UnsupportedOperationException("TopN groupBy not supported.");
+            }
             var hierarchizeTemplate = new StringBuilder();
-            var crossJoinOrNot = crossJoinOrNot(actualLevels);
+            var crossJoinOrNot = crossJoinOrNot(levels);
             // Sort by topRank
             if (Objects.nonNull(topRankDefinition)) {
                 hierarchizeTemplate.append(orderMdx(crossJoinOrNot, TOP_RANK_MEMBER, "BDESC"));
             } else {
                 hierarchizeTemplate.append(crossJoinOrNot);
             }
-            String hierarchized;
+            var lastLevel = Objects.nonNull(topCount) ? levels.getLast() : null;
+            var hierarchized = String.format(
+                    hierarchizeTemplate.toString(),
+                    levels.stream()
+                            .map(level -> {
+                                // If we are doing TopN, we replace the last level with the TopN set
+                                if (Objects.nonNull(lastLevel) && level.equals(lastLevel)) {
+                                    return TOP_N_SET;
+                                }
+                                return isSlicingHierarchy(level.getHierarchy())
+                                        ? levelToMdxMembers(level)
+                                        : hierarchizedDescendantsAllMember(level);
+                            })
+                            .collect(Collectors.joining(",")));
+            // IF there is no SortBy and we do a Top Count, we need to apply sorting on the measure used for the
+            // topcount
+            if (Objects.isNull(sortByDefinition)
+                    && Objects.nonNull(topCount)
+                    && excludeCobDateFilter(levels).size() > 1) {
+                sortByDefinition = new CubeQuery.Sort<>(topCount.metric(), BDESC);
+            }
             if (Objects.nonNull(sortByDefinition)) {
                 // Wrap everything in the Order, ignore TopCount
-                hierarchized = orderMdx(
-                        String.format(
-                                hierarchizeTemplate.toString(),
-                                actualLevels.stream()
-                                        .map(level -> isSlicingHierarchy(level.getHierarchy())
-                                                ? levelToMdxMembers(level)
-                                                : hierarchizedDescendantsAllMember(level))
-                                        .collect(Collectors.joining(","))),
-                        sortingMeasureToMdx(sortByDefinition),
-                        sortByDefinition.sortType());
-            } else if (Objects.isNull(topCount)) {
-                hierarchized = String.format(
-                        hierarchizeTemplate.toString(),
-                        actualLevels.stream()
-                                .map(level -> isSlicingHierarchy(level.getHierarchy())
-                                        ? levelToMdxMembers(level)
-                                        : hierarchizedDescendantsAllMember(level))
-                                .collect(Collectors.joining(",")));
-            } else if (topCount.groupBy().isEmpty()) {
-                // Check if we have cobDate or not
-                hierarchized = actualLevels.stream()
-                        .filter(CubeQuery::isCobDateLevel)
-                        .findFirst()
-                        .map(cobDateLevel -> String.format(
-                                hierarchizeTemplate.toString(),
-                                String.join(",", levelToMdxMembers(cobDateLevel), TOP_N_SET)))
-                        .orElse(TOP_N_SET);
-            } else {
-                throw new UnsupportedOperationException("TopN groupBy not supported.");
-                //                            actualLevels.stream()
-                //                                    .map(level -> Objects.nonNull(topCountLevel) &&
-                // topCountLevel.equals(level)
-                //                                            ?
-                //                                            // If level is the TopCount level, we use Top Set
-                //                                            topNLevels(
-                //                                                    topCount,
-                //                                                    previousLevel,
-                //                                                    !isLevelTotalHidden(hideTotals, topCountLevel))
-                //                                            : isSlicingHierarchy(level.getHierarchy())
-                //                                                    ? levelToMdxMembers(level)
-                //                                                    : hierarchizedDescendantsAllMember(level))
-                //                                    .collect(Collectors.joining(",")));
+                hierarchized =
+                        orderMdx(hierarchized, sortingMeasureToMdx(sortByDefinition), sortByDefinition.sortType());
             }
             return hierarchized + " ON ROWS";
         }
@@ -639,17 +621,6 @@ public class CubeQueryService {
         private static String crossJoinOrNot(Collection<LevelIdentifier> levels) {
             return levels.size() == 1 ? "%s" : "Crossjoin(%s)";
         }
-
-        //        private static LevelIdentifier getPreviousLevelOrNull(
-        //                LevelIdentifier topCountLevel, List<LevelIdentifier> levels) {
-        //            if (Objects.nonNull(topCountLevel) && levels.size() > 1) {
-        //                var topCountLevelIndex = levels.indexOf(topCountLevel);
-        //                if (topCountLevelIndex > 0) {
-        //                    return levels.get(topCountLevelIndex - 1);
-        //                }
-        //            }
-        //            return null;
-        //        }
 
         static String levelToMdxPath(LevelIdentifier levelIdentifier) {
             return String.format(
@@ -690,7 +661,7 @@ public class CubeQueryService {
         }
 
         private static String sortingCalculatedMemberExpression(LevelIdentifier level) {
-            return String.format("%s", levelToCurrentMemberMdx(level));
+            return String.format("%s", levelToCurrentMemberValue(level));
         }
 
         private static String levelToCurrentMemberValue(LevelIdentifier level) {
@@ -753,16 +724,36 @@ public class CubeQueryService {
             return null;
         }
 
+        //        TopCount(
+        //                Filter(
+        //                        [Trade Attributes].[Trade Name].Levels(
+        //                        1
+        //        ).Members,
+        //        NOT IsEmpty(
+        //          [Measures].[Delta Notional.Sum]
+        //        )
+        //      ),
+        //              5,
+        //              [Measures].[Delta Notional.Sum]
+        //                )
+
         private String topNWithoutGroupingExpression(CubeQuery.TopCount topCount, List<LevelIdentifier> allLevels) {
             // FIXME: add totals?
             // Take the CobDate level out
-            var levelsExcludingCobDate = excludeCobDateFilter(allLevels);
+            // var levelsExcludingCobDate = excludeCobDateFilter(allLevels);
             return String.format(
-                    "%sCount(%s,%d,%s)",
+                    "%sCount(Filter(%s,NOT IsEmpty(%s)),%d,%s)",
                     topCount.bottom() ? "Bottom" : "Top",
-                    crossJoinWithStar(levelsExcludingCobDate),
+                    levelToMdxMembers(allLevels.getLast()),
+                    metricToMdxMeasure(topCount.metric()),
                     topCount.count(),
                     metricToMdxMeasure(topCount.metric()));
+            //            return String.format(
+            //                    "%sCount(NonEmpty(%s),%d,%s)",
+            //                    topCount.bottom() ? "Bottom" : "Top",
+            //                    crossJoinWithStar(allLevels),
+            //                    topCount.count(),
+            //                    metricToMdxMeasure(topCount.metric()));
         }
 
         private List<LevelIdentifier> excludeCobDateFilter(List<LevelIdentifier> allLevels) {
@@ -784,14 +775,16 @@ public class CubeQueryService {
         }
 
         // Recursively build the cube restriction object
-        private ICubeRestriction convertQueryConditionToCubeRestriction(LogicalCondition queryCondition) {
+        private ICubeRestriction convertQueryConditionToCubeRestriction(
+                LogicalCondition queryCondition, Collection<LocalDate> dates) {
             return switch (queryCondition) {
                 case AndLogicalCondition andLogicalCondition ->
-                    ICubeRestriction.and(toListOfRestrictions(andLogicalCondition.getSubConditions()));
+                    ICubeRestriction.and(toListOfRestrictions(andLogicalCondition.getSubConditions(), dates));
                 case OrLogicalCondition orLogicalCondition ->
-                    ICubeRestriction.or(toListOfRestrictions(orLogicalCondition.getSubConditions()));
+                    ICubeRestriction.or(toListOfRestrictions(orLogicalCondition.getSubConditions(), dates));
                 case NotLogicalCondition notLogicalCondition ->
-                    ICubeRestriction.not(convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition()));
+                    ICubeRestriction.not(
+                            convertQueryConditionToCubeRestriction(notLogicalCondition.getCondition(), dates));
                 case InLogicalCondition<?> inLogicalCondition -> {
                     var level = levelsConverter.stringToLevelIdentifier(inLogicalCondition.getField());
                     yield ICubeRestriction.inPath(
@@ -799,44 +792,44 @@ public class CubeQueryService {
                 }
                 case LikeLogicalCondition likeCondition -> {
                     var level = levelsConverter.stringToLevelIdentifier(likeCondition.getField());
-                    var criteria = likeCondition.getMatchingCriteria();
-                    var path = isSlicingHierarchy(level.getHierarchy())
-                            ? new Object[] {criteria}
-                            : new Object[] {ALLMEMBER, criteria};
-                    yield ICubeRestriction.likePath(level.getHierarchy(), path);
+                    var allMembers = getMembersForLevel(level, dates);
+                    var pattern = Pattern.compile(likeCondition.getMatchingCriteria());
+                    var valuesToFilter = allMembers.stream()
+                            .filter(m -> pattern.matcher((String) m).find())
+                            .toList();
+                    if (valuesToFilter.isEmpty()) {
+                        yield ICubeRestriction.falseRestriction();
+                    }
+                    yield ICubeRestriction.inPath(level.getHierarchy(), inPathValues(level, valuesToFilter));
                 }
                 case BetweenLogicalCondition<?> betweenLogicalCondition -> {
                     var left = betweenLogicalCondition.getLeft();
                     var right = betweenLogicalCondition.getRight();
+                    var leftInclusive = betweenLogicalCondition.isLeftInclusive();
+                    var rightInclusive = betweenLogicalCondition.isRightInclusive();
                     var level = levelsConverter.stringToLevelIdentifier(betweenLogicalCondition.getField());
+                    var allMembers = getMembersForLevel(level, dates);
                     if (Objects.isNull(left) && Objects.isNull(right)) {
                         throw new ActiveViamRuntimeException("Left and right must not be null");
                     }
-
-                    List<ICubeRestriction> conditions = new ArrayList<>();
+                    var membersStream = allMembers.stream();
                     if (Objects.nonNull(left)) {
-                        var path = isSlicingHierarchy(level.getHierarchy())
-                                ? new Object[] {left}
-                                : new Object[] {ALLMEMBER, left};
-                        conditions.add(
-                                betweenLogicalCondition.isLeftInclusive()
-                                        ? ICubeRestriction.greaterEqualPath(level.getHierarchy(), path)
-                                        : ICubeRestriction.greaterPath(level.getHierarchy(), path));
+                        membersStream = membersStream.filter(m -> {
+                            var x = compareObjects(m, left);
+                            return leftInclusive ? x >= 0 : x > 0;
+                        });
                     }
                     if (Objects.nonNull(right)) {
-                        var path = isSlicingHierarchy(level.getHierarchy())
-                                ? new Object[] {right}
-                                : new Object[] {ALLMEMBER, right};
-                        conditions.add(
-                                betweenLogicalCondition.isRightInclusive()
-                                        ? ICubeRestriction.lowerEqualPath(level.getHierarchy(), path)
-                                        : ICubeRestriction.lowerPath(level.getHierarchy(), path));
+                        membersStream = membersStream.filter(m -> {
+                            var x = compareObjects(m, right);
+                            return rightInclusive ? x <= 0 : x < 0;
+                        });
                     }
-                    if (conditions.size() > 1) {
-                        yield ICubeRestriction.and(conditions.toArray(new ICubeRestriction[0]));
-                    } else {
-                        yield conditions.getFirst();
+                    var valuesToFilter = membersStream.toList();
+                    if (valuesToFilter.isEmpty()) {
+                        yield ICubeRestriction.falseRestriction();
                     }
+                    yield ICubeRestriction.inPath(level.getHierarchy(), inPathValues(level, valuesToFilter));
                 }
                 case MeasureCondition measureCondition ->
                     throw new UnsupportedOperationException(
@@ -845,40 +838,52 @@ public class CubeQueryService {
             };
         }
 
-        //        private static int compareObjects(Object o1, Object o2) {
-        //            if (o1 instanceof LocalDate date1 && o2 instanceof LocalDate date2) {
-        //                return date1.compareTo(date2);
-        //            }
-        //            if (o1 instanceof String string1 && o2 instanceof String string2) {
-        //                return string1.compareTo(string2);
-        //            }
-        //            if (o1 instanceof Integer int1 && o2 instanceof Integer int2) {
-        //                return int1.compareTo(int2);
-        //            }
-        //            if (o1 instanceof Long long1 && o2 instanceof Long long2) {
-        //                return long1.compareTo(long2);
-        //            }
-        //            if (o1 instanceof Double double1 && o2 instanceof Double double2) {
-        //                return double1.compareTo(double2);
-        //            }
-        //            if (o1 instanceof Float float1 && o2 instanceof Float float2) {
-        //                return float1.compareTo(float2);
-        //            }
-        //            throw new UnsupportedOperationException(
-        //                    "DataType of " + o1.getClass().getSimpleName() + " not supported or types not matching");
-        //        }
-        //
-        //        private Collection<Object> getMembersForLevel(LevelIdentifier level) {
-        //            var hierarchy = HierarchiesUtil.getHierarchy(activePivot.getHead(), level.getHierarchy());
-        //            var path = isSlicingHierarchy(level.getHierarchy()) ? new Object[] {null} : new Object[]
-        // {ALLMEMBER, null};
-        //            return Objects.requireNonNull(
-        //                            CubeFilterUtil.getAll(activePivot.getContext()).getSecurityAndFilter())
-        //                    .retrieveMembers((IAxisHierarchy) hierarchy, path)
-        //                    .stream()
-        //                    .map(IAxisMember::getDiscriminator)
-        //                    .toList();
-        //        }
+        private static int compareObjects(Object o1, Object o2) {
+            if (o1 instanceof LocalDate date1 && o2 instanceof LocalDate date2) {
+                return date1.compareTo(date2);
+            }
+            if (o1 instanceof String string1 && o2 instanceof String string2) {
+                return string1.compareTo(string2);
+            }
+            if (o1 instanceof Integer int1 && o2 instanceof Integer int2) {
+                return int1.compareTo(int2);
+            }
+            if (o1 instanceof Long long1 && o2 instanceof Long long2) {
+                return long1.compareTo(long2);
+            }
+            if (o1 instanceof Double double1 && o2 instanceof Double double2) {
+                return double1.compareTo(double2);
+            }
+            if (o1 instanceof Float float1 && o2 instanceof Float float2) {
+                return float1.compareTo(float2);
+            }
+            throw new UnsupportedOperationException(
+                    "DataType of " + o1.getClass().getSimpleName() + " not supported or types not matching");
+        }
+
+        private Collection<Object> getMembersForLevel(LevelIdentifier level, Collection<LocalDate> dates) {
+            var gaq = dates.isEmpty()
+                    ? IActivePivotQueryRunner.create()
+                            .withWildcardCoordinate(level)
+                            .forMeasures(IMeasureHierarchy.COUNT_ID)
+                    : IActivePivotQueryRunner.create()
+                            .withCoordinate(cobDateLevelIdentifier, dates)
+                            .withWildcardCoordinate(level)
+                            .forMeasures(IMeasureHierarchy.COUNT_ID);
+            var apVersion = activePivot.getHead();
+            try {
+                var values = new HashSet<Object>();
+                var result = gaq.run(apVersion);
+                var levelInfo = HierarchiesUtil.getLevel(apVersion, level);
+                result.forEachCell((location, measure, value) -> {
+                    values.add(LocationUtil.getCoordinate(location, levelInfo));
+                    return true;
+                });
+                return values;
+            } catch (QueryException e) {
+                throw new ActiveViamRuntimeException(e);
+            }
+        }
 
         private String subSelectWithMeasureFilter(
                 LogicalCondition measureFilterCondition,
@@ -890,23 +895,12 @@ public class CubeQueryService {
                 return subSelect;
             }
 
-            var crossJoin = crossJoinWithStar(excludeCobDateFilter(allLevels));
-            //            if (cobDateCondition instanceof InLogicalCondition<?> condition) {
-            //                var cobDateLevel = levelsConverter.stringToLevelIdentifier(condition.getField());
-            //                crossJoin = levelToMemberValueMdx(
-            //                                cobDateLevel,
-            //                                condition.getValues().stream().findFirst().get())
-            //                        + "*"
-            //                        + crossJoinWithStar(allLevels.stream()
-            //                                .filter(level -> !cobDateLevel.equals(level))
-            //                                .toList());
-            //            } else {
-            //                crossJoin = crossJoinWithStar(allLevels);
-            //            }
-
+            // FIXME alternatively we need to provide a level with the measure filter
+            // like we did previously (e.g. Measure AT level < 1000)
+            var measureFilterLevel = allLevels.getLast();
             return String.format(
                     "FROM (SELECT FILTER(%s,%s) ON COLUMNS %s)",
-                    crossJoin, measureSubSelectData.filterExpression(), subSelect);
+                    levelToMdxMembers(measureFilterLevel), measureSubSelectData.filterExpression(), subSelect);
         }
 
         private String crossJoinWithStar(List<LevelIdentifier> levels) {
@@ -936,7 +930,7 @@ public class CubeQueryService {
             if (levels.isEmpty()) {
                 levels.add(allLevels.getLast());
             }
-            // FIXME: if we dont have any levels?
+            // FIXME: if we dont have any groupBy?
             var crossJoin = String.format(
                     crossJoinOrNot(levels),
                     levels.stream()
@@ -1055,9 +1049,10 @@ public class CubeQueryService {
             }
         }
 
-        private List<ICubeRestriction> toListOfRestrictions(Collection<LogicalCondition> conditions) {
+        private List<ICubeRestriction> toListOfRestrictions(
+                Collection<LogicalCondition> conditions, Collection<LocalDate> dateCondition) {
             return conditions.stream()
-                    .map(this::convertQueryConditionToCubeRestriction)
+                    .map(c -> this.convertQueryConditionToCubeRestriction(c, dateCondition))
                     .toList();
         }
 

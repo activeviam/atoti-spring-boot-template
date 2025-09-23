@@ -9,7 +9,9 @@ package com.activeviam.apps.query;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
 import static com.activeviam.apps.query.conditions.TrueLogicalCondition.isTrueCondition;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -33,6 +35,10 @@ import lombok.Data;
 
 @Data
 public class CubeQuery {
+
+    public static final String BDESC = "BDESC";
+    public static final String BASC = "BASC";
+
     private final List<String> metrics;
     private final List<LevelIdentifier> levels;
     private final SplitQueryCondition queryFilter;
@@ -189,7 +195,7 @@ public class CubeQuery {
 
     private static String computeSortType(String level, boolean isAscending) {
         // COB_DATE is sorted in reverse order so we need to reverse this
-        return level.equalsIgnoreCase(COB_DATE) != isAscending ? "BASC" : "BDESC";
+        return isAscending ? BASC : BDESC;
     }
 
     public static boolean isCobDateLevel(LevelIdentifier levelIdentifier) {
@@ -235,6 +241,13 @@ public class CubeQuery {
             List<LogicalCondition> measureConditions) {
         public LogicalCondition generateCobDateCondition() {
             return Optional.ofNullable(cobDateCondition).orElse(TrueLogicalCondition.INSTANCE);
+        }
+
+        public Collection<LocalDate> getFilteredCobDates() {
+            if (Objects.nonNull(cobDateCondition) && isCobDateFilter(cobDateCondition)) {
+                return ((InLogicalCondition<LocalDate>) cobDateCondition).getValues();
+            }
+            return Collections.emptyList();
         }
 
         public LogicalCondition generateOtherCondition() {
