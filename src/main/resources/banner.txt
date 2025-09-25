@@ -14,3 +14,4 @@
 ╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝     ╚═════╝  ╚═════╝  ╚═════╝    ╚═╝
 
 :: Spring Boot :: ${spring-boot.formatted-version}
+:: Port :: ${server.port:8080}
