@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -792,15 +791,8 @@ public class CubeQueryService {
                 }
                 case LikeLogicalCondition likeCondition -> {
                     var level = levelsConverter.stringToLevelIdentifier(likeCondition.getField());
-                    var allMembers = getMembersForLevel(level, dates);
-                    var pattern = Pattern.compile(likeCondition.getMatchingCriteria());
-                    var valuesToFilter = allMembers.stream()
-                            .filter(m -> pattern.matcher((String) m).find())
-                            .toList();
-                    if (valuesToFilter.isEmpty()) {
-                        yield ICubeRestriction.falseRestriction();
-                    }
-                    yield ICubeRestriction.inPath(level.getHierarchy(), inPathValues(level, valuesToFilter));
+                    yield ICubeRestriction.likePath(
+                            level.getHierarchy(), likePathValue(level, likeCondition.getMatchingCriteria()));
                 }
                 case BetweenLogicalCondition<?> betweenLogicalCondition -> {
                     var left = betweenLogicalCondition.getLeft();
@@ -808,28 +800,26 @@ public class CubeQueryService {
                     var leftInclusive = betweenLogicalCondition.isLeftInclusive();
                     var rightInclusive = betweenLogicalCondition.isRightInclusive();
                     var level = levelsConverter.stringToLevelIdentifier(betweenLogicalCondition.getField());
-                    var allMembers = getMembersForLevel(level, dates);
+                    var hierarchy = level.getHierarchy();
                     if (Objects.isNull(left) && Objects.isNull(right)) {
                         throw new ActiveViamRuntimeException("Left and right must not be null");
                     }
-                    var membersStream = allMembers.stream();
+                    var restrictions = new ArrayList<ICubeRestriction>();
                     if (Objects.nonNull(left)) {
-                        membersStream = membersStream.filter(m -> {
-                            var x = compareObjects(m, left);
-                            return leftInclusive ? x >= 0 : x > 0;
-                        });
+                        var path = comparePathValue(level, left);
+                        restrictions.add(
+                                leftInclusive
+                                        ? ICubeRestriction.greaterOrEqualPath(hierarchy, path)
+                                        : ICubeRestriction.greaterPath(hierarchy, path));
                     }
                     if (Objects.nonNull(right)) {
-                        membersStream = membersStream.filter(m -> {
-                            var x = compareObjects(m, right);
-                            return rightInclusive ? x <= 0 : x < 0;
-                        });
+                        var path = comparePathValue(level, right);
+                        restrictions.add(
+                                rightInclusive
+                                        ? ICubeRestriction.lessOrEqualPath(hierarchy, path)
+                                        : ICubeRestriction.lessPath(hierarchy, path));
                     }
-                    var valuesToFilter = membersStream.toList();
-                    if (valuesToFilter.isEmpty()) {
-                        yield ICubeRestriction.falseRestriction();
-                    }
-                    yield ICubeRestriction.inPath(level.getHierarchy(), inPathValues(level, valuesToFilter));
+                    yield ICubeRestriction.and(restrictions);
                 }
                 case MeasureCondition measureCondition ->
                     throw new UnsupportedOperationException(
@@ -1061,6 +1051,22 @@ public class CubeQueryService {
                 return new Object[] {values};
             } else {
                 return new Object[] {ALLMEMBER, values};
+            }
+        }
+
+        private String[] likePathValue(LevelIdentifier levelIdentifier, String value) {
+            if (isSlicingHierarchy(levelIdentifier.getHierarchy())) {
+                return new String[] {value};
+            } else {
+                return new String[] {ALLMEMBER, value};
+            }
+        }
+
+        private Object[] comparePathValue(LevelIdentifier levelIdentifier, Object value) {
+            if (isSlicingHierarchy(levelIdentifier.getHierarchy())) {
+                return new Object[] {value};
+            } else {
+                return new Object[] {ALLMEMBER, value};
             }
         }
 

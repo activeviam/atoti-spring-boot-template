@@ -5,7 +5,7 @@ AsOf,TradeId,TradeDate,CounterpartyId,Desk,Portfolio,Numerical
 2019-01-01,4,2018-09-20,Cpty_2,Desk_1,PF_2,8
 2019-01-01,5,2018-10-03,Cpty_3,Desk_1,PF_3,9
 2019-01-01,6,2018-06-08,Cpty_1,Desk_2,PF_4,10
-2019-01-01,7,2018-07-02,Cpty_1,Desk_2,PF_5,11
+2019-01-01,7,,Cpty_1,Desk_2,PF_5,11
 2019-01-01,8,2018-08-23,Cpty_2,Desk_2,PF_5,12
 2019-01-01,9,2018-09-20,Cpty_2,Desk_2,PF_5,13
-2019-01-01,10,2018-10-03,Cpty_3,Desk_2,PF_6,14
+2019-01-01,10,,Cpty_3,Desk_2,PF_6,14

@@ -62,7 +62,7 @@ public class StoreDefinitionsConfig {
                 .asKeyField()
                 .withField(TRADE_ID, INT)
                 .asKeyField()
-                .withField(TRADE_DATE, LOCAL_DATE)
+                .withNullableField(TRADE_DATE, LOCAL_DATE)
                 .withField(COUNTERPARTY_ID, STRING)
                 .withField(DESK, STRING)
                 .withField(PORTFOLIO, STRING)

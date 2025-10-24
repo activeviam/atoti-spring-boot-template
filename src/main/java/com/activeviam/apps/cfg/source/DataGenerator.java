@@ -60,7 +60,7 @@ public class DataGenerator {
                 .mapToObj(i -> new Object[] {
                     asOfDate,
                     i,
-                    asOfDate.minusDays(RANDOM_GENERATOR.nextInt(60)),
+                    RANDOM_GENERATOR.nextBoolean() ? asOfDate.minusDays(RANDOM_GENERATOR.nextInt(60)):null,
                     getCpty(i),
                     getDesk(i),
                     getPortfolio(i),
