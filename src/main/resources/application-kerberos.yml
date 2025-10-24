@@ -1,0 +1,27 @@
+server:
+  servlet:
+    session:
+      cookie:
+        same-site: lax
+        secure: false
+
+kerberos:
+  realm: EXAMPLE.COM
+  kdc: kerberos.example.com
+  service-principal: HTTP/app.example.com@EXAMPLE.COM
+  keytab-location: classpath:/kerberos/app.keytab
+  #krb-conf-location: classpath:/kerberos/krb5.conf
+  krb-conf-location: file:/etc/krb5.conf
+  debug: true
+
+security:
+  authentication:
+    mode: kerberos
+
+# Kerberos
+atoti:
+  server:
+    endpoint:
+      jwt:
+        security:
+          enabled: false

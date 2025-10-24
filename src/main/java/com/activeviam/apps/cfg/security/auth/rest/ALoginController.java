@@ -32,7 +32,7 @@ public abstract class ALoginController {
         model.addAttribute(ERROR_PARAM, error);
         model.addAttribute(AUTH_URI_PARAM, getAuthenticateUri());
         model.addAttribute("registrationIds", getRegistrationIds());
-        return "login.html";
+        return "login-sso.html";
     }
 
     /**
@@ -40,7 +40,7 @@ public abstract class ALoginController {
      */
     @GetMapping(LOGOUT_PAGE_URL)
     public String logout() {
-        return "logout.html";
+        return "logout-sso.html";
     }
 
     protected abstract String getAuthenticateUri();

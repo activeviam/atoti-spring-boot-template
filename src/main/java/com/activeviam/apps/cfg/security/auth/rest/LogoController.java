@@ -6,6 +6,13 @@
  */
 package com.activeviam.apps.cfg.security.auth.rest;
 
+import static com.activeviam.apps.cfg.security.auth.AuthenticationProperties.MODE_OAUTH;
+import static com.activeviam.apps.cfg.security.auth.AuthenticationProperties.MODE_PROP;
+import static com.activeviam.apps.cfg.security.auth.AuthenticationProperties.MODE_SAML;
+
+import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -19,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author ActiveViam
  */
 @RestController
+@Conditional(LogoController.OAuthSamlCondition.class)
 public class LogoController {
     public static final String IMAGE_SVG_XML = "image/svg+xml";
 
@@ -44,5 +52,18 @@ public class LogoController {
     @GetMapping(value = "/logo-sso/{registrationId}", produces = MediaType.IMAGE_PNG_VALUE)
     public Resource ssoLogo(@PathVariable String registrationId) {
         return new ClassPathResource("static/logo/" + registrationId + ".png");
+    }
+
+    static class OAuthSamlCondition extends AnyNestedCondition {
+
+        public OAuthSamlCondition() {
+            super(ConfigurationPhase.PARSE_CONFIGURATION);
+        }
+
+        @ConditionalOnProperty(name = MODE_PROP, havingValue = MODE_OAUTH)
+        static class OAuthCondition {}
+
+        @ConditionalOnProperty(name = MODE_PROP, havingValue = MODE_SAML)
+        static class SamlCondition {}
     }
 }

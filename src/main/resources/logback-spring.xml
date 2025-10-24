@@ -30,7 +30,10 @@
   <!--  <logger name="org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor"-->
   <!--          level="DEBUG"/>-->
 
-  <!--  <logger name="org.springframework.security" level="TRACE"/>-->
+  <logger name="org.springframework.security" level="TRACE"/>
+
+  <!-- Display the env values at startup -->
+  <logger name="com.activeviam.apm.spring" level="debug"/>
 
   <root level="INFO">
     <appender-ref ref="CONSOLE"/>

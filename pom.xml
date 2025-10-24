@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.springframework.boot</groupId>
@@ -19,6 +20,7 @@
     <spring-boot.version>${project.parent.version}</spring-boot.version>
     <atoti-server.version>6.1.12</atoti-server.version>
     <springdoc.version>2.8.13</springdoc.version>
+    <spring-security-kerberos-version>2.2.0</spring-security-kerberos-version>
 
     <opentelemetry.version>1.53.0</opentelemetry.version>
     <opentelemetry-instrumentation.version>2.19.0</opentelemetry-instrumentation.version>
@@ -78,6 +80,16 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-thymeleaf</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security.kerberos</groupId>
+      <artifactId>spring-security-kerberos-web</artifactId>
+      <version>${spring-security-kerberos-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security.kerberos</groupId>
+      <artifactId>spring-security-kerberos-core</artifactId>
+      <version>${spring-security-kerberos-version}</version>
     </dependency>
 
     <dependency>

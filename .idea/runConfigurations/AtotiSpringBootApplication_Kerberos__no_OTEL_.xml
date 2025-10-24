@@ -1,12 +1,12 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="AtotiSpringBootApplication (no OTEL)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+  <configuration default="false" name="AtotiSpringBootApplication Kerberos (no OTEL)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <envs>
       <env name="CSV_DATA_BASE_DIR" value="./src/main/resources/data" />
     </envs>
     <module name="atoti-spring-boot-template" />
     <option name="SHORTEN_COMMAND_LINE" value="ARGS_FILE" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.activeviam.apps.AtotiSpringBootApplication" />
-    <option name="VM_PARAMETERS" value="-Dspring.profiles.active=local --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED" />
+    <option name="VM_PARAMETERS" value="-Dspring.profiles.active=local,kerberos --add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

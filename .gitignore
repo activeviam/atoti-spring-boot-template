@@ -10,10 +10,8 @@ deployment-v*
 **/.yarnrc
 **/*.log
 **/*.log.gz
-activepivot/src/main/resources/data/
-activepivot/src/main/resources/data_poc/new_data/mc.csv
-content-server-temp/
 tempo-data/
+**/*.keytab
 
 ### STS ###
 .apt_generated

@@ -79,7 +79,7 @@ dlc:
 # Security configuration
 security:
   authentication:
-    mode: saml
+    mode: memory
     in-memory:
       users:
         - username: admin

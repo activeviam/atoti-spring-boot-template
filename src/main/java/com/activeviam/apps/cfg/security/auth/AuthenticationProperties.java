@@ -16,11 +16,13 @@ public record AuthenticationProperties(Mode mode, InMemoryAuthenticationProperti
     public static final String MODE_PROP = PREFIX + ".mode";
     public static final String MODE_SAML = "saml";
     public static final String MODE_OAUTH = "oauth";
+    public static final String MODE_KERBEROS = "kerberos";
     public static final String MODE_IN_MEMORY = "memory";
 
     public enum Mode {
         SAML,
         OAUTH,
+        KERBEROS,
         MEMORY
     }
 
