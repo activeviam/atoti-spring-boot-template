@@ -9,11 +9,15 @@ package com.activeviam.apps.cfg.datastore.datamodel;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.ASOFDATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.RUN_CHAINS_STORE;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.RUN_ID;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
+import static com.activeviam.database.api.types.ILiteralType.BOOLEAN;
 import static com.activeviam.database.api.types.ILiteralType.DOUBLE;
+import static com.activeviam.database.api.types.ILiteralType.INT;
 import static com.activeviam.database.api.types.ILiteralType.LOCAL_DATE;
 import static com.activeviam.database.api.types.ILiteralType.STRING;
 
@@ -30,6 +34,17 @@ public class StoresConfiguration {
 
     public static String referenceName(String from, String to) {
         return String.format("%s_to_%s", from, to);
+    }
+
+    @Bean
+    public IStoreDescription runChainsStore() {
+        return StoreDescription.builder()
+                .withStoreName(RUN_CHAINS_STORE)
+                .withField(RUN_ID, INT).asKeyField()
+                .withField("DataProviderId", INT).asKeyField()
+                .withField("SourcedFromRunId", STRING).indexed()
+                .withField("IsSourceIncremental", BOOLEAN)
+                .build();
     }
 
     @Bean

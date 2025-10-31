@@ -6,6 +6,7 @@
  */
 package com.activeviam.apps.cfg.source;
 
+import static com.activeviam.apps.constants.StoreAndFieldConstants.RUN_CHAINS_STORE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 
@@ -38,7 +39,7 @@ public class InitialCsvLoad {
         log.info("Initial data load started...");
         try {
             dataLoadControllerService.execute(DlcLoadRequest.builder()
-                    .topics(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME)
+                    .topics(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME, RUN_CHAINS_STORE)
                     .build());
             log.info("Initial data load completed");
             DatabasePrinter.printTableSizes(datastore.getMasterHead());

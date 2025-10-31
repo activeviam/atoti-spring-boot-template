@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 public class StoreAndFieldConstants {
     /*********************** Stores names **********************/
     public static final String TRADES_STORE_NAME = "Trades";
+    public static final String RUN_CHAINS_STORE = "CubeRunChains";
 
     public static final String TRADE_ATTRIBUTES_STORE_NAME = "TradeAttributes";
 
@@ -24,4 +25,5 @@ public class StoreAndFieldConstants {
 
     public static final String TRADE_DATE = "TradeDate";
     public static final String COUNTERPARTY_ID = "CounterpartyID";
+    public static final String RUN_ID = "RunId";
 }

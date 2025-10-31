@@ -6,6 +6,7 @@
  */
 package com.activeviam.apps.cfg.source;
 
+import static com.activeviam.apps.constants.StoreAndFieldConstants.RUN_CHAINS_STORE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 
@@ -33,6 +34,12 @@ public class CsvSourceConfig {
     @Bean
     CsvTopicDescription tradeAttributesCsvTopic() {
         return CsvTopicDescription.builder(TRADE_ATTRIBUTES_STORE_NAME, TRADE_ATTRIBUTES_FILE_PATTERN)
+                .build();
+    }
+
+    @Bean
+    CsvTopicDescription cubeRunChainsCsvTopic() {
+        return CsvTopicDescription.builder(RUN_CHAINS_STORE, "glob:**cube_run_chains.csv")
                 .build();
     }
 }
