@@ -167,16 +167,16 @@ Password for admin@EXAMPLE.COM:
 
 # Check the user ticket exists
 $ klist
-Ticket cache: FILE:/tmp/krb5cc_1000
+Ticket cache: KCM:1000
 Default principal: admin@EXAMPLE.COM
 
 Valid starting     Expires            Service principal
-24/10/25 18:55:03  25/10/25 18:55:01  krbtgt/EXAMPLE.COM@EXAMPLE.COM
-	renew until 31/10/25 18:55:01
+27/10/25 13:50:48  28/10/25 13:50:46  krbtgt/EXAMPLE.COM@EXAMPLE.COM
+	renew until 03/11/25 13:50:46
 
 # Export the necessary environment variables, so curl and the browser can access the Kerberos setup
-$ export KRB5CCNAME=/tmp/krb5cc_$(id -u)
-$ export KRB5_CLIENT_KTNAME=./src/main/kerberos/app.keytab
+#$ export KRB5CCNAME=/tmp/krb5cc_$(id -u)
+$ export KRB5_CLIENT_KTNAME=./src/main/resources/kerberos/app.keytab
 
 # Test with curl and ensure the Kerberos Negotiate token is sent and accepted
 $ curl -v -u : --negotiate http://app.example.com:9090/ui/index.html
