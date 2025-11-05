@@ -282,8 +282,6 @@
               <version>${spring-boot.version}</version>
             </path>
           </annotationProcessorPaths>
-          <!-- https://github.com/spring-projects/spring-framework/wiki/Upgrading-to-Spring-Framework-6.x#parameter-name-retention -->
-          <parameters>true</parameters>
         </configuration>
       </plugin>
 
