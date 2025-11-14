@@ -10,3 +10,6 @@ otel:
     exporter: none
   logs:
     exporter: none
+
+cxf:
+  path: /webservices

@@ -70,7 +70,6 @@ Similarly, you can find the following run configurations that work with IntelliJ
 - `AtotiSpringBootApplication (no OTEL) App`
 - `AtotiSpringBootApplication OTEL App`
 
-
 #### Connecting to the Atoti Server
 
 - Excel: you can connect to the cube from Excel, by connecting to an 'Analysis Services' source.
@@ -93,3 +92,20 @@ generating a new key pair.
 ## ❤️ Using OpenTelemetry
 
 Check [this section for OpenTelemetry](./otel/doc/STACK.md).
+
+## WebServices
+
+Test with the following
+
+```bash
+curl -X POST http://localhost:9090/webservices/DummyService \
+  -H "Content-Type: text/xml" \
+  -d '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:qua="http://www.quartetfs.com">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <qua:executeMDX>
+         <query>test query</query>
+      </qua:executeMDX>
+   </soapenv:Body>
+</soapenv:Envelope>'
+```

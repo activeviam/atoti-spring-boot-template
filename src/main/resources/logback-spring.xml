@@ -30,6 +30,7 @@
   <!--          level="DEBUG"/>-->
 
   <!--  <logger name="org.springframework.security" level="TRACE"/>-->
+  <logger name="org.apache.cxf" level="TRACE"/>
 
   <root level="INFO">
     <appender-ref ref="CONSOLE"/>
