@@ -87,6 +87,17 @@
       <groupId>com.activeviam.springboot</groupId>
       <artifactId>atoti-server-starter</artifactId>
       <version>${atoti-server.version}</version>
+      <!-- Atoti 6.1.13 brings an incompatible version of swagger-* deps that makes Swagger UI fails -->
+      <exclusions>
+        <exclusion>
+          <groupId>io.swagger.core.v3</groupId>
+          <artifactId>swagger-annotations</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.swagger.core.v3</groupId>
+          <artifactId>swagger-annotations-jakarta</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.activeviam.springboot</groupId>
