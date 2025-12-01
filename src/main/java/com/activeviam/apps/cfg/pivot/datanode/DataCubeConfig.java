@@ -86,6 +86,7 @@ public class DataCubeConfig {
             // In memory node has the highest priority (0)
             var overlapPriority = isInMemory ? 1 : Integer.MAX_VALUE;
             var address = InetAddress.getLoopbackAddress().getHostAddress();
+            log.info("Data node priority: {}", cobDatesProperties.getPriority());
             return builder.asDataCube()
                     .withClusterDefinition()
                     .withClusterId(distributionProperties.getClusterId())
