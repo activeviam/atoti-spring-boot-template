@@ -4,12 +4,13 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-
 package com.activeviam.apps.soap;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+
+import com.activeviam.apps.soap.dto.VarQueryDTO;
 
 import jakarta.jws.WebService;
 

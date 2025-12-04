@@ -8,6 +8,6 @@
 @jakarta.xml.bind.annotation.XmlSchema(
         namespace = "http://www.quartetfs.com",
         elementFormDefault = jakarta.xml.bind.annotation.XmlNsForm.QUALIFIED)
-package com.activeviam.apps.soap.context;
+package com.activeviam.apps.soap.dto.core.query;
 
 // Enhance if required

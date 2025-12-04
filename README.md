@@ -111,12 +111,12 @@ curl -X POST http://localhost:9090/webservices/DummyService \
 ```
 
 ```bash
-curl -X POST http://localhost:9090/webservices/DummyService \
+curl -X POST http://localhost:9090/webservices/VaRQueryService \
   -H "Content-Type: text/xml" \
   -d '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:qua="http://www.quartetfs.com">
    <soapenv:Header/>
    <soapenv:Body>
-      <qua:executeDT>
+      <qua:testVarDataExtract>
         <varQueryDTO xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <confidenceLevel>0.99</confidenceLevel>
           <dtHeader>DealNum|TranDate|SourceSystem|Ptfolio|TrnFmly|TrnGrp|TrnType|PlCur|Cur|Instrument|TpCntrp|Currency|ScenarioValues</dtHeader>
@@ -171,7 +171,8 @@ curl -X POST http://localhost:9090/webservices/DummyService \
           <from>0</from>
           <to>0</to>
         </varQueryDTO>
-      </qua:executeDT>
+      </qua:testVarDataExtract>
    </soapenv:Body>
 </soapenv:Envelope>'
 ```
+

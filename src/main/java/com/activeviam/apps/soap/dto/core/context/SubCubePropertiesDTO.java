@@ -4,8 +4,7 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-
-package com.activeviam.apps.soap.context;
+package com.activeviam.apps.soap.dto.core.context;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,7 +20,7 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @XmlRootElement(name = "subCubeProperties")
-public class SubCubeProperties extends AContextValue implements ISubCubeProperties {
+public class SubCubePropertiesDTO extends AContextValueDTO implements ISubCubePropertiesDTO {
     /** serialVersionUID. */
     private static final long serialVersionUID = -6838365461237781879L;
     /**
@@ -46,7 +45,7 @@ public class SubCubeProperties extends AContextValue implements ISubCubeProperti
      * Constructor.
      * Builds a subcube without any access.
      */
-    public SubCubeProperties() {
+    public SubCubePropertiesDTO() {
         this(false);
     }
 
@@ -55,13 +54,13 @@ public class SubCubeProperties extends AContextValue implements ISubCubeProperti
      *
      * @param accessGranted True to grant access to something in the cube.
      */
-    public SubCubeProperties(boolean accessGranted) {
+    public SubCubePropertiesDTO(boolean accessGranted) {
         this.accessGranted = accessGranted;
     }
 
     @Override
-    public Class<? extends IContextValue> getContextInterface() {
-        return ISubCubeProperties.class;
+    public Class<? extends IContextValueDTO> getContextInterface() {
+        return ISubCubePropertiesDTO.class;
     }
 
     @Override
@@ -155,7 +154,7 @@ public class SubCubeProperties extends AContextValue implements ISubCubeProperti
         if (getClass() != obj.getClass()) {
             return false;
         }
-        var other = (SubCubeProperties) obj;
+        var other = (SubCubePropertiesDTO) obj;
         if (accessGranted != other.accessGranted) {
             return false;
         }

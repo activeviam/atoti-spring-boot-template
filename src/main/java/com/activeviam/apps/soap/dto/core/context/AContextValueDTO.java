@@ -4,22 +4,24 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
+package com.activeviam.apps.soap.dto.core.context;
 
-package com.activeviam.apps.soap.context;
+import java.io.Serial;
 
 import com.activeviam.tech.core.api.exceptions.ActiveViamRuntimeException;
 
 import jakarta.xml.bind.annotation.XmlSeeAlso;
 
-@XmlSeeAlso({SubCubeProperties.class})
-public abstract class AContextValue implements IContextValue {
+@XmlSeeAlso({SubCubePropertiesDTO.class})
+public abstract class AContextValueDTO implements IContextValueDTO {
     /** serialVersionUID. */
+    @Serial
     private static final long serialVersionUID = -8101163655036794355L;
 
     @Override
-    public IContextValue clone() {
+    public IContextValueDTO clone() {
         try {
-            return (IContextValue) super.clone();
+            return (IContextValueDTO) super.clone();
         } catch (CloneNotSupportedException e) {
             throw new ActiveViamRuntimeException("Context value implementation does not support cloning.", e);
         }

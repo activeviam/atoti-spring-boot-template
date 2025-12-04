@@ -1,0 +1,13 @@
+/*
+ * Copyright (C) ActiveViam 2019-2025
+ * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
+ * property of ActiveViam Limited. Any unauthorized use,
+ * reproduction or transfer of this material is strictly prohibited
+ */
+
+@jakarta.xml.bind.annotation.XmlSchema(
+        namespace = "http://www.quartetfs.com",
+        elementFormDefault = jakarta.xml.bind.annotation.XmlNsForm.QUALIFIED)
+package com.activeviam.apps.soap.dto.core.loc;
+
+// Enhance if required

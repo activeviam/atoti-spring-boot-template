@@ -4,8 +4,7 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-
-package com.activeviam.apps.soap.context;
+package com.activeviam.apps.soap.dto.core.context;
 
 import java.util.ArrayList;
 import java.util.HashMap;

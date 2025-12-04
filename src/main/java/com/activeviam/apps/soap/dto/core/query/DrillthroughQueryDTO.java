@@ -4,14 +4,17 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-
-package com.activeviam.apps.soap.query;
+package com.activeviam.apps.soap.dto.core.query;
 
 import java.util.Collection;
 import java.util.List;
 
+import com.activeviam.activepivot.core.impl.api.query.drillthrough.DrillthroughQuery;
+import com.activeviam.activepivot.core.intf.api.contextvalues.IContextValue;
 import com.activeviam.activepivot.core.intf.api.location.ILocation;
-import com.activeviam.apps.soap.context.IContextValue;
+import com.activeviam.activepivot.core.intf.api.query.drillthrough.IDrillthroughQuery;
+import com.activeviam.apps.soap.dto.core.context.ContextValuesAdapter;
+import com.activeviam.apps.soap.dto.core.loc.LocationAdapter;
 
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElementWrapper;
@@ -19,7 +22,7 @@ import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.Data;
 
 @Data
-public class DrillthroughQuery {
+public class DrillthroughQueryDTO {
     private String pivotId;
     /**
      * The requested locations.
@@ -69,5 +72,16 @@ public class DrillthroughQuery {
      */
     public void setIsFormatted(boolean isFormatted) {
         this.isFormatted = isFormatted;
+    }
+
+    public IDrillthroughQuery toCoreDrillthroughQuery() {
+        return new DrillthroughQuery(
+                getPivotId(),
+                getLocations(),
+                getMeasures(),
+                getContextValues(),
+                getIsFormatted(),
+                getFirstResult(),
+                getMaxResults());
     }
 }

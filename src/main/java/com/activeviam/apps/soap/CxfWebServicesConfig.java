@@ -4,7 +4,6 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-
 package com.activeviam.apps.soap;
 
 import org.apache.cxf.Bus;
@@ -19,11 +18,19 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CxfWebServicesConfig {
     private final IDummyService dummyService;
+    private final IVaRQueryService varQueryService;
 
     @Bean
-    public Endpoint queriesEndpoint(Bus cxfBus) {
+    public Endpoint dummyEndpoint(Bus cxfBus) {
         var endpoint = new EndpointImpl(cxfBus, dummyService);
         endpoint.publish("/DummyService");
+        return endpoint;
+    }
+
+    @Bean
+    public Endpoint varQueriesEndpoint(Bus cxfBus) {
+        var endpoint = new EndpointImpl(cxfBus, varQueryService);
+        endpoint.publish("/VaRQueryService");
         return endpoint;
     }
 }

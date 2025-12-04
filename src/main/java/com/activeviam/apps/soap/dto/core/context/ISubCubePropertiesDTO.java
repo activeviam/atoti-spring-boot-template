@@ -4,8 +4,7 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-
-package com.activeviam.apps.soap.context;
+package com.activeviam.apps.soap.dto.core.context;
 
 /**
  * The main component of the SubCube functionality.
@@ -16,10 +15,10 @@ package com.activeviam.apps.soap.context;
  *
  * <p>SubCube properties store granted rights on an ActivePivot's instance.
  *
- * @see IContextValue
+ * @see IContextValueDTO
  * @author ActiveViam
  */
-public interface ISubCubeProperties extends IContextValue {
+public interface ISubCubePropertiesDTO extends IContextValueDTO {
     /**
      * PLUGIN_KEY_PREFIX
      */

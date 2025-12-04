@@ -4,8 +4,9 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-
 package com.activeviam.apps.soap;
+
+import com.activeviam.apps.soap.dto.VarQueryDTO;
 
 import jakarta.jws.WebMethod;
 import jakarta.jws.WebParam;

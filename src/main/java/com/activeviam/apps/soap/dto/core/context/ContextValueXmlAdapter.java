@@ -4,8 +4,7 @@
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
-
-package com.activeviam.apps.soap.context;
+package com.activeviam.apps.soap.dto.core.context;
 
 import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 
@@ -17,15 +16,15 @@ import jakarta.xml.bind.annotation.adapters.XmlAdapter;
  * @author ActiveViam
  *
  */
-public class ContextValueXmlAdapter extends XmlAdapter<AContextValue, IContextValue> {
+public class ContextValueXmlAdapter extends XmlAdapter<AContextValueDTO, IContextValueDTO> {
 
     @Override
-    public AContextValue marshal(IContextValue intf) {
-        return (AContextValue) intf;
+    public AContextValueDTO marshal(IContextValueDTO intf) {
+        return (AContextValueDTO) intf;
     }
 
     @Override
-    public IContextValue unmarshal(AContextValue impl) {
+    public IContextValueDTO unmarshal(AContextValueDTO impl) {
         return impl;
     }
 }
