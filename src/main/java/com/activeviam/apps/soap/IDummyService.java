@@ -18,5 +18,9 @@ import jakarta.jws.soap.SOAPBinding;
 public interface IDummyService {
     @WebMethod(operationName = "executeMDX")
     @WebResult(name = "cellSet")
-    CellSetDTO execute(@WebParam(name = "query") String var);
+    CellSetDTO executeMdx(@WebParam(name = "query") String var);
+
+    @WebMethod(operationName = "executeDT")
+    @WebResult(name = "cellSet")
+    CellSetDTO executeDT(@WebParam(name = "varQueryDTO") VarQueryDTO varQueryDTO);
 }

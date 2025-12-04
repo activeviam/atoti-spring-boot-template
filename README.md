@@ -109,3 +109,69 @@ curl -X POST http://localhost:9090/webservices/DummyService \
    </soapenv:Body>
 </soapenv:Envelope>'
 ```
+
+```bash
+curl -X POST http://localhost:9090/webservices/DummyService \
+  -H "Content-Type: text/xml" \
+  -d '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:qua="http://www.quartetfs.com">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <qua:executeDT>
+        <varQueryDTO xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <confidenceLevel>0.99</confidenceLevel>
+          <dtHeader>DealNum|TranDate|SourceSystem|Ptfolio|TrnFmly|TrnGrp|TrnType|PlCur|Cur|Instrument|TpCntrp|Currency|ScenarioValues</dtHeader>
+          <dtQuery>
+            <firstResult xmlns="http://www.quartetfs.com">0</firstResult>
+            <maxResults xmlns="http://www.quartetfs.com">150000</maxResults>
+            <contextValues xmlns="http://www.quartetfs.com">
+              <subCubeProperties isAccessGranted="true">
+                <hierarchyRestrictions>
+                  <hierarchy name="DEF_HIE_Data Snapshot" dimension="Data Snapshot">
+                    <allowedMember>
+                      <memberPathPart xsi:type="xsd:string">AllMember</memberPathPart>
+                      <memberPathPart xsi:type="xsd:string">EOD</memberPathPart>
+                    </allowedMember>
+                  </hierarchy>
+                  <hierarchy name="DEF_HIE_Capital View" dimension="Capital View">
+                    <allowedMember>
+                      <memberPathPart xsi:type="xsd:string">AllMember</memberPathPart>
+                      <memberPathPart xsi:type="xsd:string">NO</memberPathPart>
+                    </allowedMember>
+                    <allowedMember>
+                      <memberPathPart xsi:type="xsd:string">AllMember</memberPathPart>
+                      <memberPathPart xsi:type="xsd:string">N/A</memberPathPart>
+                    </allowedMember>
+                  </hierarchy>
+                  <hierarchy name="DEF_HIE_Risk Portfolio Hierarchy" dimension="Risk Portfolio Hierarchy">
+                    <allowedMember>
+                      <memberPathPart xsi:type="xsd:string">AllMember</memberPathPart>
+                      <memberPathPart xsi:type="xsd:string">ANZ Group</memberPathPart>
+                      <memberPathPart xsi:type="xsd:string">TradedCAPM</memberPathPart>
+                      <memberPathPart xsi:type="xsd:string">Combined Trading</memberPathPart>
+                      <memberPathPart xsi:type="xsd:string">Traded</memberPathPart>
+                      <memberPathPart xsi:type="xsd:string">LM Trading</memberPathPart>
+                      <memberPathPart xsi:type="xsd:string">LM - India</memberPathPart>
+                    </allowedMember>
+                  </hierarchy>
+                  <hierarchy name="DEF_HIE_Container" dimension="Container">
+                    <allowedMember>
+                      <memberPathPart xsi:type="xsd:string">AllMember</memberPathPart>
+                      <memberPathPart xsi:type="xsd:string">VAR_1D</memberPathPart>
+                    </allowedMember>
+                  </hierarchy>
+                </hierarchyRestrictions>
+              </subCubeProperties>
+            </contextValues>
+            <isFormatted xmlns="http://www.quartetfs.com">false</isFormatted>
+            <locations xmlns="http://www.quartetfs.com">
+              <location>17/11/25|AllMember|AllMember|AllMember|AUD|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|AllMember|N/A|N/A|1|1|1|1|1|1|1|1|1|1|1|N/A|RegCapital|RegCapital</location>
+            </locations>
+            <pivotId xmlns="http://www.quartetfs.com">MarketRiskCube</pivotId>
+          </dtQuery>
+          <from>0</from>
+          <to>0</to>
+        </varQueryDTO>
+      </qua:executeDT>
+   </soapenv:Body>
+</soapenv:Envelope>'
+```

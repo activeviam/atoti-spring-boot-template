@@ -22,7 +22,12 @@ import jakarta.jws.WebService;
 public class DummyService implements IDummyService {
 
     @Override
-    public CellSetDTO execute(String query) {
+    public CellSetDTO executeMdx(String query) {
+        return new CellSetDTO(List.of("this", "is", "a", "dummy", "response"));
+    }
+
+    @Override
+    public CellSetDTO executeDT(VarQueryDTO varQueryDTO) {
         return new CellSetDTO(List.of("this", "is", "a", "dummy", "response"));
     }
 }
