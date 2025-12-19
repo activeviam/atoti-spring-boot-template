@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class DataGenerator {
 
@@ -71,10 +72,9 @@ public class DataGenerator {
 
     public List<Object[]> generateMultiTradeData(LocalDate asOfDate, int tradesCount) {
         return IntStream.range(0, tradesCount)
-                .mapToObj(i -> List.of(
-                        new Object[] {asOfDate, i, "A", RANDOM_GENERATOR.nextDouble(20.0)},
-                        new Object[] {asOfDate, i, "B", RANDOM_GENERATOR.nextDouble(20.0)}))
-                .flatMap(List::stream)
+                .mapToObj(i ->
+                        Stream.of("A", "B").map(v -> new Object[] {asOfDate, i, v, RANDOM_GENERATOR.nextDouble(20.0)}))
+                .flatMap(s -> s)
                 .toList();
     }
 }
