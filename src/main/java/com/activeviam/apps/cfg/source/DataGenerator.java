@@ -68,4 +68,13 @@ public class DataGenerator {
                 })
                 .toList();
     }
+
+    public List<Object[]> generateMultiTradeData(LocalDate asOfDate, int tradesCount) {
+        return IntStream.range(0, tradesCount)
+                .mapToObj(i -> List.of(
+                        new Object[] {asOfDate, i, "A", RANDOM_GENERATOR.nextDouble(20.0)},
+                        new Object[] {asOfDate, i, "B", RANDOM_GENERATOR.nextDouble(20.0)}))
+                .flatMap(List::stream)
+                .toList();
+    }
 }

@@ -20,6 +20,8 @@ public class StoreAndFieldConstants {
 
     public static final String SHIFT_COB_DATE_STORE_NAME = "CobDates";
 
+    public static final String ONE_TO_MANY_STORE_NAME = "FinancialsStore";
+
     /********************* Stores fields ***********************/
     public static final String COB_DATE = "CobDate";
 
@@ -38,4 +40,7 @@ public class StoreAndFieldConstants {
     public static final String TRADE_DATE = "TradeDate";
     public static final String COUNTERPARTY_ID = "CounterpartyID";
     public static final String COUNTERPARTY_NAME = "CounterpartyName";
+
+    public static final String MULTIPLE_TRADE_VALUE_ID = "MultipleTradeValueID";
+    public static final String MULTIPLE_TRADE_VALUE = "MultipleTradeValue";
 }

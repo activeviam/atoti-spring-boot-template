@@ -6,6 +6,7 @@
  */
 package com.activeviam.apps.cfg.source;
 
+import static com.activeviam.apps.cfg.source.CsvSourceConfig.TRADE_MULTI_VALUES_CSV_TOPIC;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
@@ -73,6 +74,7 @@ public class InitialLoad {
                     t.addAll(TRADES_STORE_NAME, dataGenerator.generateTradeData(date, TRADES_COUNT));
                     t.addAll(
                             TRADE_ATTRIBUTES_STORE_NAME, dataGenerator.generateTradeAttributesData(date, TRADES_COUNT));
+                    t.addAll(TRADE_MULTI_VALUES_CSV_TOPIC, dataGenerator.generateMultiTradeData(date, TRADES_COUNT));
                 });
                 t.forceCommit();
             });

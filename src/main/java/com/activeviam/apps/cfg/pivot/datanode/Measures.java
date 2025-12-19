@@ -10,11 +10,17 @@ import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.COB_DATE_LEVEL;
 import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.COUNTERPARTY_LEVEL;
 import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.PORTFOLIO_LEVEL;
 import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.SHIFT_COB_DATE_LEVEL;
+import static com.activeviam.apps.cfg.pivot.datanode.Dimensions.TRADE_ID_LEVEL;
 import static com.activeviam.apps.constants.CubeConstants.DOUBLE_FORMATTER;
 import static com.activeviam.apps.constants.CubeConstants.INT_FORMATTER;
 import static com.activeviam.apps.constants.CubeConstants.NATIVE_MEASURES;
 import static com.activeviam.apps.constants.CubeConstants.TIMESTAMP_FORMATTER;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.COB_DATE;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.MULTIPLE_TRADE_VALUE;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.MULTIPLE_TRADE_VALUE_ID;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.ONE_TO_MANY_STORE_NAME;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,9 +29,11 @@ import java.util.function.Consumer;
 import com.activeviam.activepivot.copper.api.Copper;
 import com.activeviam.activepivot.copper.api.CopperMeasure;
 import com.activeviam.activepivot.core.intf.api.copper.ICopperContext;
+import com.activeviam.activepivot.core.intf.api.copper.Publishable;
+import com.activeviam.database.api.schema.FieldPath;
 
 public class Measures implements Consumer<ICopperContext> {
-    private final List<CopperMeasure> copperMeasures = new ArrayList<>();
+    private final List<Publishable<?>> copperMeasures = new ArrayList<>();
 
     public static String postfixMeasure(String base, String measure) {
         return String.join(".", base, measure);
@@ -64,6 +72,20 @@ public class Measures implements Consumer<ICopperContext> {
                 .sum()
                 .withFormatter(INT_FORMATTER)
                 .as("Cpty count"));
+
+        // COPPER JOIN
+        var joinedStore = Copper.store(ONE_TO_MANY_STORE_NAME)
+                .joinToCube()
+                .withMapping(FieldPath.of(COB_DATE), COB_DATE_LEVEL)
+                .withMapping(FieldPath.of(TRADE_ID), TRADE_ID_LEVEL);
+
+        var multiTradeValueIdHierarchy = Copper.newHierarchy("MultiTradeValueID")
+                .fromField(joinedStore.field(FieldPath.of(MULTIPLE_TRADE_VALUE_ID)))
+                .withLevelName("MultiTradeValueIDLevel");
+        copperMeasures.add(multiTradeValueIdHierarchy);
+        var multiTradeValueMeasure = Copper.sum(joinedStore.field(FieldPath.of(MULTIPLE_TRADE_VALUE)))
+                .as(MULTIPLE_TRADE_VALUE);
+        copperMeasures.add(multiTradeValueMeasure);
     }
 
     @Override

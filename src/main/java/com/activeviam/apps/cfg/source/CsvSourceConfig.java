@@ -7,6 +7,7 @@
 package com.activeviam.apps.cfg.source;
 
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTIES_STORE_NAME;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.ONE_TO_MANY_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
@@ -29,10 +30,12 @@ public class CsvSourceConfig {
     public static final String CSV_TOPICS = "CsvTopics";
     public static final String TRADES_CSV_TOPIC = TRADES_STORE_NAME;
     public static final String TRADE_ATTRIBUTES_CSV_TOPIC = TRADE_ATTRIBUTES_STORE_NAME;
+    public static final String TRADE_MULTI_VALUES_CSV_TOPIC = ONE_TO_MANY_STORE_NAME;
     public static final String COUNTERPARTIES_CSV_TOPIC = COUNTERPARTIES_STORE_NAME;
 
     public static final String TRADES_PATTERN = "glob:**/trades.csv";
     public static final String TRADE_ATTRIBUTES_PATTERN = "glob:**/trade_attributes.csv";
+    public static final String TRADE_MULTI_VALUES_PATTERN = "glob:**/multiple_trade_attributes.csv";
 
     @Bean
     CsvTopicDescription tradesCsvTopic(NamedEntityResolverService namedEntityResolverService) {
@@ -42,6 +45,12 @@ public class CsvSourceConfig {
     @Bean
     CsvTopicDescription tradeAttributesCsvTopic(NamedEntityResolverService namedEntityResolverService) {
         return CsvTopicDescription.builder(TRADE_ATTRIBUTES_CSV_TOPIC, TRADE_ATTRIBUTES_PATTERN)
+                .build();
+    }
+
+    @Bean
+    CsvTopicDescription tradeMultipleValuesCsvTopic(NamedEntityResolverService namedEntityResolverService) {
+        return CsvTopicDescription.builder(TRADE_MULTI_VALUES_CSV_TOPIC, TRADE_MULTI_VALUES_PATTERN)
                 .build();
     }
 

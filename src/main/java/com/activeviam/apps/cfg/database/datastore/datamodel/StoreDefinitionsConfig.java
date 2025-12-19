@@ -11,8 +11,11 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTIE
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.DESK;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.MULTIPLE_TRADE_VALUE;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.MULTIPLE_TRADE_VALUE_ID;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NUMERIC;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.ONE_TO_MANY_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.PORTFOLIO;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.SHIFT_COB_DATE_STORE_NAME;
@@ -39,6 +42,20 @@ public class StoreDefinitionsConfig {
 
     public static String referenceName(String from, String to) {
         return String.format("%s_to_%s", from, to);
+    }
+
+    @Bean
+    public IStoreDescription createOneToManyStoreDescription() {
+        return StoreDescription.builder()
+                .withStoreName(ONE_TO_MANY_STORE_NAME)
+                .withField(COB_DATE, LOCAL_DATE)
+                .asKeyField()
+                .withField(TRADE_ID, INT)
+                .asKeyField()
+                .withField(MULTIPLE_TRADE_VALUE_ID, STRING)
+                .asKeyField()
+                .withField(MULTIPLE_TRADE_VALUE, DOUBLE)
+                .build();
     }
 
     @Bean
