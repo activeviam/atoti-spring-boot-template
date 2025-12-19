@@ -19,6 +19,7 @@ import com.activeviam.database.jdbc.api.SqlDialect;
 import com.activeviam.database.jdbc.dialect.dremio.internal.DremioSqlDialect;
 import com.activeviam.database.jdbc.internal.GenericJdbcConfiguration;
 import com.activeviam.database.jdbc.internal.GenericJdbcSqlDialect;
+import com.activeviam.database.sql.api.ICustomJdbcTypeMatcher;
 import com.activeviam.database.sql.api.query.CommentGenerator;
 import com.activeviam.database.sql.internal.jdbc.connection.IJdbcConfiguration;
 import com.activeviam.directquery.api.DirectQueryConnector;
@@ -63,6 +64,7 @@ public class DremioDirectQueryConnectorConfiguration {
                 new GenericJdbcSqlDialect(sqlDialect),
                 jdbcProperties.toProperties(),
                 Duration.ofSeconds(30),
+                ICustomJdbcTypeMatcher.DEFAULT,
                 CommentGenerator.NOOP);
     }
 }

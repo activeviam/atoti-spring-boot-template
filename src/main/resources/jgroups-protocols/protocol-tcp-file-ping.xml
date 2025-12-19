@@ -28,7 +28,6 @@
 	<VERIFY_SUSPECT timeout="30000" num_msgs="10"/>
 	<BARRIER />
 	<pbcast.NAKACK2
-			max_rebroadcast_timeout="5000"
 			use_mcast_xmit="false"
 			discard_delivered_msgs="true" />
 	<UNICAST3 />
