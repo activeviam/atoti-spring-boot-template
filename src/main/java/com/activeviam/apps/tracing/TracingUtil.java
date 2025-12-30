@@ -19,6 +19,8 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
+import lombok.Builder;
+import lombok.NonNull;
 
 /**
  * Simple tracing utility to create spans.
@@ -39,6 +41,16 @@ import io.opentelemetry.context.Scope;
  */
 public class TracingUtil {
 
+    public static String defaultTracingScopeName = "Atoti-Application";
+
+    public static String getDefaultTracingScopeName() {
+        return defaultTracingScopeName;
+    }
+
+    public static void setDefaultTracingScopeName(String defaultTracingScopeName) {
+        TracingUtil.defaultTracingScopeName = defaultTracingScopeName;
+    }
+    
     /**
      * Wrapper around a span and its scope. This is so we can close the scope and end the span at the same time.
      * This allows easy auto-closing of spans when used with Lombok's @Cleanup annotation.
@@ -56,27 +68,54 @@ public class TracingUtil {
         }
     }
 
-    public static Tracer getTracer(){
-        return Observability.getEffectiveOtelInstance().getTracer("DLC");
+    public static Tracer getTracer(@NonNull String tracerScopeName){
+        return Observability.getEffectiveOtelInstance().getTracer(tracerScopeName);
     }
 
+    /// Starts a span with the default tracing scope name and a span name based on the caller method name.
     public static TracingUtil.CloseableSpan startSpan(){
-        return startSpan(CallerTrace.ofExternalCaller().simpleName());
+        return closeableSpanBuilder().build();
     }
 
-    public static TracingUtil.CloseableSpan startSpan(String spanName){
-        return startSpan(spanName, null);
+    /// Starts a span with the default tracing scope name and the given span name.
+    public static TracingUtil.CloseableSpan startSpan(@NonNull String spanName){
+        return closeableSpanBuilder()
+                .spanName(spanName)
+                .build();
     }
 
+    /// Starts a span with the default tracing scope name, the given span name., and the given attributes.
     public static TracingUtil.CloseableSpan startSpan(@Nullable String spanName, @Nullable Attributes attributes){
-        return createAndStartSpan(spanName, attributes);
+        return closeableSpanBuilder()
+                .spanName(spanName)
+                .attributes(attributes)
+                .build();
     }
 
-    protected static TracingUtil.CloseableSpan createAndStartSpan(@Nullable String spanName, @Nullable Attributes attributes){
+    public static TracingUtil.CloseableSpanBuilder closeableSpanBuilder(){
+        return new TracingUtil.CloseableSpanBuilder();
+    }
+
+    /**
+     * Starts a span with the given tracer scope name, span name, and attributes.
+     * <br>
+     * Can use {@link #closeableSpanBuilder()} to build the span with a builder pattern.
+     * 
+     * @param tracerScopeName Name of the Tracer scope. If null, uses the default tracing scope name.
+     * @param spanName Name of the span. If null, uses the caller method name.
+     * @param attributes Attributes to set on the span. If null, uses empty attributes.
+     * @return The started span wrapped in a CloseableSpan.
+     */
+    @Builder
+    protected static TracingUtil.CloseableSpan startSpan(
+            @Nullable String tracerScopeName, 
+            @Nullable String spanName, 
+            @Nullable Attributes attributes){
+        tracerScopeName = tracerScopeName == null ? getDefaultTracingScopeName() : tracerScopeName;
         spanName = spanName == null ? CallerTrace.ofExternalCaller().simpleName() : spanName;
         attributes = attributes == null ? Attributes.empty() : attributes;
 
-        var span = getTracer()
+        var span = getTracer(tracerScopeName)
                 .spanBuilder(spanName)
                 .setAllAttributes(attributes)
                 .startSpan();
