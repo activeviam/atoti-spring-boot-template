@@ -18,10 +18,6 @@ VOLUME /app/data
 # ── Expose Atoti default port ─────────────────────────────────────────────────
 EXPOSE 9090
 
-# ── ATOTI_LICENSE is passed in at runtime via -e or docker-compose ─────────────
-# Declared here so it is visible as a documented contract of this image.
-ENV ATOTI_LICENSE=""
-
 # ── Start the application ─────────────────────────────────────────────────────
 ENTRYPOINT ["java", \
   "-Xms1g", \

@@ -1,0 +1,24 @@
+# Default values for atoti-application.
+# This is a YAML-formatted file.
+
+image:
+  # Set your docker image name and tag here
+  repository: "atoti-app"
+  tag: "latest"
+  pullPolicy: IfNotPresent  # Required when using minikube's Docker daemon
+
+# Paste your base64-encoded Atoti license here.
+# It will be injected as the ATOTI_LICENSE environment variable on the pod.
+license: "NBgOGw68U4INrpvPp7sOkjjK39958OrJmADnJaq1HuWX0LV6cNtj46fdJpPkwra2nvYMq72FDH3IRvCrCTElIEKUFqTBIpPQ0bwt+014irsaW2nerr4v8jGPR0aONVfPZuLBCo4FtlKe3jn2n9+hwpAi0Jlixum1R1L3+4Day4N4apJUWphaVcgKfImM7YOmzIR0P1vR1QXcRxK9oambEHFkyMTeohKuCal9NoMmGGKhp/na9OpGjPT2jHYnH2RHFYl1bCWvj511Z2zXtXlqI5+3SzwUNipOZw+OgM3F4xFpetRrTjHOGPw0Z0dz49Az9tFjlYmYvAQNMvn4Auh7uA=="
+
+service:
+  type: NodePort
+  port: 9090
+
+resources:
+  requests:
+    memory: "1Gi"
+    cpu: "500m"
+  limits:
+    memory: "4Gi"
+    cpu: "2"
