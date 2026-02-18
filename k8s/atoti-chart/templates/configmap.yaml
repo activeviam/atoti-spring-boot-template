@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "atoti-chart.fullname" . }}-config
+  labels:
+    {{- include "atoti-chart.labels" . | nindent 4 }}
+data:
+  # License file content is injected from values.yaml -> license.content
+  # The | nindent 4 preserves multi-line file content correctly
+  {{ .Values.license.fileName }}: |
+    {{- .Values.license.content | nindent 4 }}

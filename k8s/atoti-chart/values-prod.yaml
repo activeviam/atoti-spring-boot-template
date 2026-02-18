@@ -1,0 +1,23 @@
+# ── Production environment overrides ─────────────────────────────────────────
+# Apply with: helm install atoti-prod ./atoti-chart -f values-prod.yaml
+
+image:
+  pullPolicy: IfNotPresent    # Pull from real registry in prod
+
+replicaCount: 2
+
+resources:
+  requests:
+    memory: "2Gi"
+    cpu: "1"
+  limits:
+    memory: "4Gi"
+    cpu: "2"
+
+logs:
+  storage: 10Gi
+  hostPath: /mnt/atoti-logs-prod
+
+service:
+  type: LoadBalancer           # Use LoadBalancer in real cluster, not NodePort
+  nodePort: null

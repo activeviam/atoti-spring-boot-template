@@ -1,0 +1,12 @@
+apiVersion: v2
+name: atoti-chart
+description: Helm chart for deploying an Atoti executable JAR on Kubernetes
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - atoti
+  - java
+  - analytics
+maintainers:
+  - name: av-team

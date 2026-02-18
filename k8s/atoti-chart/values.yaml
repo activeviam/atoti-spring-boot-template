@@ -1,0 +1,44 @@
+# ── Image ─────────────────────────────────────────────────────────────────────
+image:
+  repository: atoti-app
+  tag: latest
+  pullPolicy: Never           # Use local minikube image; change to IfNotPresent for a real registry
+
+# ── Replica count ─────────────────────────────────────────────────────────────
+replicaCount: 1
+
+# ── Application ───────────────────────────────────────────────────────────────
+app:
+  port: 9090
+
+# ── Resource limits ───────────────────────────────────────────────────────────
+resources:
+  requests:
+    memory: "1Gi"
+    cpu: "500m"
+  limits:
+    memory: "2Gi"
+    cpu: "1"
+
+# ── Atoti license ─────────────────────────────────────────────────────────────
+license:
+  # Full content of your license file — preserves newlines via YAML block scalar
+  content: |
+    <YOUR_ATOTI_LICENSE_FILE_CONTENT_HERE>
+  # Path inside the container where the license file will be mounted
+  mountPath: /etc/atoti
+  fileName: license.lic
+
+# ── Persistent storage for logs ───────────────────────────────────────────────
+logs:
+  # Path inside the container where the app writes logs
+  mountPath: /app/logs
+  storage: 1Gi
+  # Path inside the minikube VM (not Windows — see README for minikube mount)
+  hostPath: /mnt/atoti-logs
+
+# ── Service ───────────────────────────────────────────────────────────────────
+service:
+  type: NodePort
+  port: 9090
+  nodePort: 30090             # Must be in range 30000–32767

@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "atoti-chart.fullname" . }}
+  labels:
+    {{- include "atoti-chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "atoti-chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "atoti-chart.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.app.port }}
+              protocol: TCP
+
+          # ── Liveness probe — restarts pod if app hangs ─────────────────────
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 60      # Give JVM time to start
+            periodSeconds: 30
+            failureThreshold: 3
+
+          # ── Readiness probe — removes pod from Service until app is ready ──
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 5
+
+          # ── Environment variable — points to the mounted license file ──────
+          env:
+            - name: ATOTI_LICENSE
+              value: {{ .Values.license.mountPath }}/{{ .Values.license.fileName }}
+
+          # ── Resource requests and limits ───────────────────────────────────
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory | quote }}
+              cpu: {{ .Values.resources.requests.cpu | quote }}
+            limits:
+              memory: {{ .Values.resources.limits.memory | quote }}
+              cpu: {{ .Values.resources.limits.cpu | quote }}
+
+          # ── Volume mounts inside the container ────────────────────────────
+          volumeMounts:
+            - name: license-volume
+              mountPath: {{ .Values.license.mountPath }}
+              readOnly: true
+            - name: logs-volume
+              mountPath: {{ .Values.logs.mountPath }}
+
+      # ── Volumes — wire ConfigMap and PVC to named volumes ─────────────────
+      volumes:
+        - name: license-volume
+          configMap:
+            name: {{ include "atoti-chart.fullname" . }}-config
+            items:
+              - key: {{ .Values.license.fileName }}
+                path: {{ .Values.license.fileName }}
+        - name: logs-volume
+          persistentVolumeClaim:
+            claimName: {{ include "atoti-chart.fullname" . }}-logs-pvc

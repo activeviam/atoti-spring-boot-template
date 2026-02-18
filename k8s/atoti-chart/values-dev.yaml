@@ -1,0 +1,19 @@
+# ── Dev environment overrides ─────────────────────────────────────────────────
+# Apply with: helm install atoti-dev ./atoti-chart -f values-dev.yaml
+
+replicaCount: 1
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1Gi"
+    cpu: "500m"
+
+logs:
+  storage: 512Mi
+  hostPath: /mnt/atoti-logs-dev
+
+service:
+  nodePort: 30091

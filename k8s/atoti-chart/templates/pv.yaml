@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  # PVs are cluster-scoped (not namespace-scoped), so include release name to avoid collisions
+  name: {{ include "atoti-chart.fullname" . }}-logs-pv
+  labels:
+    {{- include "atoti-chart.labels" . | nindent 4 }}
+spec:
+  capacity:
+    storage: {{ .Values.logs.storage }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain   # Keep log data even if PVC is deleted
+  hostPath:
+    # Path inside the minikube VM — use `minikube mount` to sync to Windows
+    path: {{ .Values.logs.hostPath }}
