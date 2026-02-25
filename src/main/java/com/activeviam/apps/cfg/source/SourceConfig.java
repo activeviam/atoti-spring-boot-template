@@ -61,35 +61,35 @@ public class SourceConfig {
                 .build();
     }
 
-    @Bean
-    CsvTopicDescription nettingSetsCsvTopic(NamedEntityResolverService namedEntityResolver) {
-        return CsvTopicDescription.builder(NETTING_SETS_STORE_NAME, NETTING_SETS_FILE_PATTERN)
-                .channel(ChannelDescription.builder(namedEntityResolver.getTarget(NETTING_SETS_STORE_NAME))
-                        .customField(addAsOfDateFromFileName())
-                        .build())
-                .build();
-    }
-
-    @Bean
-    CsvTopicDescription counterpartiesCsvTopic() {
-        return CsvTopicDescription.builder(COUNTERPARTIES_STORE_NAME, COUNTERPARTIES_FILE_PATTERN)
-                .build();
-    }
-
-    @Bean
-    CsvTopicDescription fxRatesCsvTopic() {
-        return CsvTopicDescription.builder(FX_RATES_STORE_NAME, FX_RATES_FILE_PATTERN)
-                .channel(ChannelDescription.builder(generateAllFxRates())
-                        .customField(addAsOfDateFromFileName())
-                        .build())
-                .build();
-    }
-
-    @Bean
-    CsvTopicDescription booksCsvTopic() {
-        return CsvTopicDescription.builder(BOOKS_STORE_NAME, BOOKS_FILE_PATTERN)
-                .build();
-    }
+//    @Bean
+//    CsvTopicDescription nettingSetsCsvTopic(NamedEntityResolverService namedEntityResolver) {
+//        return CsvTopicDescription.builder(NETTING_SETS_STORE_NAME, NETTING_SETS_FILE_PATTERN)
+//                .channel(ChannelDescription.builder(namedEntityResolver.getTarget(NETTING_SETS_STORE_NAME))
+//                        .customField(addAsOfDateFromFileName())
+//                        .build())
+//                .build();
+//    }
+//
+//    @Bean
+//    CsvTopicDescription counterpartiesCsvTopic() {
+//        return CsvTopicDescription.builder(COUNTERPARTIES_STORE_NAME, COUNTERPARTIES_FILE_PATTERN)
+//                .build();
+//    }
+//
+//    @Bean
+//    CsvTopicDescription fxRatesCsvTopic() {
+//        return CsvTopicDescription.builder(FX_RATES_STORE_NAME, FX_RATES_FILE_PATTERN)
+//                .channel(ChannelDescription.builder(generateAllFxRates())
+//                        .customField(addAsOfDateFromFileName())
+//                        .build())
+//                .build();
+//    }
+//
+//    @Bean
+//    CsvTopicDescription booksCsvTopic() {
+//        return CsvTopicDescription.builder(BOOKS_STORE_NAME, BOOKS_FILE_PATTERN)
+//                .build();
+//    }
 
     @Bean
     TupleTopicDescription pfeAddOnTupleTopic(){

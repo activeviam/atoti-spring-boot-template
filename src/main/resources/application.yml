@@ -60,9 +60,9 @@ otel:
         capture-mdc-attributes: "*"
       experimental-log-attributes: true
 
-dlc:
-  csv:
-    implicit-topics-enabled: false
+#dlc:
+#  csv:
+#    implicit-topics-enabled: false
 
 # Security configuration
 security:
