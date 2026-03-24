@@ -44,6 +44,8 @@ management:
     health.probes.enabled: true
     env:
       additional-keys-to-sanitize: "atoti.jwt.key.*"
+    shutdown:
+      access: unrestricted
 
 otel:
   metric:

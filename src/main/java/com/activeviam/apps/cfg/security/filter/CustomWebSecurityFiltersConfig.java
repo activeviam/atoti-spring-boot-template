@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2024-2025
+ * Copyright (C) ActiveViam 2024-2026
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -79,6 +79,15 @@ public class CustomWebSecurityFiltersConfig {
         return http.with(dsl, Customizer.withDefaults())
                 .securityMatcher(mvc.matcher(url(EndpointConstants.CUSTOM_REST_PATH, WILDCARD)))
                 .authorizeHttpRequests(auth -> auth.anyRequest().hasAnyAuthority(ROLE_USER))
+                .build();
+    }
+
+    @Bean
+    @Order(7)
+    public SecurityFilterChain managementFilterChain(HttpSecurity http) throws Exception {
+        return http.securityMatcher(url("/actuator", WILDCARD))
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .build();
     }
 }
