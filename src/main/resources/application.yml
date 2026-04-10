@@ -42,8 +42,6 @@ management:
       probability: 1
   endpoint:
     health.probes.enabled: true
-    env:
-      additional-keys-to-sanitize: "atoti.jwt.key.*"
 
 otel:
   metric:
