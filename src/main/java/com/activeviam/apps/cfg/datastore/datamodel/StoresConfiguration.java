@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2024-2025
+ * Copyright (C) ActiveViam 2024-2026
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -17,23 +17,22 @@ import static com.activeviam.database.api.types.ILiteralType.DOUBLE;
 import static com.activeviam.database.api.types.ILiteralType.LOCAL_DATE;
 import static com.activeviam.database.api.types.ILiteralType.STRING;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
 import com.activeviam.database.datastore.api.description.IReferenceDescription;
 import com.activeviam.database.datastore.api.description.IStoreDescription;
 import com.activeviam.database.datastore.api.description.impl.ReferenceDescription;
 import com.activeviam.database.datastore.api.description.impl.StoreDescription;
 
-@Configuration
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class StoresConfiguration {
 
     public static String referenceName(String from, String to) {
         return String.format("%s_to_%s", from, to);
     }
 
-    @Bean
-    public IStoreDescription createTradesStoreDescription() {
+    public static IStoreDescription createTradesStoreDescription() {
         return StoreDescription.builder()
                 .withStoreName(TRADES_STORE_NAME)
                 .withField(ASOFDATE, LOCAL_DATE)
@@ -44,8 +43,7 @@ public class StoresConfiguration {
                 .build();
     }
 
-    @Bean
-    public IStoreDescription createTradeAttributesStoreDescription() {
+    public static IStoreDescription createTradeAttributesStoreDescription() {
         return StoreDescription.builder()
                 .withStoreName(TRADE_ATTRIBUTES_STORE_NAME)
                 .withField(ASOFDATE, LOCAL_DATE)
@@ -57,8 +55,7 @@ public class StoresConfiguration {
                 .build();
     }
 
-    @Bean
-    public IReferenceDescription tradeToAttributedReference() {
+    public static IReferenceDescription tradeToAttributedReference() {
         return ReferenceDescription.builder()
                 .fromStore(TRADES_STORE_NAME)
                 .toStore(TRADE_ATTRIBUTES_STORE_NAME)
