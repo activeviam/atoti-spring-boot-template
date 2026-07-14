@@ -4,27 +4,27 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.5.13</version>
+    <version>3.5.16</version>
     <relativePath/>
   </parent>
 
   <groupId>com.activeviam.apps</groupId>
   <artifactId>atoti-spring-boot-template</artifactId>
-  <version>6.1.19</version>
+  <version>6.1.23</version>
   <description>Template project for Spring Boot</description>
 
   <properties>
     <java.version>21</java.version>
     <spring-boot.version>${project.parent.version}</spring-boot.version>
-    <atoti-server.version>6.1.19</atoti-server.version>
+    <atoti-server.version>6.1.23</atoti-server.version>
     <springdoc.version>2.8.17</springdoc.version>
 
-    <opentelemetry.version>1.61.0</opentelemetry.version>
-    <opentelemetry-instrumentation.version>2.26.1</opentelemetry-instrumentation.version>
-    <opentelemetry-logback-mdc.version>2.26.1-alpha</opentelemetry-logback-mdc.version>
+    <opentelemetry.version>1.63.0</opentelemetry.version>
+    <opentelemetry-instrumentation.version>2.29.0</opentelemetry-instrumentation.version>
+    <opentelemetry-logback-mdc.version>2.29.0-alpha</opentelemetry-logback-mdc.version>
 
-    <spotless-maven-plugin.version>3.4.0</spotless-maven-plugin.version>
-    <palantir-java-format.version>2.90.0</palantir-java-format.version>
+    <spotless-maven-plugin.version>3.8.0</spotless-maven-plugin.version>
+    <palantir-java-format.version>2.96.0</palantir-java-format.version>
   </properties>
 
   <dependencyManagement>
@@ -88,10 +88,6 @@
       <version>${atoti-server.version}</version>
       <!-- Atoti 6.1.x brings an incompatible version of swagger-* deps that makes Swagger UI fails -->
       <exclusions>
-        <exclusion>
-          <groupId>io.swagger.core.v3</groupId>
-          <artifactId>swagger-annotations</artifactId>
-        </exclusion>
         <exclusion>
           <groupId>io.swagger.core.v3</groupId>
           <artifactId>swagger-annotations-jakarta</artifactId>
