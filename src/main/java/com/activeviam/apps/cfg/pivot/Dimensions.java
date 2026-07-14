@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2024-2025
+ * Copyright (C) ActiveViam 2024-2026
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IDimension;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.ILevelInfo;
 import com.activeviam.activepivot.core.intf.api.description.builder.dimension.ICanStartBuildingDimensions;
+import com.activeviam.apps.cfg.pivot.hier.ScenarioIndexAnalysisHierarchy;
 import com.activeviam.apps.constants.StoreAndFieldConstants;
 import com.activeviam.tech.core.api.ordering.IComparator;
 
@@ -41,6 +42,9 @@ public class Dimensions {
                 .slicing()
                 .withLevelOfSameName()
                 .withType(ILevelInfo.LevelType.TIME)
-                .withComparator(IComparator.DESCENDING_NATURAL_ORDER_PLUGIN_KEY);
+                .withComparator(IComparator.DESCENDING_NATURAL_ORDER_PLUGIN_KEY)
+                .withDimension("Utilities")
+                .withAnalysisHierarchy(
+                        ScenarioIndexAnalysisHierarchy.LEVEL_NAME, ScenarioIndexAnalysisHierarchy.PLUGIN_KEY);
     }
 }
