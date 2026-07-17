@@ -216,6 +216,13 @@
             <flexmark/>
             <!-- has its own section below -->
           </markdown>
+          <yaml>
+            <includes>
+              <!-- You have to set the target manually -->
+              <include>**/*.yaml</include>
+              <include>**/*.yml</include>
+            </includes>
+          </yaml>
         </configuration>
         <executions>
           <execution>
