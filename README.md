@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="80" src="./activeviam.svg" />
+  <img width="80" src="activeviam.svg" />
 </p>
 <h1 align="center">Atoti Spring Boot Template</h1>
 <p align="center">A minimalist Atoti project built with Spring Boot for you to edit, customize and use as a base for your Atoti Java projects.</p>
@@ -70,7 +70,6 @@ Similarly, you can find the following run configurations that work with IntelliJ
 - `AtotiSpringBootApplication (no OTEL) App`
 - `AtotiSpringBootApplication OTEL App`
 
-
 #### Connecting to the Atoti Server
 
 - Excel: you can connect to the cube from Excel, by connecting to an 'Analysis Services' source.
@@ -92,4 +91,4 @@ generating a new key pair.
 
 ## ❤️ Using OpenTelemetry
 
-Check [this section for OpenTelemetry](./otel/doc/STACK.md).
+Check [this section for OpenTelemetry](otel/doc/STACK.md).

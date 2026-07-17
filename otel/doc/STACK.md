@@ -1,6 +1,6 @@
 ## The OTEL stack
 
-![alt text](./img/stack_schema.png)
+![alt text](img/stack_schema.png)
 
 ### Run
 
@@ -26,7 +26,7 @@ OpenTelemetry set up is done with the provided launchers `AtotiSpringBootApplica
 
 Let's check how the collector is configured:
 
-![alt text](./img/otel-collector.svg)
+![alt text](img/otel-collector.svg)
 
 In our case the collector we are using is based on this
 image:
@@ -46,15 +46,15 @@ You can use any tools compatible with OpenTelemetry, you need for that to amend 
 
 ### Traces
 
-[Traces](./TRACES.md)
+[Traces](TRACES.md)
 
 ### Metrics
 
-[Metrics](./METRICS.md)
+[Metrics](METRICS.md)
 
 ### Logs
 
-[Logs](./LOGS.md)
+[Logs](LOGS.md)
 
 ## Links
 

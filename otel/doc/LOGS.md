@@ -6,15 +6,15 @@ I'm using logback for the logging, see the configuration here: `src/main/resourc
 The logs are pushed to the collector thanks to the `logback-appender`, check the details in the `application.yml`:
 
 ```yaml
-  instrumentation:
-    logback-appender:
-      experimental:
-        capture-marker-attribute: true
-        capture-key-value-pair-attributes: true
-        capture-code-attributes: true
-        capture-logger-context-attributes: true
-        capture-mdc-attributes: "*"
-      experimental-log-attributes: true
+instrumentation:
+  logback-appender:
+    experimental:
+      capture-marker-attribute: true
+      capture-key-value-pair-attributes: true
+      capture-code-attributes: true
+      capture-logger-context-attributes: true
+      capture-mdc-attributes: "*"
+    experimental-log-attributes: true
 ```
 
 ### How to observe
@@ -34,9 +34,10 @@ otel:
       '[service.name]': ${spring.application.name}
       '[service.version]': 1.0
 ```
+
 Note that you can turn on `Prettify JSON`:
 
-![alt text](./img/logs_0.png)
+![alt text](img/logs_0.png)
 
 ### Links
 
