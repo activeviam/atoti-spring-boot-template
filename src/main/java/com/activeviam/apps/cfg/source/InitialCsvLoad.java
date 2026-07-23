@@ -13,11 +13,13 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 
+import com.activeviam.apps.tracing.TracingUtil;
 import com.activeviam.database.api.DatabasePrinter;
 import com.activeviam.database.datastore.api.IDatastore;
 import com.activeviam.io.dlc.impl.DataLoadControllerService;
 import com.activeviam.io.dlc.impl.operations.request.DlcLoadRequest;
 
+import lombok.Cleanup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,6 +37,7 @@ public class InitialCsvLoad {
     }
 
     private void initialLoad() {
+        @Cleanup var span = TracingUtil.startSpan("Initial CSV Data Load");
         log.info("Initial data load started...");
         try {
             dataLoadControllerService.execute(DlcLoadRequest.builder()
