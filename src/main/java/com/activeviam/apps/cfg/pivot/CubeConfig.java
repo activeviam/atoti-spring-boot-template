@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.impl.api.contextvalues.QueriesTimeLimit;
+import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IMeasureHierarchy;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstanceDescription;
 
 import lombok.RequiredArgsConstructor;
@@ -34,15 +35,11 @@ public class CubeConfig {
         return StartBuilding.cube(CUBE_NAME)
                 .withContributorsCount()
                 .withinFolder(NATIVE_MEASURES)
-                // FIXME
-                // .withAlias("Count")
                 .withFormatter(INT_FORMATTER)
 
                 // WARN: This will not be available for AggregateProvider `jit`
                 .withUpdateTimestamp()
                 .withinFolder(NATIVE_MEASURES)
-                // FIXME
-                // .withAlias("Update.Timestamp")
                 .withFormatter(TIMESTAMP_FORMATTER)
                 .withCalculations(measures::build)
                 .withDimensions(dimensions.build())
@@ -55,6 +52,8 @@ public class CubeConfig {
                 // Query maximum execution time (before timeout cancellation): 30s
                 .withSharedContextValue(QueriesTimeLimit.of(30, TimeUnit.SECONDS))
                 .withSharedMdxContext()
+                .withMeasureAlias(IMeasureHierarchy.COUNT_ID, "Count")
+                .withMeasureAlias(IMeasureHierarchy.TIMESTAMP_ID, "Update.Timestamp")
                 .aggressiveFormulaEvaluation(true)
                 .end()
                 .withSharedDrillthroughProperties()
