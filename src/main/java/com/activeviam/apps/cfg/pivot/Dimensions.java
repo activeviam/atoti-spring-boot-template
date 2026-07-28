@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2024-2025
+ * Copyright (C) ActiveViam 2024-2026
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -20,7 +20,6 @@ import com.activeviam.tech.core.api.ordering.IComparator;
 
 @Component
 public class Dimensions {
-
     public static final String TRADE_ATTRIBUTES_DIMENSION = "Trade Attributes";
 
     /**

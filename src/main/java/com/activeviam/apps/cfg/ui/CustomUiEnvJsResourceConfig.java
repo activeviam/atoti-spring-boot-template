@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2024-2025
+ * Copyright (C) ActiveViam 2024-2026
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -15,10 +15,10 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.lang.NonNull;
 
 import com.activeviam.springboot.atoti.admin.ui.starter.api.AtotiAdminUiProperties;
 import com.activeviam.springboot.atoti.ui.starter.api.AtotiUiProperties;
@@ -34,8 +34,7 @@ import lombok.NoArgsConstructor;
 public class CustomUiEnvJsResourceConfig {
     // Here we are using the same env.js content for both, however in case of remote CS we would have a different
     // content.
-    private static final String ENV_JS =
-            """
+    private static final String ENV_JS = """
             var baseUrl = window.location.href.split('%1$s')[0];
             var atotiVersion = "%2$s"
 
@@ -78,9 +77,8 @@ public class CustomUiEnvJsResourceConfig {
             this.content = content;
         }
 
-        @NonNull
         @Override
-        public org.springframework.core.io.Resource createRelative(@NonNull String relativePath) {
+        public org.springframework.core.io.@NonNull Resource createRelative(@NonNull String relativePath) {
             return this;
         }
 

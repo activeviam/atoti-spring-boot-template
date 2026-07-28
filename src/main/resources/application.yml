@@ -41,6 +41,14 @@ management:
     sampling:
       probability: 1
   endpoint:
+    env:
+      show-values: when_authorized
+      roles:
+        - ROLE_ACTUATOR
+    configprops:
+      show-values: when_authorized
+      roles:
+        - ROLE_ACTUATOR
     health.probes.enabled: true
 
 otel:
@@ -85,6 +93,7 @@ security:
             - ROLE_USER
             - ROLE_ADMIN
             - ROLE_CS_ROOT
+            - ROLE_ACTUATOR
   tech-user:
     passwords:
       pivot: "{bcrypt}$2a$10$87iR319r7HvSvs5k9.jutuDzjuKqO6riilSjl/9u2LGDpn4/7.1he"
@@ -133,23 +142,23 @@ atoti:
           cache-entitlements-ttl: PT1H
       ui-content-integration:
         enabled: true
-
-  # APM properties (https://docs.activeviam.com/products/atoti/server/latest/docs/monitoring/application_performance_monitoring/#properties-exposed)
-  apm:
-    node:
-      starter:
-        logging:
-          enabled: true
-    enable:
-      json.queries.service:
-        detailed.logging: true
-        log.memory.stats: true
-      queries.service:
-        detailed.logging: true
-        log.memory.stats: true
-      streaming.service:
-        detailed.logging: true
-        log.memory.stats: true
+    monitoring:
+      blocked-thread-watchdog:
+        enabled: true
+        scanIntervalMs: 30000
+    query:
+      service:
+        logging: true
+        detailed-logging: true
+        log-memory-stats: true
+        json:
+          logging: true
+          detailed-logging: true
+          log-memory-stats: true
+        streaming:
+          logging: true
+          detailed-logging: true
+          log-memory-stats: true
 
 springdoc:
   swagger-ui:

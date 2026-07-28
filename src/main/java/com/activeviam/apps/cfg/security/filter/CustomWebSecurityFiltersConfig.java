@@ -1,20 +1,23 @@
 /*
- * Copyright (C) ActiveViam 2024-2025
+ * Copyright (C) ActiveViam 2024-2026
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
 package com.activeviam.apps.cfg.security.filter;
 
+import static com.activeviam.apps.constants.SecurityConstants.ROLE_ACTUATOR;
 import static com.activeviam.springboot.atoti.server.starter.api.AtotiSecurityProperties.ROLE_ADMIN;
 import static com.activeviam.springboot.atoti.server.starter.api.AtotiSecurityProperties.ROLE_USER;
 import static com.activeviam.web.core.api.IUrlBuilder.url;
+
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springdoc.core.properties.SwaggerUiConfigProperties;
 import org.springdoc.core.utils.Constants;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
+import org.springframework.boot.security.autoconfigure.web.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -37,6 +40,19 @@ import lombok.NoArgsConstructor;
 public class CustomWebSecurityFiltersConfig {
     public static final String WILDCARD = "**";
 
+    @Bean
+    @Order(1)
+    protected SecurityFilterChain actuatorFilterChain(
+            HttpSecurity http, MachineToMachineSecurityDsl dsl, PathPatternRequestMatcher.Builder mvc) {
+        return http.with(dsl, c -> c.setScope(Set.of(MachineToMachineSecurityDsl.Scope.SECURITY)))
+                .securityMatcher(mvc.matcher(url("actuator", WILDCARD)))
+                .authorizeHttpRequests(auth -> auth.requestMatchers(mvc.matcher(url("actuator", "health")))
+                        .permitAll()
+                        .anyRequest()
+                        .hasAnyAuthority(ROLE_ACTUATOR))
+                .build();
+    }
+
     /**
      * Add the H2 console which is by default secured in itself. In a real project this should be exposed only for
      * a local profile as a "standard" DB would be used.
@@ -47,7 +63,7 @@ public class CustomWebSecurityFiltersConfig {
     @ConditionalOnProperty(prefix = "spring.h2.console", name = "enabled", havingValue = "true")
     @Bean
     @Order(4)
-    public SecurityFilterChain h2ConsoleSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain h2ConsoleSecurityFilterChain(HttpSecurity http) {
         return http.securityMatcher(PathRequest.toH2Console())
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
@@ -60,8 +76,7 @@ public class CustomWebSecurityFiltersConfig {
     @Bean
     @Order(5)
     public SecurityFilterChain swaggerUiSecurityFilterChain(
-            HttpSecurity http, HumanToMachineSecurityDsl dsl, SwaggerUiConfigProperties swaggerUiConfigProperties)
-            throws Exception {
+            HttpSecurity http, HumanToMachineSecurityDsl dsl, SwaggerUiConfigProperties swaggerUiConfigProperties) {
         return http.with(dsl, c -> c.requestLogin(LoginLogoutUrls.LOGIN_PAGE_URL))
                 .securityMatcher(
                         StringUtils.defaultIfBlank(
@@ -74,8 +89,7 @@ public class CustomWebSecurityFiltersConfig {
     @Bean
     @Order(6)
     public SecurityFilterChain customRestEndpointsSecurityFilterChain(
-            HttpSecurity http, PathPatternRequestMatcher.Builder mvc, MachineToMachineSecurityDsl dsl)
-            throws Exception {
+            HttpSecurity http, PathPatternRequestMatcher.Builder mvc, MachineToMachineSecurityDsl dsl) {
         return http.with(dsl, Customizer.withDefaults())
                 .securityMatcher(mvc.matcher(url(EndpointConstants.CUSTOM_REST_PATH, WILDCARD)))
                 .authorizeHttpRequests(auth -> auth.anyRequest().hasAnyAuthority(ROLE_USER))

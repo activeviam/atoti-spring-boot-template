@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2024-2025
+ * Copyright (C) ActiveViam 2024-2026
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -13,13 +13,14 @@ import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstanceDescription;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotManagerDescription;
 import com.activeviam.activepivot.core.intf.api.description.ISelectionDescription;
-import com.activeviam.activepivot.server.spring.api.config.IActivePivotManagerDescriptionConfig;
+import com.activeviam.tech.mvcc.api.policy.IEpochManagementPolicy;
+import com.activeviam.tech.mvcc.api.policy.KeepLastEpochPolicy;
 
 import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor
-public class ActivePivotManagerConfig implements IActivePivotManagerDescriptionConfig {
+public class ActivePivotManagerConfig {
     /* *********************/
     /* OLAP Property names */
     /* *********************/
@@ -39,7 +40,6 @@ public class ActivePivotManagerConfig implements IActivePivotManagerDescriptionC
     private final ISelectionDescription selectionDescription;
     private final IActivePivotInstanceDescription activePivotInstanceDescription;
 
-    @Override
     @Bean
     public IActivePivotManagerDescription managerDescription() {
         return StartBuilding.managerDescription(MANAGER_NAME)
@@ -49,5 +49,10 @@ public class ActivePivotManagerConfig implements IActivePivotManagerDescriptionC
                 .withSelection(selectionDescription)
                 .withCube(activePivotInstanceDescription)
                 .build();
+    }
+
+    @Bean
+    public IEpochManagementPolicy epochPolicy() {
+        return new KeepLastEpochPolicy();
     }
 }

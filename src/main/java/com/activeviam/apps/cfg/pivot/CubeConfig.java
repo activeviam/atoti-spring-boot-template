@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2024
+ * Copyright (C) ActiveViam 2024-2026
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -34,13 +34,15 @@ public class CubeConfig {
         return StartBuilding.cube(CUBE_NAME)
                 .withContributorsCount()
                 .withinFolder(NATIVE_MEASURES)
-                .withAlias("Count")
+                // FIXME
+                // .withAlias("Count")
                 .withFormatter(INT_FORMATTER)
 
                 // WARN: This will not be available for AggregateProvider `jit`
                 .withUpdateTimestamp()
                 .withinFolder(NATIVE_MEASURES)
-                .withAlias("Update.Timestamp")
+                // FIXME
+                // .withAlias("Update.Timestamp")
                 .withFormatter(TIMESTAMP_FORMATTER)
                 .withCalculations(measures::build)
                 .withDimensions(dimensions.build())

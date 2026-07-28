@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2023-2025
+ * Copyright (C) ActiveViam 2023-2026
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -35,7 +35,7 @@ class MeasuresTest {
     IDatastore datastore;
 
     @BeforeEach
-    public void initialLoad() {
+    void initialLoad() {
         datastore.edit(t -> t.addAll(
                 TRADES_STORE_NAME,
                 List.of(new Object[] {TEST_DATE, "T1", 100}, new Object[] {TEST_DATE, "T2", 350d}, new Object[] {
