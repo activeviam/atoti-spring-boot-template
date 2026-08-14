@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2024-2025
+ * Copyright (C) ActiveViam 2024-2026
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -25,7 +25,10 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
+import com.activeviam.apps.rest.DataMaintenanceController;
+import com.activeviam.apps.rest.DistributionInfoController;
 import com.activeviam.apps.rest.EndpointConstants;
+import com.activeviam.apps.rest.MaskingController;
 import com.activeviam.springboot.atoti.server.starter.api.LoginLogoutUrls;
 import com.activeviam.web.spring.api.security.dsl.HumanToMachineSecurityDsl;
 import com.activeviam.web.spring.api.security.dsl.MachineToMachineSecurityDsl;
@@ -71,8 +74,54 @@ public class CustomWebSecurityFiltersConfig {
                 .build();
     }
 
+    /**
+     * Masking/unmasking a distributing level directly impacts what a data node serves to the query node, so
+     * this is admin-only, unlike the rest of the custom REST endpoints. Its matcher is a subset of {@link
+     * #customRestEndpointsSecurityFilterChain}'s, so it must run first (lower {@link Order}).
+     */
     @Bean
     @Order(6)
+    public SecurityFilterChain maskingEndpointsSecurityFilterChain(
+            HttpSecurity http, PathPatternRequestMatcher.Builder mvc, MachineToMachineSecurityDsl dsl)
+            throws Exception {
+        return http.with(dsl, Customizer.withDefaults())
+                .securityMatcher(mvc.matcher(url(MaskingController.MASKING_ENDPOINT, WILDCARD)))
+                .authorizeHttpRequests(auth -> auth.anyRequest().hasAnyAuthority(ROLE_ADMIN))
+                .build();
+    }
+
+    /**
+     * Deleting/restoring data straight on the Dremio backend is likewise admin-only; same ordering
+     * constraint as {@link #maskingEndpointsSecurityFilterChain}.
+     */
+    @Bean
+    @Order(7)
+    public SecurityFilterChain dataMaintenanceEndpointsSecurityFilterChain(
+            HttpSecurity http, PathPatternRequestMatcher.Builder mvc, MachineToMachineSecurityDsl dsl)
+            throws Exception {
+        return http.with(dsl, Customizer.withDefaults())
+                .securityMatcher(mvc.matcher(url(DataMaintenanceController.DATA_ENDPOINT, WILDCARD)))
+                .authorizeHttpRequests(auth -> auth.anyRequest().hasAnyAuthority(ROLE_ADMIN))
+                .build();
+    }
+
+    /**
+     * The live routing-table check ({@link DistributionInfoController}) is admin-only for the same
+     * reason as masking - it's infra-level diagnostic information, not application data.
+     */
+    @Bean
+    @Order(8)
+    public SecurityFilterChain distributionInfoEndpointsSecurityFilterChain(
+            HttpSecurity http, PathPatternRequestMatcher.Builder mvc, MachineToMachineSecurityDsl dsl)
+            throws Exception {
+        return http.with(dsl, Customizer.withDefaults())
+                .securityMatcher(mvc.matcher(url(DistributionInfoController.DISTRIBUTION_ENDPOINT, WILDCARD)))
+                .authorizeHttpRequests(auth -> auth.anyRequest().hasAnyAuthority(ROLE_ADMIN))
+                .build();
+    }
+
+    @Bean
+    @Order(9)
     public SecurityFilterChain customRestEndpointsSecurityFilterChain(
             HttpSecurity http, PathPatternRequestMatcher.Builder mvc, MachineToMachineSecurityDsl dsl)
             throws Exception {

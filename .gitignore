@@ -1,5 +1,6 @@
 **/target/
 **/node_modules/
+.env
 !.mvn/wrapper/maven-wrapper.jar
 deployment-v*
 *.mv.db

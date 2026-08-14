@@ -10,7 +10,7 @@
 
   <groupId>com.activeviam.apps</groupId>
   <artifactId>atoti-spring-boot-template</artifactId>
-  <version>6.1.23</version>
+  <version>6.1.20</version>
   <description>Template project for Spring Boot</description>
 
   <properties>
@@ -25,6 +25,8 @@
 
     <spotless-maven-plugin.version>3.8.0</spotless-maven-plugin.version>
     <palantir-java-format.version>2.96.0</palantir-java-format.version>
+
+    <flight-sql-jdbc-driver.version>19.0.0</flight-sql-jdbc-driver.version>
   </properties>
 
   <dependencyManagement>
@@ -54,10 +56,31 @@
       <artifactId>spring-boot-starter-validation</artifactId>
     </dependency>
 
+    <!-- DirectQuery: Dremio via the generic JDBC connector -->
     <dependency>
-      <groupId>com.activeviam.io</groupId>
-      <artifactId>data-load-controller</artifactId>
+      <groupId>com.activeviam.activepivot</groupId>
+      <artifactId>activepivot-external-database</artifactId>
       <version>${atoti-server.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.activeviam.directquery</groupId>
+      <artifactId>api-application</artifactId>
+      <version>${atoti-server.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.activeviam.directquery</groupId>
+      <artifactId>api-generic-jdbc</artifactId>
+      <version>${atoti-server.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.activeviam.database.jdbc.dialect.dremio</groupId>
+      <artifactId>dremio-dialect</artifactId>
+      <version>${atoti-server.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.arrow</groupId>
+      <artifactId>flight-sql-jdbc-driver</artifactId>
+      <version>${flight-sql-jdbc-driver.version}</version>
     </dependency>
 
     <!-- OpenTelemetry -->
@@ -114,6 +137,12 @@
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
+    </dependency>
+
+    <!-- JGroups JDBC_PING discovery (data-node/query-node cluster) -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
     </dependency>
 
     <!-- Lombok -->

@@ -1,0 +1,18 @@
+server:
+  port: ${SERVER_PORT:9090}
+
+# Priority used by the query node's data-overlap dispatching when several data nodes carry the same
+# (replicated) data - see QueryCubeConfig. Every data-node instance should keep the same value so the
+# query node picks between them at random for high availability instead of preferring one permanently.
+data-node:
+  priority: ${DATA_NODE_PRIORITY:1}
+
+# DirectQuery connection to Dremio (Trades/TradeAttributes datasets)
+dremio:
+  host: ${DREMIO_HOST:localhost}
+  port: ${DREMIO_PORT:32010}
+  rest-port: ${DREMIO_REST_PORT:9047}
+  username: ${DREMIO_USERNAME}
+  password: ${DREMIO_PASSWORD}
+  space: "${DREMIO_SPACE:@gba}"
+  use-encryption: false

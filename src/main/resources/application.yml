@@ -1,6 +1,5 @@
-# Spring Boot server port and compression
+# Spring Boot server compression; port is set per node role (application-data-node.yml / application-query-node.yml)
 server:
-  port: 9090
   compression:
     enabled: true
     mime-types: application/json,application/xml,application/javascript,text/html,text/xml,text/plain,text/css,text/javascript,image/jpeg,image/png,image/svg+xml
@@ -54,6 +53,10 @@ otel:
       '[service.name]': ${spring.application.name}
       # Getting the version from the Maven properties
       '[service.version]': @project.version@
+      # Distinguishes each cluster member (e.g. dq1/dq2/qn) in traces/logs/metrics, since they all share
+      # the same service.name - set NODE_NAME per instance at launch (defaults to "app" for single-node
+      # local dev, where there's only one instance so nothing to disambiguate).
+      '[service.instance.id]': ${NODE_NAME:app}:${server.port}
   instrumentation:
     logback-appender:
       experimental:
@@ -63,16 +66,6 @@ otel:
         capture-logger-context-attributes: true
         capture-mdc-attributes: "*"
       experimental-log-attributes: true
-
-dlc:
-  csv:
-    local:
-      sources:
-        test_data:
-          root-base-dir: ${CSV_DATA_BASE_DIR}
-#    topics:
-#      Trades:
-#        file-pattern: "glob:**trades.csv"
 
 # Security configuration
 security:

@@ -1,0 +1,28 @@
+<config xmlns="urn:org:jgroups"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="urn:org:jgroups http://www.jgroups.org/schema/jgroups-5.3.xsd">
+    <!--
+        Local dev / demo stack for the data-node <-> query-node cluster:
+        TCP transport (no multicast needed on localhost) + JDBC_PING discovery against the
+        shared "cluster-db" Postgres instance. bind_port is left to the OS since both nodes
+        run on the same machine during local dev.
+    -->
+    <TCP bind_addr="127.0.0.1" bind_port="0" enable_suspect_events="true"/>
+
+    <JDBC_PING connection_url="${CLUSTER_DB_URL:jdbc:postgresql://localhost:5432/atoti_cluster}"
+               connection_username="${CLUSTER_DB_USERNAME:atoti}"
+               connection_password="${CLUSTER_DB_PASSWORD:atoti}"
+               connection_driver="org.postgresql.Driver"
+               initialize_sql="CREATE TABLE IF NOT EXISTS JGROUPSPING (own_addr varchar(200) NOT NULL, cluster_name varchar(200) NOT NULL, ping_data BYTEA, constraint PK_JGROUPSPING PRIMARY KEY (own_addr, cluster_name))"/>
+
+    <MERGE3 min_interval="10000" max_interval="30000"/>
+    <FD_ALL3 timeout="60000"/>
+    <VERIFY_SUSPECT timeout="5000"/>
+
+    <pbcast.NAKACK2 use_mcast_xmit="false"/>
+    <UNICAST3/>
+    <pbcast.STABLE desired_avg_gossip="50000" max_bytes="4M"/>
+    <FRAG2 frag_size="60000"/>
+
+    <pbcast.GMS print_local_addr="true" join_timeout="3000"/>
+</config>

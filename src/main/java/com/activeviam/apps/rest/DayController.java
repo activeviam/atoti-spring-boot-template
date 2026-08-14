@@ -1,12 +1,12 @@
 /*
- * Copyright (C) ActiveViam 2024
+ * Copyright (C) ActiveViam 2024-2026
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
 package com.activeviam.apps.rest;
 
-import static com.activeviam.apps.cfg.pivot.CubeConfig.CUBE_NAME;
+import static com.activeviam.apps.cfg.pivot.CubeConstants.CUBE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.ASOFDATE;
 import static com.activeviam.apps.rest.EndpointConstants.CUSTOM_REST_PATH;
 

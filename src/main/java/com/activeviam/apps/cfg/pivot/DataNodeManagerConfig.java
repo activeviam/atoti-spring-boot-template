@@ -1,13 +1,18 @@
 /*
- * Copyright (C) ActiveViam 2024-2025
+ * Copyright (C) ActiveViam 2024-2026
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
  */
 package com.activeviam.apps.cfg.pivot;
 
+import static com.activeviam.apps.cfg.pivot.CubeConstants.CATALOG_NAME;
+import static com.activeviam.apps.cfg.pivot.CubeConstants.MANAGER_NAME;
+import static com.activeviam.apps.cfg.pivot.CubeConstants.SCHEMA_NAME;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstanceDescription;
@@ -18,24 +23,9 @@ import com.activeviam.activepivot.server.spring.api.config.IActivePivotManagerDe
 import lombok.RequiredArgsConstructor;
 
 @Configuration
+@Profile("data-node")
 @RequiredArgsConstructor
-public class ActivePivotManagerConfig implements IActivePivotManagerDescriptionConfig {
-    /* *********************/
-    /* OLAP Property names */
-    /* *********************/
-    public static final String MANAGER_NAME = "Manager";
-    public static final String CATALOG_NAME = "Catalog";
-    public static final String SCHEMA_NAME = "Schema";
-
-    /* ********** */
-    /* Formatters */
-    /* ********** */
-    public static final String DOUBLE_FORMATTER = "DOUBLE[#,###.##]";
-    public static final String INT_FORMATTER = "INT[#,###]";
-    public static final String TIMESTAMP_FORMATTER = "DATE[HH:mm:ss]";
-
-    public static final String NATIVE_MEASURES = "Native Measures";
-
+public class DataNodeManagerConfig implements IActivePivotManagerDescriptionConfig {
     private final ISelectionDescription selectionDescription;
     private final IActivePivotInstanceDescription activePivotInstanceDescription;
 
