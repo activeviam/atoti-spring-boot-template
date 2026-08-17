@@ -6,30 +6,29 @@
  */
 package com.activeviam.apps.cfg.directquery;
 
-import static com.activeviam.apps.constants.StoreAndFieldConstants.ASOFDATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
 
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
-import com.activeviam.database.api.schema.ITableJoin;
-import com.activeviam.database.api.schema.RelationshipOptionality;
 import com.activeviam.database.jdbc.api.GenericJdbcDatabaseSettings;
 import com.activeviam.database.sql.api.schema.SqlTableId;
 import com.activeviam.directquery.api.DirectQueryConnector;
 import com.activeviam.directquery.api.discoverer.IDirectQueryTableDiscoverer;
-import com.activeviam.directquery.api.schema.JoinDescription;
 import com.activeviam.directquery.api.schema.SchemaDescription;
 import com.activeviam.directquery.api.schema.TableDescription;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Phase 4: {@code Trades}/{@code TradeAttributes} merged into a single Dremio table/view ({@code
+ * TradesMerged}, see the repo's Phase 4 evidence notes) - there is no {@code JoinDescription} at all here,
+ * unlike the two-table model this was forked from, so none of the join-optionality/incremental-refresh
+ * caveats documented there (see {@code DataMaintenanceController}'s javadoc on the two-table branch) apply.
+ */
 @Configuration
 @Profile("data-node")
 @RequiredArgsConstructor
@@ -43,24 +42,12 @@ public class DremioSchemaConfig {
     public SchemaDescription dremioSchemaDescription() {
         final IDirectQueryTableDiscoverer discoverer = dremioConnector.getDiscoverer();
 
-        final TableDescription tradesTable =
+        final TableDescription tradesMergedTable =
                 discoverer.discoverTable(new SqlTableId(NO_CATALOG, dremioProperties.getSpace(), TRADES_STORE_NAME));
-        final TableDescription tradeAttributesTable = discoverer.discoverTable(
-                new SqlTableId(NO_CATALOG, dremioProperties.getSpace(), TRADE_ATTRIBUTES_STORE_NAME));
-
-        final JoinDescription join = JoinDescription.builder()
-                .name(String.format("%s_to_%s", TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME))
-                .sourceTableName(TRADES_STORE_NAME)
-                .targetTableName(TRADE_ATTRIBUTES_STORE_NAME)
-                .fieldMappings(Set.of(
-                        new ITableJoin.FieldMapping(ASOFDATE, ASOFDATE),
-                        new ITableJoin.FieldMapping(TRADE_ID, TRADE_ID)))
-                .targetOptionality(RelationshipOptionality.MANDATORY)
-                .build();
 
         return SchemaDescription.builder()
-                .externalTables(List.of(tradesTable, tradeAttributesTable))
-                .externalJoins(List.of(join))
+                .externalTables(List.of(tradesMergedTable))
+                .externalJoins(List.of())
                 .build();
     }
 }

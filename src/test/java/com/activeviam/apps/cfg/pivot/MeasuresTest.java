@@ -38,9 +38,10 @@ class MeasuresTest {
     public void initialLoad() {
         datastore.edit(t -> t.addAll(
                 TRADES_STORE_NAME,
-                List.of(new Object[] {TEST_DATE, "T1", 100}, new Object[] {TEST_DATE, "T2", 350d}, new Object[] {
-                    TEST_DATE, "T3", 300d
-                })));
+                List.of(
+                        new Object[] {TEST_DATE, "T1", 100, TEST_DATE, "Cpty_1"},
+                        new Object[] {TEST_DATE, "T2", 350d, TEST_DATE, "Cpty_2"},
+                        new Object[] {TEST_DATE, "T3", 300d, TEST_DATE, "Cpty_3"})));
     }
 
     /**

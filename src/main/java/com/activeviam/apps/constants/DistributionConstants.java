@@ -15,13 +15,19 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DistributionConstants {
-    public static final String CLUSTER_ID = "atoti-spring-boot-cluster";
+    /**
+     * Phase 4: a distinct cluster id from the two-table (Phase 3) branch's {@code
+     * atoti-spring-boot-cluster}, so both setups can run simultaneously against the same shared {@code
+     * cluster-db} - JGroups' {@code JDBC_PING} discovery table scopes rows by this value, so different
+     * values are sufficient for isolation without a separate discovery database.
+     */
+    public static final String CLUSTER_ID = "atoti-spring-boot-cluster-phase4";
 
     /**
      * Identifier of the data-node's application within the cluster; the query node references it to know
      * which data cubes to merge into its topology.
      */
-    public static final String APPLICATION_ID = "atoti-spring-boot-data-node";
+    public static final String APPLICATION_ID = "atoti-spring-boot-data-node-phase4";
 
     public static final String JGROUPS_PROTOCOL_PATH = "jgroups-protocols/protocol-jdbc-ping.xml";
 }

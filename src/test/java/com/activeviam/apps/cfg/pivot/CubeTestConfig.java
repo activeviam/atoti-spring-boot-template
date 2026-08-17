@@ -17,7 +17,6 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.ASOFDATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
 import static com.activeviam.database.api.types.ILiteralType.DOUBLE;
@@ -38,16 +37,14 @@ import com.activeviam.activepivot.core.intf.api.description.ISelectionDescriptio
 import com.activeviam.atoti.server.test.api.CubeTester;
 import com.activeviam.database.datastore.api.IDatastore;
 import com.activeviam.database.datastore.api.description.IDatastoreSchemaDescription;
-import com.activeviam.database.datastore.api.description.IReferenceDescription;
 import com.activeviam.database.datastore.api.description.IStoreDescription;
 import com.activeviam.database.datastore.api.description.impl.DatastoreSchemaDescription;
-import com.activeviam.database.datastore.api.description.impl.ReferenceDescription;
 import com.activeviam.database.datastore.api.description.impl.StoreDescription;
 
 /**
  * Builds a plain, non-distributed in-memory cube (no DirectQuery, no Dremio, no cluster/JGroups) mirroring
- * the production Trades/TradeAttributes shape, so {@link Measures}/{@link Dimensions} can be unit-tested
- * fast and in isolation from Stage 1 (DirectQuery) and Stage 2 (distribution) wiring.
+ * the production single-table {@code TradesMerged} shape (Phase 4), so {@link Measures}/{@link Dimensions}
+ * can be unit-tested fast and in isolation from Stage 1 (DirectQuery) and Stage 2 (distribution) wiring.
  */
 @Configuration
 @Profile("!data-node & !query-node")
@@ -70,32 +67,17 @@ public class CubeTestConfig {
 
     @Bean
     public static IDatastoreSchemaDescription testDatastoreSchemaDescription() {
-        final IStoreDescription tradesStore = StoreDescription.builder()
+        final IStoreDescription tradesMergedStore = StoreDescription.builder()
                 .withStoreName(TRADES_STORE_NAME)
                 .withField(ASOFDATE, LOCAL_DATE)
                 .asKeyField()
                 .withField(TRADE_ID, STRING)
                 .asKeyField()
                 .withField(NOTIONAL, DOUBLE)
-                .build();
-        final IStoreDescription tradeAttributesStore = StoreDescription.builder()
-                .withStoreName(TRADE_ATTRIBUTES_STORE_NAME)
-                .withField(ASOFDATE, LOCAL_DATE)
-                .asKeyField()
-                .withField(TRADE_ID, STRING)
-                .asKeyField()
                 .withField(TRADE_DATE, LOCAL_DATE)
                 .withField(COUNTERPARTY_ID, STRING)
                 .build();
-        final IReferenceDescription tradeToAttributesReference = ReferenceDescription.builder()
-                .fromStore(TRADES_STORE_NAME)
-                .toStore(TRADE_ATTRIBUTES_STORE_NAME)
-                .withName(String.format("%s_to_%s", TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME))
-                .withMapping(ASOFDATE, ASOFDATE)
-                .withMapping(TRADE_ID, TRADE_ID)
-                .build();
-        return new DatastoreSchemaDescription(
-                List.of(tradesStore, tradeAttributesStore), List.of(tradeToAttributesReference));
+        return new DatastoreSchemaDescription(List.of(tradesMergedStore), List.of());
     }
 
     @Bean

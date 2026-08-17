@@ -10,7 +10,6 @@ import static com.activeviam.apps.constants.StoreAndFieldConstants.ASOFDATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.COUNTERPARTY_ID;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_DATE;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
 import static com.activeviam.apps.rest.EndpointConstants.CUSTOM_REST_PATH;
@@ -44,21 +43,19 @@ import lombok.RequiredArgsConstructor;
  * date has been masked on this data node (see {@link MaskingController}), it is safe to remove that date
  * from the shared backend, and the aggregate provider keeps this node answerable in the meantime.
  *
- * <p>Operates on the Iceberg tables backing the {@code Trades}/{@code TradeAttributes} views (see the
- * Dremio-side conversion in {@code DremioSchemaConfig}'s javadoc/README), never on the views themselves,
+ * <p>Phase 4: operates on the single {@code TradesMerged} Iceberg table (the merged replacement for the
+ * two-table {@code Trades}/{@code TradeAttributes} model), never on the {@code TradesMerged} view itself,
  * since Dremio does not support DML on views. Deleted rows are copied into a same-shaped {@code
- * *_backup} table first, so {@link #restore} can put them back and make the exercise repeatable.
+ * TradesMerged_backup} table first, so {@link #restore} can put them back and make the exercise
+ * repeatable.
  *
  * <p>Since DirectQuery has no way to detect changes made directly against the external database, every
  * SQL-level change here is followed by an explicit {@link Application#refresh(ChangeDescription)} call
  * scoped to the affected {@code AsOfDate}, so this node's own hierarchies/aggregate providers stay
  * consistent with what is actually in Dremio - otherwise a later {@code unmask} would let the query node
- * ask this node for a date whose local snapshot was never updated. Note the {@code Trades}-to-{@code
- * TradeAttributes} join in {@code DremioSchemaConfig} does not declare a {@code targetOptionality}, which
- * defaults to {@code OPTIONAL}; per the DirectQuery docs, an {@code Optional} relationship can force this
- * "incremental" refresh to fall back internally to a full rebuild of every hierarchy/aggregate provider
- * even though the scope given here is exact - if that matters, mark the join {@code MANDATORY} instead
- * (only valid if every {@code Trades} row is guaranteed to have a matching {@code TradeAttributes} row).
+ * ask this node for a date whose local snapshot was never updated. Unlike the two-table model, {@code
+ * DremioSchemaConfig} declares no join at all here, so the join-optionality caveat that applied there does
+ * not apply to this single-table refresh path.
  *
  * <p>Each call also accepts an optional {@value EndpointConstants#TEST_RUN_ID_HEADER} header, echoed onto
  * the request's span as {@value EndpointConstants#TEST_RUN_ID_ATTRIBUTE} - see {@link MaskingController}.
@@ -71,18 +68,15 @@ public class DataMaintenanceController {
     public static final String DATA_ENDPOINT = CUSTOM_REST_PATH + "/data";
 
     private static final String NAS_SOURCE = "local_uploads";
-    private static final List<String> STORE_NAMES = List.of(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME);
+    private static final List<String> STORE_NAMES = List.of(TRADES_STORE_NAME);
 
     /**
      * Columns other than {@code AsOfDate} to carry over when cloning a date's rows into a brand-new one
      * (see {@link #load}) - the key ({@code AsOfDate}+{@code TradeID}) still comes out unique per row since
      * the new {@code AsOfDate} makes it a distinct key even with the same {@code TradeID} values.
      */
-    private static final Map<String, String> COLUMNS_AFTER_ASOFDATE = Map.of(
-            TRADES_STORE_NAME,
-            "%s, %s".formatted(TRADE_ID, NOTIONAL),
-            TRADE_ATTRIBUTES_STORE_NAME,
-            "%s, %s, %s".formatted(TRADE_ID, TRADE_DATE, COUNTERPARTY_ID));
+    private static final Map<String, String> COLUMNS_AFTER_ASOFDATE =
+            Map.of(TRADES_STORE_NAME, "%s, %s, %s, %s".formatted(TRADE_ID, NOTIONAL, TRADE_DATE, COUNTERPARTY_ID));
 
     private final DremioRestClient dremioRestClient;
     private final Application directQueryApplication;

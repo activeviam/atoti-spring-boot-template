@@ -41,3 +41,5 @@ tempo-data/
 /.nb-gradle/
 /build/
 data.zip
+/.claude/
+/.idea/

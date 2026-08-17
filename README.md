@@ -93,3 +93,18 @@ generating a new key pair.
 ## ❤️ Using OpenTelemetry
 
 Check [this section for OpenTelemetry](./otel/doc/STACK.md).
+
+## Docker properties (specified in .env file)
+DREMIO_USERNAME=
+DREMIO_PASSWORD=
+DREMIO_HOST=host.docker.internal
+DREMIO_PORT=32010
+DREMIO_JDBC_DRIVER=org.apache.arrow.driver.jdbc.ArrowFlightJdbcDriver
+
+START_DATE=2020-02-27
+END_DATE=2027-02-27
+
+CLUSTER_DB_URL=jdbc:postgresql://localhost:5432/atoti_cluster
+CLUSTER_DB_USERNAME=postgres
+CLUSTER_DB_PASSWORD=
+CLUSTER_DB_DRIVER=org.postgresql.Driver

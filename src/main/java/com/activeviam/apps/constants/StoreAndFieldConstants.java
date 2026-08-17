@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2024-2025
+ * Copyright (C) ActiveViam 2024-2026
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -12,9 +12,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class StoreAndFieldConstants {
     /*********************** Stores names **********************/
-    public static final String TRADES_STORE_NAME = "Trades";
-
-    public static final String TRADE_ATTRIBUTES_STORE_NAME = "TradeAttributes";
+    /**
+     * Phase 4: {@code Trades} and {@code TradeAttributes} merged into a single Dremio table/view
+     * ({@code TradesMerged}), so there is no join at all - see {@code DremioSchemaConfig}.
+     */
+    public static final String TRADES_STORE_NAME = "TradesMerged";
 
     /********************* Stores fields ***********************/
     public static final String ASOFDATE = "AsOfDate";
