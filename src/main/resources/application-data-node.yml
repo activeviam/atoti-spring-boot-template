@@ -11,7 +11,6 @@ data-node:
 dremio:
   host: ${DREMIO_HOST:localhost}
   port: ${DREMIO_PORT:32010}
-  rest-port: ${DREMIO_REST_PORT:9047}
   username: ${DREMIO_USERNAME}
   password: ${DREMIO_PASSWORD}
   space: "${DREMIO_SPACE:@gba}"

@@ -30,14 +30,6 @@ public class DremioProperties {
     @NotNull
     private Integer port;
 
-    /**
-     * Port of the Dremio coordinator's REST API (9047 by default in Dremio), used for the administrative
-     * SQL-job calls in {@link DremioRestClient} (masking exercise's delete/restore of backend data) rather
-     * than the Arrow Flight SQL port used for regular queries.
-     */
-    @NotNull
-    private Integer restPort;
-
     @NotNull
     private String username;
 
