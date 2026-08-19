@@ -7,6 +7,13 @@ server:
 data-node:
   priority: ${DATA_NODE_PRIORITY:1}
 
+# Aggregate-provider sub-test switch for the HA rehearsal (see DataCubeConfig.AggregateProviderMode):
+# SINGLE (default, current baseline) | SINGLE_PARTITIONED | PARTIAL_BY_DATE. partition-dates is only read
+# for PARTIAL_BY_DATE, as a comma-separated list of ISO dates (e.g. "2019-01-05,2019-01-06,...").
+aggregate-provider:
+  mode: ${AGGREGATE_PROVIDER_MODE:SINGLE}
+  partition-dates: ${AGGREGATE_PROVIDER_PARTITION_DATES:}
+
 # DirectQuery connection to Dremio (Trades/TradeAttributes datasets)
 dremio:
   host: ${DREMIO_HOST:localhost}

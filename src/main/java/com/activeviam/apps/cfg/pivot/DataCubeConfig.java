@@ -15,6 +15,10 @@ import static com.activeviam.apps.constants.DistributionConstants.CLUSTER_ID;
 import static com.activeviam.apps.constants.DistributionConstants.JGROUPS_PROTOCOL_PATH;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.ASOFDATE;
 
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -45,15 +49,56 @@ import lombok.RequiredArgsConstructor;
 @Profile("data-node")
 @RequiredArgsConstructor
 public class DataCubeConfig {
+
+    /**
+     * The three aggregate-provider sub-tests used by the HA rehearsal (see {@code
+     * project_directquery_dremio_migration} notes) to isolate whether a REMOVE-triggered rebuild can be
+     * scoped below "the whole provider":
+     *
+     * <ul>
+     *   <li>{@code SINGLE}: one unpartitioned {@code ByAsOfDate} bitmap provider (today's default/baseline).
+     *   <li>{@code SINGLE_PARTITIONED}: the same single named provider, now internally split into per-date
+     *       partitions via {@code withValuePartitioningOn}.
+     *   <li>{@code PARTIAL_BY_DATE}: one separate, independently-named bitmap provider per date (via {@code
+     *       filteredOn}), with no umbrella provider at all.
+     * </ul>
+     */
+    public enum AggregateProviderMode {
+        SINGLE,
+        SINGLE_PARTITIONED,
+        PARTIAL_BY_DATE
+    }
+
+    private static final String AGGREGATE_PROVIDER_NAME = "ByAsOfDate";
+
     private final Measures measures;
     private final Dimensions dimensions;
 
     @Value("${data-node.priority:1}")
     private final int nodePriority;
 
+    @Value("${aggregate-provider.mode:SINGLE}")
+    private final AggregateProviderMode aggregateProviderMode;
+
+    @Value("${aggregate-provider.partition-dates:}")
+    private final String partitionDatesProperty;
+
+    private static List<LocalDate> parsePartitionDates(final String property) {
+        if (property.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(property.split(","))
+                .map(String::trim)
+                .map(LocalDate::parse)
+                .toList();
+    }
+
     @Bean
     public IActivePivotInstanceDescription activePivotInstanceDescription() {
-        return StartBuilding.cube(CUBE_NAME)
+        final List<LocalDate> partitionDates = parsePartitionDates(partitionDatesProperty);
+        final LevelIdentifier asOfDateLevel = LevelIdentifier.simple(ASOFDATE);
+
+        final var afterPartialProvider = StartBuilding.cube(CUBE_NAME)
                 .withContributorsCount()
                 .withinFolder(NATIVE_MEASURES)
                 .withAlias("Count")
@@ -70,14 +115,43 @@ public class DataCubeConfig {
                 // Aggregate provider: pre-aggregate Notional/Count per AsOfDate in memory so queries at
                 // that granularity are served without round-tripping to Dremio. Anything finer (e.g. a
                 // drillthrough to individual trades) falls back to the JIT provider, which still delegates
-                // straight to Dremio.
+                // straight to Dremio. See AggregateProviderMode for the three rehearsal variants this
+                // switches between.
                 .withAggregateProvider()
                 .jit()
-                .withPartialProvider()
-                .withName("ByAsOfDate")
-                .bitmap()
-                .includingOnlyLevels(LevelIdentifier.simple(ASOFDATE))
+                .withPartialProvider();
 
+        final var withProvider =
+                switch (aggregateProviderMode) {
+                    case SINGLE ->
+                        afterPartialProvider
+                                .withName(AGGREGATE_PROVIDER_NAME)
+                                .bitmap()
+                                .includingOnlyLevels(asOfDateLevel);
+                    case SINGLE_PARTITIONED ->
+                        afterPartialProvider
+                                .withName(AGGREGATE_PROVIDER_NAME)
+                                .bitmap()
+                                .includingOnlyLevels(asOfDateLevel)
+                                .withValuePartitioningOn(ASOFDATE);
+                    case PARTIAL_BY_DATE -> {
+                        var provider = afterPartialProvider
+                                .withName(AGGREGATE_PROVIDER_NAME + "_" + partitionDates.getFirst())
+                                .bitmap()
+                                .includingOnlyLevels(asOfDateLevel)
+                                .filteredOn(Map.of(asOfDateLevel, partitionDates.getFirst()));
+                        for (final LocalDate date : partitionDates.subList(1, partitionDates.size())) {
+                            provider = provider.withPartialProvider()
+                                    .withName(AGGREGATE_PROVIDER_NAME + "_" + date)
+                                    .bitmap()
+                                    .includingOnlyLevels(asOfDateLevel)
+                                    .filteredOn(Map.of(asOfDateLevel, date));
+                        }
+                        yield provider;
+                    }
+                };
+
+        return withProvider
                 // Shared context values
                 // Query maximum execution time (before timeout cancellation): 30s
                 .withSharedContextValue(QueriesTimeLimit.of(30, TimeUnit.SECONDS))
