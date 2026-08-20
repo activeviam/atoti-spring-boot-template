@@ -99,15 +99,16 @@ public class DataCubeConfig {
         final LevelIdentifier asOfDateLevel = LevelIdentifier.simple(ASOFDATE);
 
         final var afterPartialProvider = StartBuilding.cube(CUBE_NAME)
+                // Atoti 6.2 removed INativeMeasureBuilder#withAlias(String) with no replacement, so
+                // these native measures now keep their default names (contributors.COUNT,
+                // UPDATE.TIMESTAMP) instead of being renamed to "Count"/"Update.Timestamp".
                 .withContributorsCount()
                 .withinFolder(NATIVE_MEASURES)
-                .withAlias("Count")
                 .withFormatter(INT_FORMATTER)
 
                 // WARN: This will not be available for AggregateProvider `jit`
                 .withUpdateTimestamp()
                 .withinFolder(NATIVE_MEASURES)
-                .withAlias("Update.Timestamp")
                 .withFormatter(TIMESTAMP_FORMATTER)
                 .withCalculations(measures::build)
                 .withDimensions(dimensions.build())
@@ -152,6 +153,12 @@ public class DataCubeConfig {
                 };
 
         return withProvider
+                // Aggregate cache: sits above the aggregate provider above, checked first on every
+                // query. Enabled here (rather than left off) because the HA rehearsals are meant to
+                // reflect a real production deployment, which would always run with this on.
+                .withAggregatesCache()
+                .withSize(10_000)
+
                 // Shared context values
                 // Query maximum execution time (before timeout cancellation): 30s
                 .withSharedContextValue(QueriesTimeLimit.of(30, TimeUnit.SECONDS))
@@ -175,9 +182,11 @@ public class DataCubeConfig {
                 .withNoProperty()
                 .withProtocolPath(JGROUPS_PROTOCOL_PATH)
                 .end()
+                // Atoti 6.2 removed the withAllMeasures() step: data cubes sharing an application id
+                // must now always expose the same, full measure set (see the removal of
+                // activeviam.distribution.cube.throwOnDifferentMeasureNames in the 6.2 migration notes).
                 .withApplicationId(APPLICATION_ID)
                 .withAllHierarchies()
-                .withAllMeasures()
                 .withConcealedBranches()
                 .withProperty(IDataClusterDefinition.DATA_NODE_PRIORITY, String.valueOf(nodePriority))
                 .end()

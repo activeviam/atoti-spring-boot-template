@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2024
+ * Copyright (C) ActiveViam 2024-2026
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -47,9 +47,8 @@ public class InMemoryAuthenticationConfig {
 
     @Bean
     public AuthenticationProvider inMemoryAuthenticationProvider() {
-        var authenticationProvider = new DaoAuthenticationProvider();
+        var authenticationProvider = new DaoAuthenticationProvider(basicUserDetailsService);
         authenticationProvider.setPasswordEncoder(passwordEncoder);
-        authenticationProvider.setUserDetailsService(basicUserDetailsService);
         return authenticationProvider;
     }
 }

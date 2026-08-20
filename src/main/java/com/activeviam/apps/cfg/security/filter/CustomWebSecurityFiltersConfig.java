@@ -14,7 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springdoc.core.properties.SwaggerUiConfigProperties;
 import org.springdoc.core.utils.Constants;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
+import org.springframework.boot.security.autoconfigure.web.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
