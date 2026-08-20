@@ -3,7 +3,7 @@
 <configuration debug="true">
   <shutdownHook class="ch.qos.logback.core.hook.DefaultShutdownHook"/>
   <jmxConfigurator/>
-  <conversionRule conversionWord="user" converterClass="com.activeviam.apm.api.logging.LogUserConverter"/>
+  <conversionRule conversionWord="user" converterClass="com.activeviam.tech.logging.logback.spring.api.LogUserConverter"/>
 
   <property name="PID" value="[%10(%user)]"/>
   <!-- Configure the correlation pattern as the default uses traceId and spanId, read from the MDC -->

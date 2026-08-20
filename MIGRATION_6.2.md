@@ -21,15 +21,16 @@ your own upgrade.
 
 ## pom.xml changes
 
-|                  Property / dependency                   |    6.1    |                     6.2                      |                                                                                                                         Why                                                                                                                          |
-|----------------------------------------------------------|-----------|----------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `spring-boot-starter-parent`                             | 3.5.16    | **4.1.0**                                    | Atoti 6.2's mandatory baseline (brings Spring Framework 7 and Jackson 3)                                                                                                                                                                             |
-| `java.version`                                           | 21        | **25**                                       | Atoti 6.2's mandatory baseline                                                                                                                                                                                                                       |
-| `atoti-server.version`                                   | 6.1.23    | **6.2.0**                                    | The upgrade itself                                                                                                                                                                                                                                   |
-| `springdoc.version`                                      | 2.8.17    | **3.1.0**                                    | springdoc 2.x does not support Spring Boot 4/Spring 7; 3.x does                                                                                                                                                                                      |
-| `atoti-server-apm-starter` dependency                    | present   | **removed**                                  | The starter no longer exists in 6.2 — its auto-configuration was folded into `atoti-server-starter` (node-instance-name logging is now always on; the blocked-thread watchdog is opt-in via `atoti.server.monitoring.blockedThreadWatchdog.enabled`) |
-| `spring-boot-resttestclient` dependency (test scope)     | —         | **added**                                    | `TestRestTemplate` moved out of `spring-boot-test` into this new module and is no longer auto-configured by default (see [Test changes](#test-changes))                                                                                              |
-| `tomcat.version` / `netty.version` / `httpcore5.version` | inherited | **pinned** to 11.0.24 / 4.2.16.Final / 5.4.3 | ActiveViam's migration notes call these out as security fixes ahead of what Spring Boot 4.1.0 itself manages (CVE-2026-55276, CVE-2026-53434, CVE-2026-53404, CVE-2026-44891, CVE-2026-54399, CVE-2026-54428)                                        |
+|                  Property / dependency                   |    6.1    |                                                                     6.2                                                                      |                                                                                                                         Why                                                                                                                          |
+|----------------------------------------------------------|-----------|----------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `spring-boot-starter-parent`                             | 3.5.16    | **4.1.0**                                                                                                                                    | Atoti 6.2's mandatory baseline (brings Spring Framework 7 and Jackson 3)                                                                                                                                                                             |
+| `java.version`                                           | 21        | **25**                                                                                                                                       | Atoti 6.2's mandatory baseline                                                                                                                                                                                                                       |
+| `atoti-server.version`                                   | 6.1.23    | **6.2.0**                                                                                                                                    | The upgrade itself                                                                                                                                                                                                                                   |
+| `springdoc.version`                                      | 2.8.17    | **3.1.0**                                                                                                                                    | springdoc 2.x does not support Spring Boot 4/Spring 7; 3.x does                                                                                                                                                                                      |
+| `atoti-server-apm-starter` dependency                    | present   | **removed**                                                                                                                                  | The starter no longer exists in 6.2 — its auto-configuration was folded into `atoti-server-starter` (node-instance-name logging is now always on; the blocked-thread watchdog is opt-in via `atoti.server.monitoring.blockedThreadWatchdog.enabled`) |
+| `spring-boot-resttestclient` dependency (test scope)     | —         | **added**                                                                                                                                    | `TestRestTemplate` moved out of `spring-boot-test` into this new module and is no longer auto-configured by default (see item 6 below)                                                                                                               |
+| `tomcat.version` / `netty.version` / `httpcore5.version` | inherited | **pinned** to 11.0.24 / 4.2.16.Final / 5.4.3                                                                                                 | ActiveViam's migration notes call these out as security fixes ahead of what Spring Boot 4.1.0 itself manages (CVE-2026-55276, CVE-2026-53434, CVE-2026-53404, CVE-2026-44891, CVE-2026-54399, CVE-2026-54428)                                        |
+| `flight-sql-jdbc-driver` dependency                      | shaded    | **swapped** for unshaded `flight-sql-jdbc-core` + `arrow-memory-unsafe` (excludes `arrow-memory-netty`, also excluded from `dremio-dialect`) | Not an Atoti change, but required on Java 25 — see item 8 below                                                                                                                                                                                      |
 
 ### Repository access
 
@@ -52,10 +53,13 @@ same JFrog account used for the existing internal repository works). Credentials
 
 ## Code changes
 
-Six source files needed changes to compile and run against 6.2. None of these are called out by
-name in ActiveViam's own migration notes for the two marked ⚠️ below — they were found by actually
-compiling this codebase against 6.2.0, not by reading documentation, so double-check your own
-usage of these APIs even if your code looks unrelated to what's listed here.
+Six source files needed changes to compile against 6.2, plus two more (#7, #8 below) found only by
+actually running the upgraded app end to end against a live Dremio — `mvn clean install` alone does
+not catch these, since no test in this repo boots the full app with the real logging config or a
+live external database connection. None of the ⚠️ items below are called out by name in
+ActiveViam's own migration notes — they were found by compiling and running this codebase against
+6.2.0, not by reading documentation, so double-check your own usage of these even if your code
+looks unrelated to what's listed here.
 
 ### 1. `PathRequest` moved package (Spring Boot 4 modularization)
 
@@ -189,6 +193,94 @@ projects (like this one) that don't want to rewrite existing tests around a new 
 File: `src/test/java/com/activeviam/apps/AtotiSpringBootApplicationTest.java`. `LocalServerPort`
 did **not** move and needed no change.
 
+### 7. ⚠️ `logback-spring.xml`'s `LogUserConverter` moved package (only surfaces at runtime)
+
+`com.activeviam.apm.api.logging.LogUserConverter` no longer exists — it moved to
+`com.activeviam.tech.logging.logback.spring.api.LogUserConverter` (in the `logging-logback-spring`
+artifact) when `atoti-server-apm-starter` was folded into other 6.2 artifacts (see the pom.xml table
+above). Since this is a resource file referenced by class name string, not a Java import, `mvn
+clean install` compiles fine either way — every node crashes at startup with a Logback
+configuration error until this is fixed, and no test in this repo boots the full app with the real
+`logback-spring.xml`, so this was only caught by actually running the app.
+
+```diff
+- <conversionRule conversionWord="user" converterClass="com.activeviam.apm.api.logging.LogUserConverter"/>
++ <conversionRule conversionWord="user" converterClass="com.activeviam.tech.logging.logback.spring.api.LogUserConverter"/>
+```
+
+File: `src/main/resources/logback-spring.xml`. **This directly contradicts** the "Deliberately not
+done" section's original claim that "this project's own logging config didn't need changes" — that
+claim was wrong; it was written before the app was actually run end to end post-upgrade.
+
+### 8. ⚠️ `arrow-flight-sql-jdbc-driver:19.0.0` doesn't work on Java 25 — swap for unshaded modules
+
+Not an Atoti issue at all, but blocks every `data-node` instance from starting (any DirectQuery
+scenario, not just this template's Dremio dialect) once you're actually on Java 25. The shaded
+driver's bundled Netty allocator (`PooledByteBufAllocatorL`) unconditionally probes an empty
+buffer's native memory address at class-init time; on Java 25 this throws
+`UnsupportedOperationException` from `EmptyByteBuf.memoryAddress()`, because Netty 4.x's
+`sun.misc.Unsafe`-based direct-memory path breaks under JEP 471 (Unsafe memory-access methods
+deprecated for removal). This is a real, externally-documented bug — see
+[apache/arrow-java#728](https://github.com/apache/arrow-java/issues/728) and
+[apache/iceberg#15930](https://github.com/apache/iceberg/issues/15930) — not a configuration
+mistake, confirmed by reproducing it standalone outside this app before touching any code. No newer
+`flight-sql-jdbc-driver` release exists on Maven Central (19.0.0 is latest) as of this writing, and
+no JVM flag works around it (tried `-Dio.netty.tryReflectionSetAccessible=true`,
+`-Dio.netty.noUnsafe=true`, extra `--add-opens`, `-XX:MaxDirectMemorySize`).
+
+**Fix**: depend on the unshaded `flight-sql-jdbc-core` module instead of the shaded
+`flight-sql-jdbc-driver` uber-jar, explicitly add `arrow-memory-unsafe`, and exclude
+`arrow-memory-netty` (`flight-sql-jdbc-core`'s default transitive allocator, which carries the
+identical bug in unshaded form) — both from this new dependency and from `dremio-dialect` itself,
+which also transitively pulls in the shaded driver. The unshaded module ships the exact same driver
+class and `META-INF/services/java.sql.Driver` registration
+(`org.apache.arrow.driver.jdbc.ArrowFlightJdbcDriver`), so no application code or JDBC URL changes
+were needed.
+
+```diff
+- <dependency>
+-   <groupId>org.apache.arrow</groupId>
+-   <artifactId>flight-sql-jdbc-driver</artifactId>
+-   <version>${flight-sql-jdbc-driver.version}</version>
+- </dependency>
++ <dependency>
++   <groupId>org.apache.arrow</groupId>
++   <artifactId>flight-sql-jdbc-core</artifactId>
++   <version>${flight-sql-jdbc-driver.version}</version>
++   <exclusions>
++     <exclusion>
++       <groupId>org.apache.arrow</groupId>
++       <artifactId>arrow-memory-netty</artifactId>
++     </exclusion>
++   </exclusions>
++ </dependency>
++ <dependency>
++   <groupId>org.apache.arrow</groupId>
++   <artifactId>arrow-memory-unsafe</artifactId>
++   <version>${flight-sql-jdbc-driver.version}</version>
++ </dependency>
+```
+
+Also add the same exclusion to the existing `dremio-dialect` dependency:
+
+```diff
+  <dependency>
+    <groupId>com.activeviam.database.jdbc.dialect.dremio</groupId>
+    <artifactId>dremio-dialect</artifactId>
+    <version>${atoti-server.version}</version>
++   <exclusions>
++     <exclusion>
++       <groupId>org.apache.arrow</groupId>
++       <artifactId>flight-sql-jdbc-driver</artifactId>
++     </exclusion>
++   </exclusions>
+  </dependency>
+```
+
+File: `pom.xml`. Verified end to end, not just compiled: a real `data-node` process started and
+successfully queried live Dremio data over this driver on JDK 25 (see the Scenario 1 re-run evidence
+at `~/atoti-rehearsal-evidence/phase4-single-table-6.2.0-rehearsal-2026-08-20/`).
+
 ## Not affected
 
 These are worth naming because they're the kind of thing a 6.2 upgrade elsewhere might hit, but
@@ -210,9 +302,9 @@ this project's actual usage turned out to be already 6.2-safe:
 * **Jackson 2 → 3 namespace migration** (`com.fasterxml.jackson.*` → `tools.jackson.*`). This
   project doesn't touch Jackson directly in its own code, so nothing broke, but if you add custom
   REST DTOs/serializers to a fork, check ActiveViam's migration notes for this.
-* **JUL → SLF4J logging switch.** Atoti Server now logs through SLF4J instead of JUL; this
-  project's own logging config didn't need changes, but review yours if you have custom log
-  routing.
+* **JUL → SLF4J logging switch.** Atoti Server now logs through SLF4J instead of JUL. This
+  project's `logback-spring.xml` *did* need one change — see item 7 above — so don't assume your
+  own logging config is unaffected just because it compiles; only running the app catches this.
 * **Cleaning up the now-deprecated `IActivePivotManagerDescriptionConfig` /
   `IActivePivotConfig` / `IDatastoreConfig` usages** described above — they still work, they're
   just marked for eventual removal.
@@ -228,6 +320,13 @@ this project's actual usage turned out to be already 6.2-safe:
 * `mvn test` — `MeasuresTest` (cube-only) passes; `AtotiSpringBootApplicationTest` (full Spring
   Boot context) is skipped as before (requires a live Dremio connection via `DREMIO_USERNAME`).
 * Atoti Server confirmed reporting `Atoti Server version: 6.2.0` in the test log output.
+* **Full live cluster rerun** (this is what actually caught items 7 and 8 above): built the fat jar
+  and ran a real 3-node cluster (two `data-node` replicas + one `query-node`) against a live Dremio
+  instance on JDK 25, repeating the existing masking/data-maintenance rehearsal sequence
+  (mask → drop → external insert → load → unmask → drop → load) end to end. Every step matched the
+  pre-upgrade (6.1.23) behavior exactly, including the aggregate cache staying active and correct
+  throughout. Full evidence and findings:
+  `~/atoti-rehearsal-evidence/phase4-single-table-6.2.0-rehearsal-2026-08-20/README.md`.
 
 All of the above ran with `JAVA_HOME` pointed at a JDK 25 distribution (GraalVM CE 25.0.2 was used
 here; any JDK 25 build should work equally).

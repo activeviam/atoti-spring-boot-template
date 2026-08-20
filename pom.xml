@@ -83,10 +83,38 @@
       <groupId>com.activeviam.database.jdbc.dialect.dremio</groupId>
       <artifactId>dremio-dialect</artifactId>
       <version>${atoti-server.version}</version>
+      <!-- dremio-dialect itself pulls in the shaded flight-sql-jdbc-driver transitively; excluded here
+           since we depend on the unshaded flight-sql-jdbc-core below instead (see that dependency's
+           comment for why). -->
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.arrow</groupId>
+          <artifactId>flight-sql-jdbc-driver</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- Unshaded flight-sql-jdbc-core (not the shaded flight-sql-jdbc-driver uber-jar): its bundled,
+         relocated Netty copy's PooledByteBufAllocatorL unconditionally probes an empty buffer's native
+         memory address at class-init time, which throws UnsupportedOperationException on Java 25 (Netty
+         4.x's sun.misc.Unsafe-based direct-memory path breaks under JEP 471 - see
+         https://github.com/apache/arrow-java/issues/728). Excluding arrow-memory-netty and adding
+         arrow-memory-unsafe swaps in Arrow's Unsafe-based allocator, which has no such Netty allocator and
+         initializes cleanly. Same driver class/JDBC service registration as the shaded jar
+         (org.apache.arrow.driver.jdbc.ArrowFlightJdbcDriver), so no code/URL changes needed elsewhere. -->
+    <dependency>
+      <groupId>org.apache.arrow</groupId>
+      <artifactId>flight-sql-jdbc-core</artifactId>
+      <version>${flight-sql-jdbc-driver.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.arrow</groupId>
+          <artifactId>arrow-memory-netty</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.arrow</groupId>
-      <artifactId>flight-sql-jdbc-driver</artifactId>
+      <artifactId>arrow-memory-unsafe</artifactId>
       <version>${flight-sql-jdbc-driver.version}</version>
     </dependency>
 
