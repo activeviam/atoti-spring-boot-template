@@ -24,9 +24,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.activeviam.activepivot.core.intf.api.cube.IActivePivotManager;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
-import com.activeviam.activepivot.dist.impl.api.cube.IMultiVersionDataActivePivot;
-import com.activeviam.activepivot.dist.impl.api.cube.IMultiVersionDataActivePivot.IMaskingOperationReport;
-import com.activeviam.activepivot.dist.impl.api.cube.IMultiVersionDataActivePivot.LevelMembers;
+import com.activeviam.activepivot.dist.datanode.impl.api.cube.IMultiVersionDataActivePivot;
+import com.activeviam.activepivot.dist.datanode.impl.api.cube.IMultiVersionDataActivePivot.IMaskingOperationReport;
+import com.activeviam.activepivot.dist.datanode.impl.api.cube.IMultiVersionDataActivePivot.LevelMembers;
 import com.activeviam.tech.mvcc.api.IEpoch;
 
 import io.opentelemetry.api.trace.Span;

@@ -14,9 +14,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -28,6 +29,9 @@ import org.springframework.test.context.ActiveProfiles;
 @EnabledIfEnvironmentVariable(named = "DREMIO_USERNAME", matches = ".+")
 @ActiveProfiles("data-node")
 @SpringBootTest(classes = AtotiSpringBootApplication.class, webEnvironment = WebEnvironment.RANDOM_PORT)
+// TestRestTemplate is no longer auto-configured by default in Spring Boot 4; this annotation
+// restores it (see spring-boot-resttestclient in pom.xml).
+@AutoConfigureTestRestTemplate
 class AtotiSpringBootApplicationTest {
     @LocalServerPort
     private int port;
