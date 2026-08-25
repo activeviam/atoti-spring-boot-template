@@ -22,3 +22,7 @@ dremio:
   password: ${DREMIO_PASSWORD}
   space: "${DREMIO_SPACE:@gba}"
   use-encryption: false
+  # SMALL (default) reads Trades/TradeAttributes (5 rows/day, hand-checkable). LARGE reads
+  # TradesLarge/TradeAttributesLarge (1M reused TradeIDs x 10 days) for realistic-scale rehearsals -
+  # see DremioProperties.DatasetSize / project_large_scale_dataset_2026_08 notes.
+  dataset-size: ${DREMIO_DATASET_SIZE:SMALL}
