@@ -6,6 +6,9 @@
  */
 package com.activeviam.apps.cfg.directquery;
 
+import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
+import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Profile;
 import org.springframework.validation.annotation.Validated;
@@ -18,6 +21,17 @@ import lombok.Data;
 @Data
 @Validated
 public class DremioProperties {
+    /**
+     * Which pair of Dremio tables this node reads from: {@code SMALL} is the original, hand-checkable
+     * 5-rows/day dataset ({@code Trades}/{@code TradeAttributes}); {@code LARGE} is the realistic-scale
+     * dataset ({@code TradesLarge}/{@code TradeAttributesLarge}, 1M reused TradeIDs x 10 days) generated
+     * for the WCR-priority-aligned rehearsals - see {@code project_large_scale_dataset_2026_08} notes.
+     */
+    public enum DatasetSize {
+        SMALL,
+        LARGE
+    }
+
     /**
      * Hostname of the Dremio coordinator's Arrow Flight SQL endpoint.
      */
@@ -43,4 +57,14 @@ public class DremioProperties {
     private String space;
 
     private boolean useEncryption = false;
+
+    private DatasetSize datasetSize = DatasetSize.SMALL;
+
+    public String getTradesTableName() {
+        return datasetSize == DatasetSize.LARGE ? TRADES_STORE_NAME + "Large" : TRADES_STORE_NAME;
+    }
+
+    public String getTradeAttributesTableName() {
+        return datasetSize == DatasetSize.LARGE ? TRADE_ATTRIBUTES_STORE_NAME + "Large" : TRADE_ATTRIBUTES_STORE_NAME;
+    }
 }

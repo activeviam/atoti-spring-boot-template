@@ -153,6 +153,12 @@ public class DataCubeConfig {
                 };
 
         return withProvider
+                // Aggregate cache: sits above the aggregate provider above, checked first on every
+                // query. Enabled here (rather than left off) because the HA rehearsals are meant to
+                // reflect a real production deployment, which would always run with this on.
+                .withAggregatesCache()
+                .withSize(10_000)
+
                 // Shared context values
                 // Query maximum execution time (before timeout cancellation): 30s
                 .withSharedContextValue(QueriesTimeLimit.of(30, TimeUnit.SECONDS))

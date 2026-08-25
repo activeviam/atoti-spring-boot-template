@@ -7,8 +7,6 @@
 package com.activeviam.apps.rest;
 
 import static com.activeviam.apps.constants.StoreAndFieldConstants.ASOFDATE;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 import static com.activeviam.apps.rest.EndpointConstants.CUSTOM_REST_PATH;
 
 import java.time.LocalDate;
@@ -22,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.activeviam.apps.cfg.directquery.DremioProperties;
 import com.activeviam.directquery.application.api.Application;
 import com.activeviam.directquery.application.api.refresh.ChangeDescription;
 import com.activeviam.directquery.application.api.refresh.ChangeType;
@@ -55,9 +54,8 @@ import lombok.RequiredArgsConstructor;
 public class DataMaintenanceController {
     public static final String DATA_ENDPOINT = CUSTOM_REST_PATH + "/data";
 
-    private static final List<String> STORE_NAMES = List.of(TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME);
-
     private final Application directQueryApplication;
+    private final DremioProperties dremioProperties;
 
     /** Drops {@code date} from this node's own view. Dremio is untouched - the date may still exist there. */
     @DeleteMapping("/{date}")
@@ -65,7 +63,11 @@ public class DataMaintenanceController {
             @PathVariable final LocalDate date,
             @RequestHeader(name = EndpointConstants.TEST_RUN_ID_HEADER, required = false) final String testRunId) {
         tagTestRunId(testRunId);
-        directQueryApplication.refresh(changeDescription(ChangeType.REMOVE_ROWS, date));
+        directQueryApplication.refresh(changeDescription(
+                ChangeType.REMOVE_ROWS,
+                date,
+                dremioProperties.getTradesTableName(),
+                dremioProperties.getTradeAttributesTableName()));
     }
 
     /** Picks up {@code date} on this node, assuming it already exists in Dremio. Issues no DML of its own. */
@@ -74,7 +76,40 @@ public class DataMaintenanceController {
             @PathVariable final LocalDate date,
             @RequestHeader(name = EndpointConstants.TEST_RUN_ID_HEADER, required = false) final String testRunId) {
         tagTestRunId(testRunId);
-        directQueryApplication.refresh(changeDescription(ChangeType.ADD_ROWS, date));
+        directQueryApplication.refresh(changeDescription(
+                ChangeType.ADD_ROWS,
+                date,
+                dremioProperties.getTradesTableName(),
+                dremioProperties.getTradeAttributesTableName()));
+    }
+
+    /**
+     * Picks up a new row landed in the fact table ({@code Trades}) only, for a {@code date} already loaded on
+     * this node - e.g. an intraday new trade. Leaves {@code TradeAttributes} untouched, so fact-only refresh
+     * cost can be measured in isolation from a dimension-only refresh (see {@link #loadDimensionOnly}).
+     */
+    @PostMapping("/{date}/load/fact")
+    public void loadFactOnly(
+            @PathVariable final LocalDate date,
+            @RequestHeader(name = EndpointConstants.TEST_RUN_ID_HEADER, required = false) final String testRunId) {
+        tagTestRunId(testRunId);
+        directQueryApplication.refresh(
+                changeDescription(ChangeType.ADD_ROWS, date, dremioProperties.getTradesTableName()));
+    }
+
+    /**
+     * Picks up a new row landed in the dimension table ({@code TradeAttributes}) only, for a {@code date}
+     * already loaded on this node - e.g. an intraday new counterparty/attribute record. Leaves {@code Trades}
+     * untouched, so dimension-only refresh cost can be measured in isolation from a fact-only refresh (see
+     * {@link #loadFactOnly}).
+     */
+    @PostMapping("/{date}/load/dimension")
+    public void loadDimensionOnly(
+            @PathVariable final LocalDate date,
+            @RequestHeader(name = EndpointConstants.TEST_RUN_ID_HEADER, required = false) final String testRunId) {
+        tagTestRunId(testRunId);
+        directQueryApplication.refresh(
+                changeDescription(ChangeType.ADD_ROWS, date, dremioProperties.getTradeAttributesTableName()));
     }
 
     private static void tagTestRunId(final String testRunId) {
@@ -83,8 +118,9 @@ public class DataMaintenanceController {
         }
     }
 
-    private static ChangeDescription changeDescription(final ChangeType changeType, final LocalDate date) {
-        return ChangeDescription.create(STORE_NAMES.stream()
+    private ChangeDescription changeDescription(
+            final ChangeType changeType, final LocalDate date, final String... tableNames) {
+        return ChangeDescription.create(List.of(tableNames).stream()
                 .map(storeName ->
                         TableUpdateDetail.create(storeName, changeType, ConditionFactory.equal(ASOFDATE, date)))
                 .toList());

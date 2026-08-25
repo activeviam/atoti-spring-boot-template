@@ -27,6 +27,7 @@
     <palantir-java-format.version>2.96.0</palantir-java-format.version>
 
     <flight-sql-jdbc-driver.version>19.0.0</flight-sql-jdbc-driver.version>
+    <jolokia.version>2.6.1</jolokia.version>
 
     <!-- ActiveViam-recommended security pins ahead of Spring Boot 4.1.0's own managed versions,
          per the Atoti 6.2 migration notes (PIVOT-14395: CVE-2026-55276, CVE-2026-53434,
@@ -53,6 +54,14 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <!-- Exposes MBean reads over HTTP at /actuator/jolokia, auto-registered since actuator exposure
+         is already "*" in application.yml. Needed to read the AggregatesCacheMonitoring MBean
+         (NbOfEntries/Capacity) - the aggregates cache has no Prometheus/OTEL metric, only JMX. -->
+    <dependency>
+      <groupId>org.jolokia</groupId>
+      <artifactId>jolokia-support-springboot</artifactId>
+      <version>${jolokia.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

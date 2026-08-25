@@ -54,6 +54,11 @@ public class QueryCubeConfig {
                 .withProperty(IQueryClusterDefinition.HORIZONTAL_DATA_DUPLICATION_PROPERTY, Boolean.toString(true))
                 .end()
 
+                // Aggregate cache on the query cube itself: caches results assembled from the data
+                // cubes' contributions, on top of each data node's own cache (see DataCubeConfig).
+                .withAggregatesCache()
+                .withSize(10_000)
+
                 // Print each query's distributed execution plan and per-node timing to this node's log, so
                 // the masking/failover rehearsal (see MaskingController/DataMaintenanceController) has a
                 // continuous trail of which data node actually served each query, without having to

@@ -7,8 +7,6 @@
 package com.activeviam.apps.cfg.directquery;
 
 import static com.activeviam.apps.constants.StoreAndFieldConstants.ASOFDATE;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ATTRIBUTES_STORE_NAME;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADE_ID;
 
 import java.util.List;
@@ -42,20 +40,25 @@ public class DremioSchemaConfig {
     @Bean
     public SchemaDescription dremioSchemaDescription() {
         final IDirectQueryTableDiscoverer discoverer = dremioConnector.getDiscoverer();
+        final String tradesTableName = dremioProperties.getTradesTableName();
+        final String tradeAttributesTableName = dremioProperties.getTradeAttributesTableName();
 
         final TableDescription tradesTable =
-                discoverer.discoverTable(new SqlTableId(NO_CATALOG, dremioProperties.getSpace(), TRADES_STORE_NAME));
+                discoverer.discoverTable(new SqlTableId(NO_CATALOG, dremioProperties.getSpace(), tradesTableName));
         final TableDescription tradeAttributesTable = discoverer.discoverTable(
-                new SqlTableId(NO_CATALOG, dremioProperties.getSpace(), TRADE_ATTRIBUTES_STORE_NAME));
+                new SqlTableId(NO_CATALOG, dremioProperties.getSpace(), tradeAttributesTableName));
 
+        // RelationshipOptionality.OPTIONAL matches WCR's actual real-world join configuration - see
+        // project_wcr_priority_pivot_2026_08 notes. A live test already confirmed MANDATORY isn't needed
+        // for the add-side scoped-update win, so this isn't a regression relative to that finding.
         final JoinDescription join = JoinDescription.builder()
-                .name(String.format("%s_to_%s", TRADES_STORE_NAME, TRADE_ATTRIBUTES_STORE_NAME))
-                .sourceTableName(TRADES_STORE_NAME)
-                .targetTableName(TRADE_ATTRIBUTES_STORE_NAME)
+                .name(String.format("%s_to_%s", tradesTableName, tradeAttributesTableName))
+                .sourceTableName(tradesTableName)
+                .targetTableName(tradeAttributesTableName)
                 .fieldMappings(Set.of(
                         new ITableJoin.FieldMapping(ASOFDATE, ASOFDATE),
                         new ITableJoin.FieldMapping(TRADE_ID, TRADE_ID)))
-                .targetOptionality(RelationshipOptionality.MANDATORY)
+                .targetOptionality(RelationshipOptionality.OPTIONAL)
                 .build();
 
         return SchemaDescription.builder()

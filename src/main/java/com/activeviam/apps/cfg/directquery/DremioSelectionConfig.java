@@ -6,8 +6,6 @@
  */
 package com.activeviam.apps.cfg.directquery;
 
-import static com.activeviam.apps.constants.StoreAndFieldConstants.TRADES_STORE_NAME;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -23,11 +21,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DremioSelectionConfig {
     private final SchemaDescription dremioSchemaDescription;
+    private final DremioProperties dremioProperties;
 
     @Bean
     public ISelectionDescription datastoreSelectionDescription() {
         return StartBuilding.selection(dremioSchemaDescription)
-                .fromBaseStore(TRADES_STORE_NAME)
+                .fromBaseStore(dremioProperties.getTradesTableName())
                 .withAllReachableFields()
                 .build();
     }
