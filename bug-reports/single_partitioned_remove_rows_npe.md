@@ -45,7 +45,7 @@ directQueryApplication.refresh(ChangeDescription.create(List.of(
 
 Specific to DirectQuery's refresh orchestration — the identical removal via the plain in-memory
 `IDatastore` transaction API (`datastore.edit(...)`, no DirectQuery involved) does **not** crash;
-confirmed with `SinglePartitionedRemoveRowsNpeReproTest` in `src/test/java/com/activeviam/apps/bugrepro/`.
+confirmed with `SinglePartitionedRemoveRowsNpeReproTest` in `../src/test/java/com/activeviam/apps/bugrepro/pivot-14821-DQ-NPE/`.
 
 `DirectQueryRefreshRemoveRowsNpeReproTest` (same directory) reproduces the crash for real: it drives the
 actual `Application#refresh(ChangeDescription)` API (same one production calls) against an **in-memory H2
