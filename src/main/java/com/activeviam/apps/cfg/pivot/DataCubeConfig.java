@@ -27,11 +27,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
+import com.activeviam.activepivot.core.impl.api.condition.FactFilterConditions;
 import com.activeviam.activepivot.core.impl.api.contextvalues.QueriesTimeLimit;
 import com.activeviam.activepivot.core.impl.api.contextvalues.QueryMonitoring;
 import com.activeviam.activepivot.core.intf.api.cube.metadata.LevelIdentifier;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstanceDescription;
 import com.activeviam.activepivot.core.intf.api.description.IDataClusterDefinition;
+import com.activeviam.tech.core.api.filtering.ICondition;
 
 import lombok.RequiredArgsConstructor;
 
@@ -83,6 +85,18 @@ public class DataCubeConfig {
     @Value("${aggregate-provider.partition-dates:}")
     private final String partitionDatesProperty;
 
+    // Bounds the initial DirectQuery load to a date range instead of pulling every date present in
+    // Dremio - needed so a rehearsal can start with only some dates loaded and roll the rest in later
+    // via DataMaintenanceController's load endpoints. Both blank (the default) means no filter, i.e. the
+    // previous unbounded-load behavior. See feedback_load_only_5_dates_for_date_roll / project_cube_fact_
+    // filter_for_date_range_load in memory for why AGGREGATE_PROVIDER_PARTITION_DATES alone can't do this
+    // (it only shapes the in-memory aggregate provider, not what gets loaded).
+    @Value("${data-load.range-start:}")
+    private final String loadRangeStartProperty;
+
+    @Value("${data-load.range-end:}")
+    private final String loadRangeEndProperty;
+
     private static List<LocalDate> parsePartitionDates(final String property) {
         if (property.isBlank()) {
             return List.of();
@@ -93,12 +107,30 @@ public class DataCubeConfig {
                 .toList();
     }
 
+    private static LocalDate parseOptionalDate(final String property) {
+        return property.isBlank() ? null : LocalDate.parse(property.trim());
+    }
+
+    private static ICondition loadRangeFilter(final LocalDate rangeStart, final LocalDate rangeEnd) {
+        if (rangeStart != null && rangeEnd != null) {
+            return FactFilterConditions.and(
+                    FactFilterConditions.gteq(ASOFDATE, rangeStart), FactFilterConditions.lteq(ASOFDATE, rangeEnd));
+        } else if (rangeStart != null) {
+            return FactFilterConditions.gteq(ASOFDATE, rangeStart);
+        } else if (rangeEnd != null) {
+            return FactFilterConditions.lteq(ASOFDATE, rangeEnd);
+        }
+        return null;
+    }
+
     @Bean
     public IActivePivotInstanceDescription activePivotInstanceDescription() {
         final List<LocalDate> partitionDates = parsePartitionDates(partitionDatesProperty);
         final LevelIdentifier asOfDateLevel = LevelIdentifier.simple(ASOFDATE);
+        final ICondition loadRangeFilter =
+                loadRangeFilter(parseOptionalDate(loadRangeStartProperty), parseOptionalDate(loadRangeEndProperty));
 
-        final var afterPartialProvider = StartBuilding.cube(CUBE_NAME)
+        final var afterDimensions = StartBuilding.cube(CUBE_NAME)
                 // Atoti 6.2 removed INativeMeasureBuilder#withAlias(String) with no replacement, so
                 // these native measures now keep their default names (contributors.COUNT,
                 // UPDATE.TIMESTAMP) instead of being renamed to "Count"/"Update.Timestamp".
@@ -111,8 +143,12 @@ public class DataCubeConfig {
                 .withinFolder(NATIVE_MEASURES)
                 .withFormatter(TIMESTAMP_FORMATTER)
                 .withCalculations(measures::build)
-                .withDimensions(dimensions.build())
+                .withDimensions(dimensions.build());
 
+        final var afterFilter =
+                loadRangeFilter == null ? afterDimensions : afterDimensions.withFactFilter(loadRangeFilter);
+
+        final var afterPartialProvider = afterFilter
                 // Aggregate provider: pre-aggregate Notional/Count per AsOfDate in memory so queries at
                 // that granularity are served without round-tripping to Dremio. Anything finer (e.g. a
                 // drillthrough to individual trades) falls back to the JIT provider, which still delegates
