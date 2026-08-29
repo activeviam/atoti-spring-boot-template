@@ -14,34 +14,34 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IHierarchy;
 import com.activeviam.activepivot.core.intf.api.cube.hierarchy.IMeasureHierarchy;
 import com.activeviam.atoti.server.test.api.CubeTester;
-import com.activeviam.database.datastore.api.IDatastore;
+import com.activeviam.database.datastore.api.transaction.IOpenedTransaction;
 
-@SpringJUnitConfig({CubeTestConfig.class})
+@SpringJUnitConfig
 class MeasuresTest {
     private static final LocalDate TEST_DATE = LocalDate.parse("2019-03-13");
 
+    @TestConfiguration
+    public static class MeasuresTestConfig extends CubeTesterConfig {
+        @Override
+        public void loadData(IOpenedTransaction t) {
+            t.addAll(
+                    TRADES_STORE_NAME,
+                    List.of(new Object[] {TEST_DATE, "T1", 100}, new Object[] {TEST_DATE, "T2", 350d}, new Object[] {
+                        TEST_DATE, "T3", 300d
+                    }));
+        }
+    }
+
     @Autowired
     CubeTester cubeTester;
-
-    @Autowired
-    IDatastore datastore;
-
-    @BeforeEach
-    public void initialLoad() {
-        datastore.edit(t -> t.addAll(
-                TRADES_STORE_NAME,
-                List.of(new Object[] {TEST_DATE, "T1", 100}, new Object[] {TEST_DATE, "T2", 350d}, new Object[] {
-                    TEST_DATE, "T3", 300d
-                })));
-    }
 
     /**
      * Here is the actual test. Check that the numbers sum up correctly

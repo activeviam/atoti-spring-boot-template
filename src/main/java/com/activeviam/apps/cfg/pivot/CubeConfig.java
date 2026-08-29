@@ -1,5 +1,5 @@
 /*
- * Copyright (C) ActiveViam 2024
+ * Copyright (C) ActiveViam 2024-2025
  * ALL RIGHTS RESERVED. This material is the CONFIDENTIAL and PROPRIETARY
  * property of ActiveViam Limited. Any unauthorized use,
  * reproduction or transfer of this material is strictly prohibited
@@ -13,7 +13,7 @@ import static com.activeviam.apps.cfg.pivot.ActivePivotManagerConfig.TIMESTAMP_F
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.impl.api.contextvalues.QueriesTimeLimit;
@@ -21,16 +21,13 @@ import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstance
 
 import lombok.RequiredArgsConstructor;
 
-@Configuration
+@Import({Measures.class, Dimensions.class})
 @RequiredArgsConstructor
 public class CubeConfig {
     public static final String CUBE_NAME = "Cube";
 
-    private final Measures measures;
-    private final Dimensions dimensions;
-
     @Bean
-    public IActivePivotInstanceDescription activePivotInstanceDescription() {
+    public IActivePivotInstanceDescription activePivotInstanceDescription(Dimensions dimensions, Measures measures) {
         return StartBuilding.cube(CUBE_NAME)
                 .withContributorsCount()
                 .withinFolder(NATIVE_MEASURES)

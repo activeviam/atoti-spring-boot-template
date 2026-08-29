@@ -9,12 +9,9 @@ package com.activeviam.apps.cfg.pivot;
 import static com.activeviam.apps.cfg.pivot.ActivePivotManagerConfig.DOUBLE_FORMATTER;
 import static com.activeviam.apps.constants.StoreAndFieldConstants.NOTIONAL;
 
-import org.springframework.stereotype.Component;
-
 import com.activeviam.activepivot.copper.api.Copper;
 import com.activeviam.activepivot.core.intf.api.copper.ICopperContext;
 
-@Component
 public class Measures {
 
     public void build(ICopperContext context) {

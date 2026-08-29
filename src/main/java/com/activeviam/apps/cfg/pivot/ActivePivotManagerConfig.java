@@ -7,7 +7,6 @@
 package com.activeviam.apps.cfg.pivot;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.intf.api.description.IActivePivotInstanceDescription;
@@ -17,7 +16,6 @@ import com.activeviam.activepivot.server.spring.api.config.IActivePivotManagerDe
 
 import lombok.RequiredArgsConstructor;
 
-@Configuration
 @RequiredArgsConstructor
 public class ActivePivotManagerConfig implements IActivePivotManagerDescriptionConfig {
     /* *********************/

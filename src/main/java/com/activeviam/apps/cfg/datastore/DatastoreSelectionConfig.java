@@ -7,7 +7,6 @@
 package com.activeviam.apps.cfg.datastore;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import com.activeviam.activepivot.core.datastore.api.builder.StartBuilding;
 import com.activeviam.activepivot.core.intf.api.description.ISelectionDescription;
@@ -16,7 +15,6 @@ import com.activeviam.database.datastore.api.description.IDatastoreSchemaDescrip
 
 import lombok.RequiredArgsConstructor;
 
-@Configuration
 @RequiredArgsConstructor
 public class DatastoreSelectionConfig {
     private final IDatastoreSchemaDescription datastoreSchemaDescription;
