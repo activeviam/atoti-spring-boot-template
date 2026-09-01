@@ -50,33 +50,43 @@ import com.activeviam.directquery.jdbc.api.GenericJdbcConnectorMetaFactory;
  * href="https://activeviam.atlassian.net/browse/PIVOT-14842">PIVOT-14842</a> (see also {@code bug-4.md} in
  * this directory).
  *
- * <p><b>The real finding is broader than originally suspected.</b> Live rehearsal (27 Aug 2026, see {@code
- * project_scenario4_mandatory_factdim_rehearsal_2026_08_27} in this repo's HA-rehearsal memory) found that
- * under {@code RelationshipOptionality.MANDATORY} with the {@code SINGLE} (unpartitioned) aggregate-provider
- * mode - {@code DataCubeConfig.AggregateProviderMode.SINGLE}, this application's Scenario 4 configuration -
- * refreshing the fact table ({@code Trades}) alone via {@code ADD_ROWS} for an already-loaded date - i.e.
- * {@code DataMaintenanceController#loadFactOnly}, the {@code POST .../load/fact} endpoint - doubled that
- * date's point count. Writing this repro test found the actual root cause is more general: {@link
+ * <p><b>UPDATE, 27 Aug 2026, same day: this is very likely NOT an ActiveViam engine defect - the same class
+ * of finding as PIVOT-14823's retraction.</b> {@link
+ * #scopingTheRedundantRefreshToOnlyTheNewRowInsteadOfTheWholeDateAvoidsTheDoubling} shows that a correctly-
+ * scoped {@code ADD_ROWS} call (describing only the one genuinely new row, not the whole date) gives the
+ * correct count - no doubling at all. Atoti Hub's incremental-refresh documentation states, for {@code
+ * ADD_ROWS}: "the provided scope must describe ALL the added rows and ONLY the added rows," and warns
+ * generally that an inexact scope "could lead to inconsistent results." This application's own {@code
+ * DataMaintenanceController#loadFactOnly}/{@code #load}/{@code #loadDimensionOnly} all scope every {@code
+ * ADD_ROWS} call to {@code AsOfDate = date} - correct for a date's first-ever load, but a documented "wrong
+ * change description" the instant it is called again for a date that already has data, since the scope
+ * then re-describes rows that are not new. Traced into ActiveViam's real source ({@code sql-database-6.2.0-
+ * sources.jar}, {@code IncrementalAggViewRefreshPlanner#handleAdd} /
+ * {@code AIncrementalViewRefreshPlanner#computeNewFilter}): {@code handleAdd} always emits a single {@code
+ * IncrementalAddAggViewOperation} with no preceding {@code IncrementalRemoveWhereOperation} (unlike {@code
+ * handleReplace}, which correctly does remove-then-add) - by design, since {@code ADD_ROWS}'s contract
+ * assumes the scope only ever covers genuinely new data, so there is nothing to remove first. When that
+ * assumption is violated (an over-broad scope re-describing already-present rows, exactly what this
+ * application's endpoints do on a second call), the freshly recomputed aggregate for the whole scope gets
+ * added on top of what is already there - explaining the doubling precisely, mechanism and all.
+ *
+ * <p>The tests below are kept as-is (all still pass) because they accurately demonstrate the application-
+ * level defect - this application's own condition scoping is wrong for its stated purpose of modelling a
+ * single new intraday row - even though the underlying merge behavior they exercise turns out to be
+ * ActiveViam's documented, intended contract rather than an engine bug. {@link
  * #redundantAddRowsRefreshOverAlreadyLoadedDataDuplicatesItUnderMandatoryJoinWithNoUnmatchedRowInvolved}
- * shows that <b>any</b> {@code ADD_ROWS} refresh over a date that is already fully and correctly loaded
- * duplicates it under {@code MANDATORY} - no unmatched row, no fact-only distinction required at all. The
- * duplication is cumulative, not a one-time miscalculation: a second redundant refresh takes the count from
- * 2x to 3x, confirming the provider's per-date rebuild result is being <em>appended onto</em> its existing
- * stored value at merge time instead of <em>overwriting</em> it. {@link
- * #redundantAddRowsRefreshOverAlreadyLoadedDataStaysCorrectUnderOptionalJoin} confirms this is genuinely
- * {@code MANDATORY}-specific: the identical redundant-refresh scenario under {@code OPTIONAL} stays
- * correct. The original fact-only-add scenario ({@link
- * #factOnlyAddOfAnUnmatchedRowUnderMandatoryJoinDoublesTheRealDatesCount}) is kept as its own test because
- * it is what production actually ran and it is the exact shape {@code DataMaintenanceController#loadFactOnly}
- * exercises, but it is a special case of the general bug, not a distinct one: fact-only-add against an
- * already-loaded date is itself a redundant refresh of the already-matched rows, and the new unmatched row
- * is correctly excluded by {@code MANDATORY} (no phantom-date fallback the way {@code OPTIONAL} has) rather
- * than contributing to the count itself.
+ * shows the duplication is general (not fact-only-specific) and cumulative; {@link
+ * #redundantAddRowsRefreshOverAlreadyLoadedDataStaysCorrectUnderOptionalJoin} shows it doesn't reproduce
+ * under {@code OPTIONAL} (plausibly because that path's {@code fullRefreshOperations} fallback - see {@code
+ * hasProblematicOptionalJoin} - already does a safe remove-then-add regardless of scope, though this has
+ * not been traced as deeply as the {@code MANDATORY} path above). Not yet determined whether {@code
+ * DataMaintenanceController}'s endpoints should be fixed to scope by row key instead of by date - that is a
+ * real, actionable application-level gap independent of what happens to the Jira ticket.
  *
  * <p>This is the same {@code ADD_ROWS}-scoped-refresh code path as
  * {@code PIVOT-14825-Add-Rows-Corrupt-Date/OptionalJoinFactOnlyAddMisrouteReproTest}, but under {@code
- * MANDATORY} rather than {@code OPTIONAL} it is a non-idempotency bug, not a misrouting/NPE one - a
- * genuinely different mechanism, not just a different symptom of the same one.
+ * MANDATORY} the symptom (and, per this update, the root cause) is different - not an engine misrouting/NPE
+ * bug, but a documented contract this application's own endpoints don't honor.
  */
 class MandatoryJoinFactOnlyAddDoubleCountReproTest {
 
@@ -488,6 +498,146 @@ class MandatoryJoinFactOnlyAddDoubleCountReproTest {
                     "control: under OPTIONAL, a redundant ADD_ROWS refresh over already-loaded data should "
                             + "stay correct at 2 - if this fails, the non-idempotency is not MANDATORY-specific "
                             + "and bug-4.md's scoping needs correcting");
+        }
+    }
+
+    /**
+     * Tests whether bug-4 is actually a documented, unsupported usage pattern rather than an engine defect
+     * - the same way PIVOT-14823 turned out to be. Atoti Hub's incremental-refresh docs state, for {@code
+     * ADD_ROWS}: "the provided scope must describe ALL the added rows and ONLY the added rows," and warn
+     * generally that an inexact scope "could lead to inconsistent results." This application's own {@code
+     * DataMaintenanceController#loadFactOnly}/{@code #load}/{@code #loadDimensionOnly} all scope every
+     * {@code ADD_ROWS} call to {@code AsOfDate = date} - correct for a date's first-ever load (every row
+     * really is new then), but a "wrong change description" the moment it's called again for a date that
+     * already has data, since the scope then re-describes rows that are NOT new.
+     *
+     * <p>This test repeats the minimal redundant-refresh scenario, but scopes the second (redundant)
+     * refresh precisely to the one genuinely new row (by {@code TradeID}) instead of the whole date -
+     * exactly what the docs say the scope should be. If the count comes back correct instead of doubled,
+     * that confirms this application's own overly-broad date-scoped condition is the actual cause, not an
+     * ActiveViam engine defect.
+     */
+    @Test
+    void scopingTheRedundantRefreshToOnlyTheNewRowInsteadOfTheWholeDateAvoidsTheDoubling() throws Exception {
+        final String jdbcUrl = "jdbc:h2:mem:bug4_mandatory_correctly_scoped_add;DB_CLOSE_DELAY=-1";
+        try (Connection setupConnection = DriverManager.getConnection(jdbcUrl, "sa", "");
+                Statement statement = setupConnection.createStatement()) {
+            statement.execute("CREATE TABLE \"" + TRADES_TABLE + "\" (\"" + AS_OF_DATE + "\" DATE, \"" + TRADE_ID
+                    + "\" VARCHAR(50), \"" + NOTIONAL + "\" DOUBLE, PRIMARY KEY (\"" + AS_OF_DATE + "\", \""
+                    + TRADE_ID + "\"))");
+            statement.execute("CREATE TABLE \"" + TRADE_ATTRIBUTES_TABLE + "\" (\"" + AS_OF_DATE + "\" DATE, \""
+                    + TRADE_ID + "\" VARCHAR(50), \"" + COUNTERPARTY_ID + "\" VARCHAR(50), PRIMARY KEY (\""
+                    + AS_OF_DATE + "\", \"" + TRADE_ID + "\"))");
+            for (int i = 1; i <= 2; i++) {
+                statement.execute("INSERT INTO \"" + TRADES_TABLE + "\" VALUES ('2019-02-02', 'T" + i + "', "
+                        + (100.0 * i) + ")");
+                statement.execute("INSERT INTO \"" + TRADE_ATTRIBUTES_TABLE + "\" VALUES ('2019-02-02', 'T" + i
+                        + "', 'Cpty" + i + "')");
+            }
+        }
+
+        final GenericJdbcProperties properties = GenericJdbcProperties.builder()
+                .connectionString(jdbcUrl)
+                .additionalOption("user", "sa")
+                .additionalOption("password", "")
+                .build();
+        final GenericJdbcClientSettings clientSettings =
+                GenericJdbcClientSettings.builder().properties(properties).build();
+        final DirectQueryConnector<GenericJdbcDatabaseSettings> connector =
+                GenericJdbcConnectorMetaFactory.createConnectorFactory(
+                                SqlDialect.builder().build())
+                        .createConnector(clientSettings);
+
+        final IDirectQueryTableDiscoverer discoverer = connector.getDiscoverer();
+        final TableDescription tradesTable = discoverer.discoverTable(new SqlTableId("", "PUBLIC", TRADES_TABLE));
+        final TableDescription tradeAttributesTable =
+                discoverer.discoverTable(new SqlTableId("", "PUBLIC", TRADE_ATTRIBUTES_TABLE));
+
+        final JoinDescription join = JoinDescription.builder()
+                .name(String.format("%s_to_%s", TRADES_TABLE, TRADE_ATTRIBUTES_TABLE))
+                .sourceTableName(TRADES_TABLE)
+                .targetTableName(TRADE_ATTRIBUTES_TABLE)
+                .fieldMappings(Set.of(
+                        new ITableJoin.FieldMapping(AS_OF_DATE, AS_OF_DATE),
+                        new ITableJoin.FieldMapping(TRADE_ID, TRADE_ID)))
+                .targetOptionality(RelationshipOptionality.MANDATORY)
+                .build();
+
+        final SchemaDescription schema = SchemaDescription.builder()
+                .externalTables(List.of(tradesTable, tradeAttributesTable))
+                .externalJoins(List.of(join))
+                .build();
+
+        final ISelectionDescription selection = StartBuilding.selection(schema)
+                .fromBaseStore(TRADES_TABLE)
+                .withAllReachableFields()
+                .build();
+
+        final LevelIdentifier asOfDateLevel = LevelIdentifier.simple(AS_OF_DATE);
+
+        final IActivePivotInstanceDescription cube = StartBuilding.cube(CUBE_NAME)
+                .withContributorsCount()
+                .withDimensions(b -> b.withDimension(AS_OF_DATE)
+                        .withType(IDimension.DimensionType.TIME)
+                        .withHierarchy(AS_OF_DATE)
+                        .withLevelOfSameName())
+                .withAggregateProvider()
+                .jit()
+                .withPartialProvider()
+                .withName(AGGREGATE_PROVIDER_NAME)
+                .bitmap()
+                .includingOnlyLevels(asOfDateLevel)
+                .build();
+
+        final IActivePivotManagerDescription manager = StartBuilding.managerDescription("Manager")
+                .withCatalog("Catalog")
+                .containingAllCubes()
+                .withSchema("Schema")
+                .withSelection(selection)
+                .withCube(cube)
+                .build();
+
+        try (Application application = Application.builder(connector)
+                .schema(schema)
+                .managerDescription(manager)
+                .build()) {
+            application.start();
+
+            final CubeTester cubeTester = CubeTester.from(application.getManager());
+            assertEquals(2L, pointCount(cubeTester, DATE_1), "start() should have pulled the 2 matched rows");
+
+            // A new, matched trade lands - both tables get the new row, so this is a genuine MANDATORY-
+            // compliant add (unlike the earlier tests' deliberately-unmatched row).
+            try (Connection connection = DriverManager.getConnection(jdbcUrl, "sa", "");
+                    Statement statement = connection.createStatement()) {
+                statement.execute("INSERT INTO \"" + TRADES_TABLE + "\" VALUES ('2019-02-02', 'T3', 999.0)");
+                statement.execute(
+                        "INSERT INTO \"" + TRADE_ATTRIBUTES_TABLE + "\" VALUES ('2019-02-02', 'T3', " + "'Cpty3')");
+            }
+
+            // The correctly-scoped refresh: describes ALL the added rows and ONLY the added rows, per the
+            // documented ADD_ROWS contract - scoped to the new row's own key, not the whole date.
+            final var onlyTheNewRow = ConditionFactory.and(
+                    List.of(ConditionFactory.equal(AS_OF_DATE, DATE_1), ConditionFactory.equal(TRADE_ID, "T3")));
+            assertDoesNotThrow(() -> application.refresh(ChangeDescription.create(List.of(
+                    TableUpdateDetail.create(TRADES_TABLE, ChangeType.ADD_ROWS, onlyTheNewRow),
+                    TableUpdateDetail.create(TRADE_ATTRIBUTES_TABLE, ChangeType.ADD_ROWS, onlyTheNewRow)))));
+
+            final long countAfterCorrectlyScopedAdd = pointCount(cubeTester, DATE_1);
+            assertEquals(
+                    3L,
+                    countAfterCorrectlyScopedAdd,
+                    "a correctly-scoped ADD_ROWS (only the new row, not the whole date) should give the correct "
+                            + "count of 3, not double - got "
+                            + countAfterCorrectlyScopedAdd
+                            + ". If this is 3, bug-4 is this application's own over-broad condition scoping, not "
+                            + "an ActiveViam engine defect - the same class of finding as PIVOT-14823's "
+                            + "retraction. If this still doubles even with a correctly-narrow scope, the engine "
+                            + "genuinely has a defect and PIVOT-14842 stands as filed.");
+
+            // A second correctly-scoped call, redundantly re-describing the SAME new row again - this really
+            // is a redundant/wrong change description now (T3 is no longer new), so per the docs this MAY
+            // legitimately misbehave; not asserted, just observed for completeness.
         }
     }
 

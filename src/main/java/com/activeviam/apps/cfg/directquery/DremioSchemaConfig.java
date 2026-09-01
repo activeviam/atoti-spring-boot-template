@@ -48,9 +48,9 @@ public class DremioSchemaConfig {
         final TableDescription tradeAttributesTable = discoverer.discoverTable(
                 new SqlTableId(NO_CATALOG, dremioProperties.getSpace(), tradeAttributesTableName));
 
-        // RelationshipOptionality.MANDATORY - standing focus as of 27 Aug 2026, see
-        // project_wcr_priority_pivot_2026_08's "PIVOT, 2026-08-27" note. This supersedes the earlier
-        // OPTIONAL-is-WCR's-real-setting rationale; do not flip this back without an explicit instruction.
+        // RelationshipOptionality.OPTIONAL - Scenario 5 (star schema, unpartitioned provider, OPTIONAL
+        // join), 31 Aug 2026: matches WCR's real production setting. Supersedes the 27 Aug MANDATORY
+        // pivot for this scenario; do not flip back to MANDATORY without an explicit instruction.
         final JoinDescription join = JoinDescription.builder()
                 .name(String.format("%s_to_%s", tradesTableName, tradeAttributesTableName))
                 .sourceTableName(tradesTableName)
@@ -58,7 +58,7 @@ public class DremioSchemaConfig {
                 .fieldMappings(Set.of(
                         new ITableJoin.FieldMapping(ASOFDATE, ASOFDATE),
                         new ITableJoin.FieldMapping(TRADE_ID, TRADE_ID)))
-                .targetOptionality(RelationshipOptionality.MANDATORY)
+                .targetOptionality(RelationshipOptionality.OPTIONAL)
                 .build();
 
         return SchemaDescription.builder()

@@ -30,7 +30,6 @@ import com.activeviam.activepivot.dist.datanode.impl.api.cube.IMultiVersionDataA
 import com.activeviam.tech.mvcc.api.IEpoch;
 
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.instrumentation.annotations.SpanAttribute;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 
@@ -68,35 +67,43 @@ public class MaskingController {
     @PostMapping("/{date}")
     @WithSpan("masking.mask")
     public MaskingResult mask(
-            @PathVariable @SpanAttribute("date") LocalDate date,
-            @RequestHeader(name = EndpointConstants.TEST_RUN_ID_HEADER, required = false)
-                    @SpanAttribute(EndpointConstants.TEST_RUN_ID_ATTRIBUTE)
-                    String testRunId) {
+            @PathVariable final LocalDate date,
+            @RequestHeader(name = EndpointConstants.TEST_RUN_ID_HEADER, required = false) final String testRunId) {
         final MaskingResult result = toResult(dataActivePivot()
                 .maskMembers(levelMembers(date), IEpoch.MASTER_BRANCH_NAME)
                 .join());
-        annotateSpan(result);
+        annotateSpan(date, testRunId, result);
         return result;
     }
 
     @DeleteMapping("/{date}")
     @WithSpan("masking.unmask")
     public MaskingResult unmask(
-            @PathVariable @SpanAttribute("date") LocalDate date,
-            @RequestHeader(name = EndpointConstants.TEST_RUN_ID_HEADER, required = false)
-                    @SpanAttribute(EndpointConstants.TEST_RUN_ID_ATTRIBUTE)
-                    String testRunId) {
+            @PathVariable final LocalDate date,
+            @RequestHeader(name = EndpointConstants.TEST_RUN_ID_HEADER, required = false) final String testRunId) {
         final MaskingResult result = toResult(dataActivePivot()
                 .unmaskMembers(levelMembers(date), IEpoch.MASTER_BRANCH_NAME)
                 .join());
-        annotateSpan(result);
+        annotateSpan(date, testRunId, result);
         return result;
     }
 
-    private static void annotateSpan(final MaskingResult result) {
-        Span.current()
+    /**
+     * Tags the current span imperatively rather than via {@code @SpanAttribute} on the method
+     * parameters - that annotation-based capture does not attach anything in this app's current OTEL
+     * agent configuration (confirmed by inspecting real traces: neither a {@code date} nor a
+     * {@value EndpointConstants#TEST_RUN_ID_ATTRIBUTE} attribute ever appeared), unlike {@link
+     * DataMaintenanceController}'s equivalent {@code tagTestRunId} helper, which uses the same
+     * imperative pattern and does work.
+     */
+    private static void annotateSpan(final LocalDate date, final String testRunId, final MaskingResult result) {
+        final Span span = Span.current()
+                .setAttribute("date", date.toString())
                 .setAttribute("masking.successful", result.successful())
                 .setAttribute("masking.successfulQueryCubes", String.join(",", result.successfulQueryCubes()));
+        if (testRunId != null) {
+            span.setAttribute(EndpointConstants.TEST_RUN_ID_ATTRIBUTE, testRunId);
+        }
     }
 
     private IMultiVersionDataActivePivot dataActivePivot() {
