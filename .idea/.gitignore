@@ -2,6 +2,7 @@
 shelf
 !inspectionProfiles/*.xml
 !palantir-java-format.xml
+!externalDependencies.xml
 
 codeStyles/*.xml
 !codeStyles/codeStyleConfig.xml

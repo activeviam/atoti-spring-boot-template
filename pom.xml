@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.1.0</version>
+    <version>4.1.1</version>
     <relativePath/>
   </parent>
 
@@ -15,16 +15,16 @@
 
   <properties>
     <java.version>25</java.version>
-    <spring-boot.version>4.1.0</spring-boot.version>
-    <atoti-server.version>6.2.0</atoti-server.version>
+    <spring-boot.version>4.1.1</spring-boot.version>
+    <atoti-server.version>6.2.2</atoti-server.version>
     <springdoc.version>3.0.3</springdoc.version>
 
     <opentelemetry.version>1.63.0</opentelemetry.version>
     <opentelemetry-instrumentation.version>2.29.0</opentelemetry-instrumentation.version>
     <opentelemetry-logback-mdc.version>2.29.0-alpha</opentelemetry-logback-mdc.version>
 
-    <spotless-maven-plugin.version>3.8.0</spotless-maven-plugin.version>
-    <palantir-java-format.version>2.96.0</palantir-java-format.version>
+    <spotless-maven-plugin.version>3.10.3</spotless-maven-plugin.version>
+    <palantir-java-format.version>2.102.0</palantir-java-format.version>
   </properties>
 
   <dependencyManagement>
@@ -189,7 +189,7 @@
 
             <importOrder>
               <!-- or a custom ordering -->
-              <order>\\#,java,javax,org,com,com.diffplug,</order>
+              <order>\\#,java,javax,org,com,</order>
               <!-- or use <file>${project.basedir}/eclipse.importorder</file> -->
               <!-- you can use an empty string for all the imports you didn't specify explicitly, and '\\#` prefix for static imports. -->
             </importOrder>
@@ -214,15 +214,23 @@
               <!-- You have to set the target manually -->
               <include>**/*.md</include>
             </includes>
+            <excludes>
+              <exclude>.claude/**</exclude>
+            </excludes>
             <flexmark/>
             <!-- has its own section below -->
           </markdown>
           <yaml>
             <includes>
-              <!-- You have to set the target manually -->
               <include>**/*.yaml</include>
               <include>**/*.yml</include>
             </includes>
+            <trimTrailingWhitespace/>
+            <endWithNewline/>
+            <indent>
+              <spaces>true</spaces>
+              <spacesPerTab>2</spacesPerTab>
+            </indent>
           </yaml>
         </configuration>
         <executions>
