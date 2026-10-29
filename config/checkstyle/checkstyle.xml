@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+  "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+  "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<!--
+  Structural rules only. Layout (indentation, line length, wrapping, import order, unused imports) is owned
+  by Spotless/Palantir and deliberately absent here. Rule IDs in messages refer to
+  .claude/standards/coding-standards.md. Suppress locally with @SuppressWarnings("checkstyle:<check>").
+-->
+<module name="Checker">
+  <property name="severity" value="error"/>
+  <property name="fileExtensions" value="java"/>
+
+  <module name="SuppressWarningsFilter"/>
+
+  <module name="TreeWalker">
+    <module name="SuppressWarningsHolder"/>
+
+    <!-- IntelliJ inspection profile equivalents -->
+    <module name="NeedBraces"/>
+    <module name="ExplicitInitialization"/>
+    <module name="RedundantModifier"/>
+
+    <!-- Blocks and statements -->
+    <module name="EmptyCatchBlock">
+      <message key="catch.block.empty"
+               value="Empty catch block: handle it, or add a comment saying why it is safe to ignore (EXC-1)."/>
+    </module>
+    <module name="EmptyStatement"/>
+    <module name="OneStatementPerLine"/>
+    <module name="MultipleVariableDeclarations"/>
+    <module name="InnerAssignment"/>
+    <module name="FallThrough"/>
+
+    <!-- Likely bugs -->
+    <module name="EqualsHashCode"/>
+    <module name="StringLiteralEquality"/>
+    <module name="SimplifyBooleanExpression"/>
+    <module name="SimplifyBooleanReturn"/>
+    <module name="UnusedLocalVariable"/>
+
+    <!-- Imports and modifiers -->
+    <module name="AvoidStarImport"/>
+    <module name="IllegalImport"/>
+    <module name="ModifierOrder"/>
+    <module name="UpperEll"/>
+    <module name="ArrayTypeStyle"/>
+
+    <!-- Naming -->
+    <module name="ConstantName">
+      <message key="name.invalidPattern" value="Constant ''{0}'' must be UPPER_SNAKE_CASE."/>
+    </module>
+    <module name="TypeName"/>
+
+    <!-- Project standards that are a single-line pattern -->
+    <module name="RegexpSinglelineJava">
+      <property name="id" value="streamToList"/>
+      <property name="format" value="\.collect\(\s*(Collectors\.)?toList\(\)\s*\)"/>
+      <property name="message"
+                value="Use Stream.toList(), or Collectors.toCollection(ArrayList::new) when the list is mutated."/>
+      <property name="ignoreComments" value="true"/>
+    </module>
+    <module name="RegexpSinglelineJava">
+      <property name="id" value="objectsIsNull"/>
+      <!-- only a lambda whose whole body is the null check: `x -> x == null`, not `x -> x != null && ...` -->
+      <property name="format" value="\(?\s*\b(\w+)\s*\)?\s*->\s*\1\s*[!=]=\s*null\s*(?:[),;]|$)"/>
+      <property name="message" value="Use Objects::isNull / Objects::nonNull."/>
+      <property name="ignoreComments" value="true"/>
+    </module>
+    <module name="RegexpSinglelineJava">
+      <property name="id" value="requireNonNullElse"/>
+      <property name="format" value="\b([\w.]+)\s*!=\s*null\s*\?\s*\1\s*:"/>
+      <property name="message" value="Use Objects.requireNonNullElse(x, default)."/>
+      <property name="ignoreComments" value="true"/>
+    </module>
+  </module>
+</module>

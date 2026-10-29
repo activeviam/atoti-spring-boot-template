@@ -4,6 +4,7 @@
     <inspection_tool class="AutoCloseableResource" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="METHOD_MATCHER_CONFIG" value="java.util.Formatter,format,java.io.Writer,append,com.google.common.base.Preconditions,checkNotNull,org.hibernate.Session,close,java.io.PrintWriter,printf,java.io.PrintStream,printf,build,run" />
     </inspection_tool>
+    <inspection_tool class="CheckStyle" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="ConstantOnWrongSideOfComparison" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myConstantShouldGoLeft" value="false" />
     </inspection_tool>
@@ -11,9 +12,12 @@
     <inspection_tool class="Convert2Diamond" enabled="true" level="INFORMATION" enabled_by_default="true" editorAttributes="INFORMATION_ATTRIBUTES" />
     <inspection_tool class="DiamondCanBeReplacedWithExplicitTypeArguments" enabled="false" level="WARNING" enabled_by_default="false" editorAttributes="WARNING_ATTRIBUTES" />
     <inspection_tool class="FieldMayBeStatic" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="JavadocReference" enabled="true" level="ERROR" enabled_by_default="true">
+      <option name="REPORT_INACCESSIBLE" value="false" />
+    </inspection_tool>
     <inspection_tool class="LambdaCanBeReplacedWithAnonymous" enabled="false" level="INFORMATION" enabled_by_default="false" />
     <inspection_tool class="MissingOverrideAnnotation" enabled="true" level="WARNING" enabled_by_default="true" editorAttributes="WARNING_ATTRIBUTES">
-      <option name="ignoreObjectMethods" value="true" />
+      <option name="ignoreObjectMethods" value="false" />
       <option name="ignoreAnonymousClassMethods" value="false" />
     </inspection_tool>
     <inspection_tool class="QuestionableName" enabled="true" level="WARNING" enabled_by_default="true">

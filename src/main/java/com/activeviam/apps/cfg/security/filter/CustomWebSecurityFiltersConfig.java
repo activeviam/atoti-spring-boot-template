@@ -58,7 +58,6 @@ public class CustomWebSecurityFiltersConfig {
      * a local profile as a "standard" DB would be used.
      * @param http
      * @return
-     * @throws Exception
      */
     @ConditionalOnProperty(prefix = "spring.h2.console", name = "enabled", havingValue = "true")
     @Bean

@@ -26,6 +26,7 @@ import com.activeviam.tech.contentserver.spring.api.config.AdminUiEnvJs;
 import com.activeviam.tech.contentserver.spring.api.config.AtotiUiContentServiceUtil;
 import com.activeviam.tech.contentserver.spring.api.config.AtotiUiEnvJs;
 
+import jakarta.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
@@ -35,28 +36,28 @@ public class CustomUiEnvJsResourceConfig {
     // Here we are using the same env.js content for both, however in case of remote CS we would have a different
     // content.
     private static final String ENV_JS = """
-            var baseUrl = window.location.href.split('%1$s')[0];
-            var atotiVersion = "%2$s"
+        var baseUrl = window.location.href.split('%1$s')[0];
+        var atotiVersion = "%2$s"
 
-            window.env = {
-                "jwtServer": {
+        window.env = {
+            "jwtServer": {
+                "url": baseUrl,
+                "version": atotiVersion
+            },
+            "contentServer": {
+                "url": baseUrl,
+                "version": atotiVersion
+            },
+            // WARNING: Changing the keys of atotiServers will break previously saved widgets and dashboards.
+            // If you must do it, then you also need to update each one's serverKey attribute on your content server.
+            "atotiServers": {
+                "demo": {
                     "url": baseUrl,
                     "version": atotiVersion
                 },
-                "contentServer": {
-                    "url": baseUrl,
-                    "version": atotiVersion
-                },
-                // WARNING: Changing the keys of atotiServers will break previously saved widgets and dashboards.
-                // If you must do it, then you also need to update each one's serverKey attribute on your content server.
-                "atotiServers": {
-                    "demo": {
-                        "url": baseUrl,
-                        "version": atotiVersion
-                    },
-                }
-            };
-            """;
+            }
+        };
+        """;
 
     @Bean
     public AtotiUiEnvJs atotiUiEnvJs(AtotiUiProperties properties) {
@@ -72,7 +73,7 @@ public class CustomUiEnvJsResourceConfig {
     private static class EnvJsResource extends ClassPathResource {
         private final String content;
 
-        public EnvJsResource(@NonNull String content) {
+        EnvJsResource(@NonNull String content) {
             super("classpath:/generated/env/");
             this.content = content;
         }
@@ -113,6 +114,15 @@ public class CustomUiEnvJsResourceConfig {
         @NonNull
         public String getFilename() {
             return "env.js";
+        }
+
+        @Override
+        @Nonnull
+        public String toString() {
+            if (content == null) {
+                return "titi";
+            }
+            return super.toString() + "totot";
         }
     }
 }

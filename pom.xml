@@ -25,6 +25,11 @@
 
     <spotless-maven-plugin.version>3.10.3</spotless-maven-plugin.version>
     <palantir-java-format.version>2.102.0</palantir-java-format.version>
+    <error-prone.version>2.50.0</error-prone.version>
+    <errorprone-slf4j.version>0.1.29</errorprone-slf4j.version>
+    <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
+    <checkstyle.version>14.3.0</checkstyle.version>
+    <archunit.version>1.5.1</archunit.version>
   </properties>
 
   <dependencyManagement>
@@ -148,6 +153,12 @@
       <version>${atoti-server.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.tngtech.archunit</groupId>
+      <artifactId>archunit-junit5</artifactId>
+      <version>${archunit.version}</version>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
 
@@ -181,7 +192,6 @@
         <configuration>
           <!-- limit format enforcement to just the files changed by this feature branch -->
           <ratchetFrom>origin/6.1</ratchetFrom>
-          <!-- define a language-specific format -->
           <java>
             <palantirJavaFormat>
               <version>${palantir-java-format.version}</version>
@@ -196,29 +206,25 @@
 
             <removeUnusedImports/>
             <licenseHeader>
-              <file>./.idea/copyright/spotless.license</file>
+              <file>${maven.multiModuleProjectDirectory}/.idea/copyright/spotless.license</file>
             </licenseHeader>
           </java>
           <pom>
-            <!-- These are the defaults, you can override if you want -->
             <includes>
               <include>**/pom.xml</include>
             </includes>
             <sortPom>
-              <!-- has its own section below -->
               <expandEmptyElements>false</expandEmptyElements>
             </sortPom>
           </pom>
           <markdown>
             <includes>
-              <!-- You have to set the target manually -->
               <include>**/*.md</include>
             </includes>
             <excludes>
               <exclude>.claude/**</exclude>
             </excludes>
             <flexmark/>
-            <!-- has its own section below -->
           </markdown>
           <yaml>
             <includes>
@@ -238,6 +244,37 @@
             <goals>
               <goal>check</goal>
             </goals>
+            <!-- fail before compiling rather than at the default verify phase -->
+            <phase>process-sources</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${maven-checkstyle-plugin.version}</version>
+        <configuration>
+          <!-- shared by every module of a multi-module build (.mvn/ marks the root) -->
+          <configLocation>${maven.multiModuleProjectDirectory}/config/checkstyle/checkstyle.xml</configLocation>
+          <consoleOutput>true</consoleOutput>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <violationSeverity>warning</violationSeverity>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>${checkstyle.version}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <!-- validate runs before generate-sources, so generated code (e.g. ANTLR) is never checked -->
+            <phase>validate</phase>
           </execution>
         </executions>
       </plugin>
@@ -247,6 +284,16 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <release>${java.version}</release>
+          <compilerArgs>
+            <arg>-Xlint:all,-processing</arg>
+            <arg>-Xdoclint:reference/private</arg>
+            <arg>-Werror</arg>
+            <!-- Error Prone: its default ERROR checks plus the promoted ones below; its warnings are
+     disabled so -Werror does not turn every advisory check into a build failure -->
+            <arg>-XDcompilePolicy=simple</arg>
+            <arg>--should-stop=ifError=FLOW</arg>
+            <arg>-Xplugin:ErrorProne -XepDisableAllWarnings -XepDisableWarningsInGeneratedCode -XepExcludedPaths:.*/target/generated-(test-)?sources/.* -Xep:MissingOverride:ERROR -Xep:FieldCanBeStatic:ERROR -Xep:PatternMatchingInstanceof:ERROR -Xep:StatementSwitchToExpressionSwitch:ERROR -Xep:ReferenceEquality:ERROR -Xep:Slf4jFormatShouldBeConst:ERROR -Xep:Slf4jPlaceholderMismatch:ERROR</arg>
+          </compilerArgs>
           <annotationProcessorPaths>
             <path>
               <groupId>org.projectlombok</groupId>
@@ -257,6 +304,16 @@
               <groupId>org.springframework.boot</groupId>
               <artifactId>spring-boot-configuration-processor</artifactId>
               <version>${spring-boot.version}</version>
+            </path>
+            <path>
+              <groupId>com.google.errorprone</groupId>
+              <artifactId>error_prone_core</artifactId>
+              <version>${error-prone.version}</version>
+            </path>
+            <path>
+              <groupId>jp.skypencil.errorprone.slf4j</groupId>
+              <artifactId>errorprone-slf4j</artifactId>
+              <version>${errorprone-slf4j.version}</version>
             </path>
           </annotationProcessorPaths>
         </configuration>

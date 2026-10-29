@@ -3,13 +3,13 @@ shelf
 !inspectionProfiles/*.xml
 !palantir-java-format.xml
 !externalDependencies.xml
+!checkstyle-idea.xml
+!encoding.xml
+!forwardedPorts.xml
+!vcs.xml
 
 codeStyles/*.xml
 !codeStyles/codeStyleConfig.xml
 !codeStyles/Project.xml
-copyright/*.xml
-!copyright/ActiveViam.xml
-!copyright/profiles_settings.xml
 !runConfigurations/*.xml
 sonarlint
-httpRequests
