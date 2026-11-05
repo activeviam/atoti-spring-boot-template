@@ -16,7 +16,7 @@
   <properties>
     <java.version>25</java.version>
     <spring-boot.version>4.1.1</spring-boot.version>
-    <atoti-server.version>6.2.2</atoti-server.version>
+    <atoti-server.version>6.2.3</atoti-server.version>
     <springdoc.version>3.0.3</springdoc.version>
 
     <opentelemetry.version>1.63.0</opentelemetry.version>
@@ -24,7 +24,7 @@
     <opentelemetry-logback-mdc.version>2.29.0-alpha</opentelemetry-logback-mdc.version>
 
     <spotless-maven-plugin.version>3.10.3</spotless-maven-plugin.version>
-    <palantir-java-format.version>2.102.0</palantir-java-format.version>
+    <palantir-java-format.version>2.103.0</palantir-java-format.version>
     <error-prone.version>2.50.0</error-prone.version>
     <errorprone-slf4j.version>0.1.29</errorprone-slf4j.version>
     <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
@@ -222,7 +222,7 @@
               <include>**/*.md</include>
             </includes>
             <excludes>
-              <exclude>.claude/**</exclude>
+              <exclude>**/.claude/**</exclude>
             </excludes>
             <flexmark/>
           </markdown>

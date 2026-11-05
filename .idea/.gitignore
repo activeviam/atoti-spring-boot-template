@@ -1,15 +1,10 @@
-*.xml
-shelf
+*
+!checkstyle-idea.xml
+!externalDependencies.xml
+!forwardedPorts.xml
 !inspectionProfiles/*.xml
 !palantir-java-format.xml
-!externalDependencies.xml
-!checkstyle-idea.xml
-!encoding.xml
-!forwardedPorts.xml
-!vcs.xml
 
-codeStyles/*.xml
 !codeStyles/codeStyleConfig.xml
 !codeStyles/Project.xml
 !runConfigurations/*.xml
-sonarlint
